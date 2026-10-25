@@ -11,6 +11,7 @@ import pytest
 from scripts.dev_ha_bootstrap import (
     ALL_STEPS,
     BASE_URL,
+    COMPOSE_SERVICE_URL,
     DEV_PASSWORD,
     DEV_USERNAME,
     APIStatusError,
@@ -103,6 +104,7 @@ def test_never_allows_non_dev_base_url():
     with pytest.raises(BootstrapError, match="local DEV"):
         Client("http://homeassistant.local:8123")
     assert Client(BASE_URL).base_url == BASE_URL
+    assert Client(COMPOSE_SERVICE_URL).base_url == COMPOSE_SERVICE_URL
 
 
 def test_rejects_absolute_url_paths_before_network():
@@ -122,7 +124,8 @@ def test_bash_entrypoint_is_valid_and_help_uses_no_docker():
     # A global COMPOSE_PROJECT_NAME must never redirect reset to another stack.
     shell_source = script.read_text()
     assert 'docker compose -p "$PROJECT" -f "$COMPOSE_FILE" "$@"' in shell_source
-    assert "compose down --volumes --remove-orphans" in shell_source
+    assert "compose rm -sf bootstrap homeassistant seed" in shell_source
+    assert "compose down --volumes" not in shell_source
 
 
 def test_completed_installation_without_onboarding_view(monkeypatch):
