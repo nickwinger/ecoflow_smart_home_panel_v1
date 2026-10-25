@@ -115,9 +115,7 @@ def test_bash_entrypoint_is_valid_and_help_uses_no_docker():
     script = ROOT / "scripts" / "dev-ha.sh"
     syntax = subprocess.run(["bash", "-n", str(script)], capture_output=True, text=True)
     assert syntax.returncode == 0, syntax.stderr
-    help_result = subprocess.run(
-        ["bash", str(script), "help"], capture_output=True, text=True
-    )
+    help_result = subprocess.run(["bash", str(script), "help"], capture_output=True, text=True)
     assert help_result.returncode == 0, help_result.stderr
     assert "reset" in help_result.stdout
     assert "test / test" in help_result.stdout
