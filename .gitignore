@@ -35,3 +35,6 @@ build/
 # Original browser exports supplied for reference; sanitized text is versioned.
 docs/ecoflow_general.htm
 docs/ecoflow_smart_home_panel_v1.htm
+docs/ecoflow_general_http.html
+docs/ecoflow_smart_home_panel_v1_http.html
+docs/ecoflow_shp_v1_property_ergaenzungen.html

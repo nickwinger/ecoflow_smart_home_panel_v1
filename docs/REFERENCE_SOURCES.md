@@ -28,20 +28,51 @@ Read current official references before coding; APIs change. Third-party example
 
 Do not paste any actual user key, secret, serial, Home Assistant token, proprietary logs, real channel names or live response snapshots into issues, tests, README, CI or public releases. No development-time control commands to an actual SHP v1. Existing production system remains untouched.
 
-## Supplied manufacturer copies (2026-10-25)
+## Three supplied HTML references (2026-10-25)
 
-- [Official SHP v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098), supplied locally as `docs/reference/ecoflow_smart_home_panel_v1.txt`.
-- General signing/API reference supplied as `docs/reference/ecoflow_general.txt`.
-- The copies define topology, basic status enums and configuration fields, but do not establish all units in the seed. Backup `ctrlSta=2` conflicts with the working charging helper. The device list has no authoritative model field; no HTTP application error-code table is supplied.
+All three documents were read in full. Their original local filenames and public,
+sanitized reference copies are:
 
+| Original under `docs/` (unchanged, ignored) | Published reference | Role |
+| --- | --- | --- |
+| `ecoflow_general_http.html` | [General HTTP API](reference/ecoflow_general_http.html) | HMAC signing, headers, quota endpoints and responses |
+| `ecoflow_smart_home_panel_v1_http.html` | [SHP v1 HTTP API](reference/ecoflow_smart_home_panel_v1_http.html) | Command shapes, topology, property definitions and documented enums |
+| `ecoflow_shp_v1_property_ergaenzungen.html` | [Property supplements](reference/ecoflow_shp_v1_property_ergaenzungen.html) | 28 property reviews, pinned community sources, conflicting semantics and open questions |
 
-The original `.htm` browser exports remain local and unchanged. Versioned text
-under `docs/reference/` removes scripts/styles, replaces full manufacturer demo
-identifiers with synthetic values and recalculates the modified signing example.
-These are vendor reference documents, not production telemetry or MIT-licensed
-project code. Synthetic fixtures were authored independently, not copied from the
-reference cache. The reference repository was read only and was never checked out
-or changed locally.
+Official manufacturer URL: [EcoFlow Smart Home Panel v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098).
+The older sanitized text extracts in `reference/ecoflow_general.txt` and
+`reference/ecoflow_smart_home_panel_v1.txt` remain available for the initial M1/M2
+record. The three linked HTML copies are the current supplied reference set.
+Full manufacturer demo credentials and serials in published copies are replaced
+with synthetic values and the modified signing vector is recalculated. No owner
+credentials, live responses or original files were changed.
+
+The supplement is an owner's research document with community evidence, **not**
+a manufacturer guarantee or official HTTP schema. All 28 sections map to catalog
+entries via `evidence.review`; `evidence.sources` retains pinned upstream links.
+The catalog grows from 81 to 92 patterns. Source confidence and unit confidence
+are separate: for example, daily energy is manufacturer-described but its Wh unit
+comes from community code. New community units never imply automatic statistics.
+
+Independently inspected primary code at the supplement's pinned revisions:
+
+- `tolwi/hassio-ecoflow-cloud`, revision `de02d680cdfe1adcec60c43047ff3ed3da15e0ee`, SHP implementation blob `d2ff5ba84ca3243eb94f059c52ac895102b94fd1`.
+- `rustyy/ecoflow-api`, revision `f9804e04c8712670f28feb2a5317f26c460ba62a`, HTTP property schema blob `80821d14520809f76b599a86ecd1de263c358a6d`.
+
+These confirm source-level mappings and data shapes, not the return values of any
+specific firmware. The supplement also pins MichelFR and foxthefox examples and
+links the manufacturer app manual. Their interpretation is attributed to the
+supplement rather than presented as a hardware test. No third-party storage,
+optimistic controls, zero-on-error conversions or calculated power totals were copied.
+
+Remaining conflicts: backup `ctrlSta=2` is off in the manufacturer table but
+charging in the working helper; remaining-time sentinels, capacity scales, daily
+resets/timezone and physical storage direction remain unresolved. The device list
+provides no authoritative model field and no application error-code table was supplied.
+
+Reference documents retain their original authors' ownership; the project MIT
+license does not relicense them. Synthetic test fixtures were authored independently.
+The read-only working reference repository was never modified or checked out locally.
 
 Reference source blobs inspected: API `81c75b35a0c8c8b00502cd70989acd813f623745`,
 cache `bf2b9ff9dbf90842b5fe4bf1ccd5808137ced001`, channel/charge writes

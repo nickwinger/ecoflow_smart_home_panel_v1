@@ -1,4 +1,4 @@
-"""All 81 seed patterns have usable metadata and honest decoding."""
+"""Seed and supplementary patterns have usable, evidence-graded metadata."""
 
 import json
 import re
@@ -39,12 +39,16 @@ def test_every_catalog_pattern(source):
     assert field.source["confidence"] in (
         "documented",
         "inferred",
+        "community",
         "unknown",
         "local_implementation",
     )
-    if source["confidence"] != "documented":
+    if source["confidence"] not in ("documented", "community"):
         assert field.unit is None
         assert field.enum is None
+        assert not field.measurement
+        assert not field.enabled
+    if source["confidence"] == "community":
         assert not field.measurement
         assert not field.enabled
 
@@ -89,16 +93,66 @@ def test_statistics_and_daily_counter_policy():
         "heartbeat.workTime",
     ):
         assert not CATALOG.resolve((path,)).measurement
-    for path in ("heartbeat.gridDayWatth", "heartbeat.backupDayWatth", "heartbeat.workTime"):
-        assert CATALOG.resolve((path,)).unit is None
+    for path in ("heartbeat.gridDayWatth", "heartbeat.backupDayWatth"):
+        field = CATALOG.resolve((path,))
+        assert field.unit == "Wh"
+        assert field.source["unit_confidence"] == "community"
+    assert CATALOG.resolve(("heartbeat.workTime",)).unit == "min"
 
 
 def test_container_arrays_unknowns_and_numbering():
     field = CATALOG.resolve(("mainsLoadWatt.watth", 1, 3))
-    assert field.source["path"] == "mainsLoadWatt.watth"
+    assert field.source["path"] == "mainsLoadWatt.watth[][]"
     assert field.unit is None
     unknown = CATALOG.resolve(("new", 0, "raw"))
     assert unknown.source is None
     assert "unknown" in unknown.description("en")
     assert not unknown.enabled
     assert not CATALOG.resolve(("heartbeat.loadCmdChCtrlInfos", 10, "ctrlSta")).enabled
+
+
+@pytest.mark.parametrize(
+    "pattern,unit,raw,expected",
+    [
+        ("loadChCurInfo.cur[]", "A", 15, 15),
+        ("channelPower.infoList[].chWatt", "W", -123.5, -123.5),
+        ("heartbeat.energyInfos[].lcdInputWatts", "W", 321, 321),
+        ("heartbeat.energyInfos[].outputPower", "W", 0, 0),
+        ("heartbeat.energyInfos[].emsBatTemp", "°C", -8, -8),
+        ("heartbeat.energyInfos[].batteryPercentage", "%", 101, None),
+        ("heartbeat.energyInfos[].batteryPercentage", "%", "50", None),
+        ("heartbeat.energyInfos[].batteryPercentage", "%", 50, 50),
+    ],
+)
+def test_community_units_without_scaling_or_statistics(pattern, unit, raw, expected):
+    field = CATALOG.resolve(concrete(pattern))
+    assert field.unit == unit
+    assert field.value(raw) == expected
+    assert not field.measurement
+    assert not field.enabled
+    assert field.source["evidence"]["sources"]
+    assert field.source["unit_confidence"] == "community"
+
+
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        "heartbeat.backupChaTime",
+        "heartbeat.energyInfos[].chargeTime",
+        "heartbeat.energyInfos[].dischargeTime",
+        "heartbeat.backupFullCap",
+        "heartbeat.energyInfos[].fullCap",
+    ],
+)
+def test_unresolved_capacity_and_time_sentinels_remain_raw(pattern):
+    field = CATALOG.resolve(concrete(pattern))
+    assert field.value(4294967295) == 4294967295
+    assert field.value(None) is None
+    assert field.unit is None
+    assert not field.measurement
+
+
+def test_all_28_supplementary_sections_have_catalog_evidence():
+    refs = {f["evidence"]["review"].split("#")[-1] for f in GUIDE["fields"] if "evidence" in f}
+    assert refs == {f"property-{i:02d}" for i in range(1, 29)}
+    assert GUIDE["field_count"] == len(GUIDE["fields"]) == 92

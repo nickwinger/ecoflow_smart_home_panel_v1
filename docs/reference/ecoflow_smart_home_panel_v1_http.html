@@ -1,0 +1,1252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoFlow Smart Home Panel v1 - HTTP API</title>
+</head>
+<body>
+<p>Repository reference copy, 2026-10-25. Manufacturer demo credentials and serials were replaced by synthetic values; the full signing vector was recalculated. Original authors retain ownership.</p>
+<h1>EcoFlow Smart Home Panel v1 - HTTP API</h1>
+<h2 id="moduletype-definition">ModuleType definition</h2>
+<table>
+<thead>
+<tr><th>Field</th><th>Field Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td></td><td></td><td></td></tr>
+</tbody>
+</table>
+<h2 id="http-communication-mode">HTTP communication mode</h2>
+<h3 id="set-get-quota">Set &amp; Get Quota</h3>
+<p>PUT: /iot-open/sign/device/quota: SetCmdRequest</p>
+<p>GET: /iot-open/sign/device/quota: GetCmdRequest, GetCmdResponse</p>
+<p><strong>Set Command</strong></p>
+<h4 id="http-command-01">RTC time update</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 3,
+        "week": 2,
+        "sec": 17,
+        "min": 38,
+        "hour": 18,
+        "day": 16,
+        "month": 11,
+        "year": 2022
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "heartbeat.time"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<p>—</p>
+<h4 id="http-command-02">Load channel control</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 16,
+        "ch": 1,
+        "ctrlMode": 1,
+        "sta": 1
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "loadChInfo"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<p>—</p>
+<h4 id="http-command-03">Standby channel control</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 17,
+        "ch": 10,
+        "ctrlMode": 1,
+        "sta": 1
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<p>—</p>
+<h5>GetCmdResponse</h5>
+<p>—</p>
+<h4 id="http-command-04">Split-phase information configuration</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 18,
+        "cfgList": [
+            {
+                "linkMark": 1,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            }
+        ]
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "splitPhaseInfo.cur",
+            "splitPhaseInfo.cfgList",
+            "splitPhaseInfo.cmdSet",
+            "splitPhaseInfo.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "splitPhaseInfo.id": 19,
+        "splitPhaseInfo.cmdSet": 11,
+        "splitPhaseInfo.cfgList": [
+            {
+                "linkMark": 1,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            },
+            {
+                "linkMark": 0,
+                "linkCh": 0
+            }
+        ]
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-05">Channel current configuration (cur: 6, 13, 16, 20, 30)</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 20,
+        "chNum": 0,
+        "cur": 6
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "loadChCurInfo.cur",
+            "loadChCurInfo.cmdSet",
+            "loadChCurInfo.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "loadChCurInfo.cur": [
+            6,
+            15,
+            20,
+            30,
+            20,
+            20,
+            20,
+            20,
+            20,
+            20,
+            16,
+            16
+        ],
+        "loadChCurInfo.cmdSet": 11,
+        "loadChCurInfo.id": 21
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-06">Grid power parameter configuration (gridVol: 220 230 240)</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "gridVol": 230,
+        "gridFreq": 50,
+        "cmdSet": 11,
+        "id": 22
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "gridInfo.gridVol",
+            "gridInfo.gridFreq",
+            "gridInfo.cmdSet",
+            "gridInfo.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "gridInfo.cmdSet": 11,
+        "gridInfo.gridFreq": 60,
+        "gridInfo.gridVol": 120,
+        "gridInfo.id": 23
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-07">EPS mode configuration (eps: 0: off, 1: on)</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 24,
+        "eps": 1
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "epsModeInfo.eps",
+            "epsModeInfo.cmdSet",
+            "epsModeInfo.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "epsModeInfo.cmdSet": 11,
+        "epsModeInfo.id": 25,
+        "epsModeInfo.eps": true
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-08">Channel enable status configuration(chNum: 0–9, isEnable, 0: off, 1: on)</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "isEnable": 1,
+        "chNum": 1,
+        "cmdSet": 11,
+        "id": 26
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "emergencyStrategy.chSta"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "emergencyStrategy.chSta": [
+            {
+                "priority": 0,
+                "isEnable": 1
+            },
+            {
+                "priority": 1,
+                "isEnable": 1
+            },
+            {
+                "priority": 2,
+                "isEnable": 1
+            },
+            {
+                "priority": 3,
+                "isEnable": 1
+            },
+            {
+                "priority": 4,
+                "isEnable": 1
+            },
+            {
+                "priority": 5,
+                "isEnable": 1
+            },
+            {
+                "priority": 6,
+                "isEnable": 1
+            },
+            {
+                "priority": 7,
+                "isEnable": 1
+            },
+            {
+                "priority": 8,
+                "isEnable": 1
+            },
+            {
+                "priority": 9,
+                "isEnable": 1
+            }
+        ]
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-09">Load channel information configuration(chNum 0~9 )</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 32,
+        "chNum": 1,
+        "info": {
+            "chName": "test",
+            "iconInfo": 10
+        }
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "loadChInfo"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "loadChInfo": {
+            "info": [
+                {
+                    "iconNum": 0,
+                    "chName": "test"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 2"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 3"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 4"
+                },
+                {
+                    "iconNum": 0,
+                    "chName": "Line 5"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 6"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 7"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 8"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 9"
+                },
+                {
+                    "iconNum": 27,
+                    "chName": "Line 10"
+                }
+            ]
+        }
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-10">Region information configuration</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 34,
+        "area": "US, China"
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "areaInfo.area",
+            "areaInfo.cmdSet",
+            "areaInfo.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "areaInfo.id": 35,
+        "areaInfo.cmdSet": 11,
+        "areaInfo.area": "United States,Alabama"
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-11">Setting the emergency mode</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 64,
+        "isCfg": 1,
+        "backupMode": 1,
+        "overloadMode": 1,
+        "chSta": [
+            {
+                "priority": 1,
+                "isEnable": 1
+            },
+            {
+                "priority": 1,
+                "isEnable": 1
+            },
+            {
+                "priority": 2,
+                "isEnable": 1
+            },
+            {
+                "priority": 3,
+                "isEnable": 1
+            },
+            {
+                "priority": 4,
+                "isEnable": 1
+            },
+            {
+                "priority": 5,
+                "isEnable": 1
+            },
+            {
+                "priority": 6,
+                "isEnable": 1
+            },
+            {
+                "priority": 7,
+                "isEnable": 1
+            },
+            {
+                "priority": 8,
+                "isEnable": 1
+            },
+            {
+                "priority": 9,
+                "isEnable": 1
+            }
+        ]
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "emergencyStrategy.isCfg",
+            "emergencyStrategy.backupMode",
+            "emergencyStrategy.cmdSet",
+            "emergencyStrategy.chSta",
+            "emergencyStrategy.id",
+            "emergencyStrategy.overloadMode"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "emergencyStrategy.backupMode": 1,
+        "emergencyStrategy.overloadMode": 1,
+        "emergencyStrategy.chSta": [
+            {
+                "priority": 1,
+                "isEnable": 1
+            },
+            {
+                "priority": 1,
+                "isEnable": 1
+            },
+            {
+                "priority": 2,
+                "isEnable": 1
+            },
+            {
+                "priority": 3,
+                "isEnable": 1
+            },
+            {
+                "priority": 4,
+                "isEnable": 1
+            },
+            {
+                "priority": 5,
+                "isEnable": 1
+            },
+            {
+                "priority": 6,
+                "isEnable": 1
+            },
+            {
+                "priority": 7,
+                "isEnable": 1
+            },
+            {
+                "priority": 8,
+                "isEnable": 1
+            },
+            {
+                "priority": 9,
+                "isEnable": 1
+            }
+        ],
+        "emergencyStrategy.id": 65,
+        "emergencyStrategy.isCfg": 1,
+        "emergencyStrategy.cmdSet": 11
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-12">Setting the scheduled charging job</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cfg": {
+            "param": {
+                "lowBattery": 95,
+                "chChargeWatt": 2000,
+                "chSta": [
+                    1,
+                    0
+                ],
+                "hightBattery": 100
+            },
+            "comCfg": {
+                "timeScale": [
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    255,
+                    127
+                ],
+                "isCfg": 1,
+                "type": 1,
+                "timeRange": {
+                    "isCfg": 1,
+                    "startTime": {
+                        "sec": 0,
+                        "min": 0,
+                        "week": 4,
+                        "hour": 0,
+                        "month": 1,
+                        "year": 2023,
+                        "day": 11
+                    },
+                    "timeMode": 0,
+                    "endTime": {
+                        "sec": 59,
+                        "min": 59,
+                        "week": 7,
+                        "hour": 23,
+                        "month": 1,
+                        "year": 2023,
+                        "day": 22
+                    },
+                    "mode1": {
+                        "thur": 0,
+                        "sat": 0,
+                        "wed": 0,
+                        "tues": 0,
+                        "fri": 0,
+                        "sun": 0,
+                        "mon": 0
+                    },
+                    "isEnable": 1
+                },
+                "isEnable": 1,
+                "setTime": {
+                    "sec": 35,
+                    "min": 53,
+                    "week": 4,
+                    "hour": 15,
+                    "month": 1,
+                    "year": 2023,
+                    "day": 11
+                }
+            }
+        },
+        "cfgIndex": 1,
+        "cmdSet": 11,
+        "id": 81
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "timeTask"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "timeTask": [
+            {
+                "cfg": {
+                    "param": {
+                        "lowBattery": 0,
+                        "chChargeWatt": 0,
+                        "chSta": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "hightBattery": 0
+                    },
+                    "comCfg": {
+                        "timeScale": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "isCfg": 0,
+                        "type": 0,
+                        "isEnable": 0,
+                        "setTime": {
+                            "sec": 0,
+                            "week": 0,
+                            "min": 0,
+                            "hour": 0,
+                            "month": 0,
+                            "year": 0,
+                            "day": 0
+                        },
+                        "timeRange": {
+                            "isCfg": 0,
+                            "timeMode": 0,
+                            "startTime": {
+                                "sec": 0,
+                                "week": 0,
+                                "min": 0,
+                                "hour": 0,
+                                "month": 0,
+                                "year": 0,
+                                "day": 0
+                            },
+                            "endTime": {
+                                "sec": 59,
+                                "week": 0,
+                                "min": 59,
+                                "hour": 23,
+                                "month": 0,
+                                "year": 0,
+                                "day": 0
+                            },
+                            "isEnable": 0
+                        }
+                    }
+                },
+                "index": 16
+            }
+        ]
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-13">Setting the scheduled discharging job</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cfg": {
+            "chSta": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            "comCfg": {
+                "timeScale": [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "isCfg": 1,
+                "type": 2,
+                "timeRange": {
+                    "isCfg": 1,
+                    "timeMode": 0,
+                    "startTime": {
+                        "sec": 0,
+                        "min": 0,
+                        "week": 2,
+                        "hour": 0,
+                        "month": 10,
+                        "year": 2022,
+                        "day": 24
+                    },
+                    "endTime": {
+                        "sec": 59,
+                        "min": 59,
+                        "week": 2,
+                        "hour": 23,
+                        "month": 10,
+                        "year": 2022,
+                        "day": 25
+                    },
+                    "isEnable": 1
+                },
+                "isEnable": 1,
+                "setTime": {
+                    "sec": 61,
+                    "min": 9,
+                    "week": 7,
+                    "hour": 16,
+                    "month": 11,
+                    "year": 2022,
+                    "day": 15
+                }
+            }
+        },
+        "cfgIndex": 0,
+        "cmdSet": 11,
+        "id": 82
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "timeTask"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<p>—</p>
+<h4 id="http-command-14">Setting the configuration status</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 7,
+        "cfgSta": 1
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "cfgSta.sta",
+            "cfgSta.cmdSet",
+            "cfgSta.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "cfgSta.cmdSet": 11,
+        "cfgSta.sta": 0,
+        "cfgSta.id": 8
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-15">Getting the configuration status</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 8
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<p>—</p>
+<h5>GetCmdResponse</h5>
+<p>—</p>
+<h4 id="http-command-16">Start self-check information pushing</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 112,
+        "selfCheckType": 1
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "selfCheck.flag",
+            "selfCheck.cmsSet",
+            "selfCheck.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "selfCheck.id": 113,
+        "selfCheck.flag": 1
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h4 id="http-command-17">Pushing standby charging/discharging parameters</h4>
+<h5>SetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "operateType": "TCP",
+    "params": {
+        "cmdSet": 11,
+        "id": 29,
+        "forceChargeHigh": 0,
+        "discLower": 0
+    }
+}</code></pre>
+<h5>GetCmdRequest</h5>
+<pre><code>{
+    "sn": "SHP-EXAMPLE-0000",
+    "params": {
+        "quotas": [
+            "backupChaDiscCfg.forceChargeHigh",
+            "backupChaDiscCfg.discLower",
+            "backupChaDiscCfg.cmdSet",
+            "backupChaDiscCfg.id"
+        ]
+    }
+}</code></pre>
+<h5>GetCmdResponse</h5>
+<pre><code>{
+    "code": "0",
+    "message": "Success",
+    "data": {
+        "backupChaDiscCfg.cmdSet": 11,
+        "backupChaDiscCfg.discLower": 0,
+        "backupChaDiscCfg.forceChargeHigh": 100,
+        "backupChaDiscCfg.id": 30
+    },
+    "eagleEyeTraceId": "",
+    "tid": ""
+}</code></pre>
+<h3 id="getallquotaresponse">GetAllQuotaResponse</h3>
+<h4 id="heartbeat">heartbeat</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>workTime</td><td>long</td><td>Device work time /min</td></tr>
+<tr><td>backupFullCap</td><td>int</td><td>Backup full capacity</td></tr>
+<tr><td>backupBatPer</td><td>int</td><td>Backup battery percentage</td></tr>
+<tr><td>gridDayWatth</td><td>float</td><td>Grid electricity consumption per day</td></tr>
+<tr><td>backupDayWatth</td><td>float</td><td>Backup electricity consumption per day</td></tr>
+<tr><td>backupChaTime</td><td>int</td><td>Backup discharge time</td></tr>
+<tr><td>gridSta</td><td>int</td><td>Grid electricity status0 off, 1 on</td></tr>
+</tbody>
+</table>
+<h5 id="heartbeattime">heartbeat.time</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>year</td><td>int</td><td>Year</td></tr>
+<tr><td>month</td><td>int</td><td>Month</td></tr>
+<tr><td>day</td><td>int</td><td>Day</td></tr>
+<tr><td>hour</td><td>int</td><td>Hour</td></tr>
+<tr><td>min</td><td>int</td><td>Minute</td></tr>
+<tr><td>sec</td><td>int</td><td>Second</td></tr>
+<tr><td>week</td><td>int</td><td>Week</td></tr>
+</tbody>
+</table>
+<h5 id="heartbeatloadcmdchctrlinfos">heartbeat.loadCmdChCtrlInfos</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>powCh</td><td>int</td><td>Channel number 0~9</td></tr>
+<tr><td>ctrlSta</td><td>short</td><td>Power supply type0 Grid supply, 1 storage power supply, 2 close</td></tr>
+<tr><td>ctrlMode</td><td>short</td><td>Contol mode0 Auto, 1 Manual</td></tr>
+<tr><td>priority</td><td>short</td><td>Channel priority</td></tr>
+</tbody>
+</table>
+<h5 id="heartbeatbackupcmdchctrlinfos">heartbeat.backupCmdChCtrlInfos</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>pwoCh</td><td>int</td><td>Channel number 10~11</td></tr>
+<tr><td>ctrlSta</td><td>short</td><td>Power supply type0 Grid supply, 1 storage power supply, 2 close</td></tr>
+<tr><td>ctrlMode</td><td>short</td><td>Contol mode0 Auto, 1 Manual</td></tr>
+<tr><td>priority</td><td>short</td><td>Channel priority</td></tr>
+</tbody>
+</table>
+<h4 id="splitphaseinfo">splitPhaseInfo</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>cfgList</td><td>CfgInfo[10]</td><td>Split phase info listcfgList.length must be 10</td></tr>
+</tbody>
+</table>
+<h5>CfgInfo</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>linkMark</td><td>short</td><td>0 Not be split1 Should be split</td></tr>
+<tr><td>linkCh</td><td>int</td><td>Spilt channel number</td></tr>
+</tbody>
+</table>
+<h4 id="loadchcurinfo">loadChCurInfo</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>cur</td><td>int[10]</td><td>Channel currentcur[0] represent channel1's current</td></tr>
+</tbody>
+</table>
+<h4 id="gridinfo">gridInfo</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>gridVol</td><td>int</td><td>Grid voltageRange: 100 ~ 250</td></tr>
+<tr><td>gridFreq</td><td>int</td><td>Grid FrequencyRange: 50 ~ 60</td></tr>
+</tbody>
+</table>
+<h4 id="epsmodeinfo">epsModeInfo</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>eps</td><td>bool</td><td>EPS mode status0 off, 1 on</td></tr>
+</tbody>
+</table>
+<h4 id="chuseinfo">chUseInfo</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>isEnable</td><td>bool[]</td><td>Channel use or notisEnable[0]=false, represent channel1 off</td></tr>
+</tbody>
+</table>
+<h4 id="loadchinfo">loadChInfo</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>chName</td><td>string</td><td>Channel nick name</td></tr>
+<tr><td>iconNum</td><td>int</td><td>Channel icon number</td></tr>
+</tbody>
+</table>
+<h4 id="timetask">timeTask</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>index</td><td>int</td><td>Task index</td></tr>
+<tr><td>cfg</td><td>CfgInfo</td><td>Task config info</td></tr>
+</tbody>
+</table>
+<h5>CfgInfo</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>param</td><td>param</td><td>Parameter</td></tr>
+<tr><td>comCfg</td><td>ComCfg</td><td>Job configuration</td></tr>
+</tbody>
+</table>
+<h5>param</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>hightBattery</td><td>int</td><td>Charge high power percentage</td></tr>
+<tr><td>lowBattery</td><td>int</td><td>Charge low power percentage</td></tr>
+<tr><td>chChargeWatt</td><td>int</td><td>Channel charge power</td></tr>
+<tr><td>chSta</td><td>int[]</td><td>Channel status0 off, 1 on</td></tr>
+</tbody>
+</table>
+<h5>ComCfg</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>timeScale</td><td>int[]</td><td>Time scale</td></tr>
+<tr><td>isCfg</td><td>short</td><td>Config or not0 No, 1 Yes</td></tr>
+<tr><td>type</td><td>short</td><td>Power type1 charge, 2 discharge</td></tr>
+<tr><td>isEnable</td><td>short</td><td>Config enable or not0 No, 1 Yes</td></tr>
+<tr><td>setTime</td><td>TimeInfo</td><td>Setting time</td></tr>
+<tr><td>timeRange</td><td>TimeRangeInfo</td><td>Strategy effective time range</td></tr>
+</tbody>
+</table>
+<h5>TimeRangeInfo</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>isCfg</td><td>short</td><td>Config or not0 No, 1 Yes</td></tr>
+<tr><td>isEnable</td><td>short</td><td>Config enable or not0 No, 1 Yes</td></tr>
+<tr><td>timeMode</td><td>short</td><td>Time mode0 every day, 1 every week, 2 every month, 3 year month day</td></tr>
+<tr><td>startTime</td><td>TimeInfo</td><td>Start time</td></tr>
+<tr><td>endTime</td><td>TimeInfo</td><td>End time</td></tr>
+<tr><td>model</td><td>——</td><td>timeMode = 0 "model": { "data": 12212121212122 }timeMode = 1 "model" : { "mon":1, "tues":1, "wed":1, "thur":1, "fri": 1, "sat": 1, "sun": 1, } timeMode = 2 "model": [1,2,3,4,5,6] timeMode = 3 "model":{ "day":1, "month":4, "year":2022 }</td></tr>
+</tbody>
+</table>
+<h5>TimeInfo</h5>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>year</td><td>int</td><td>Year</td></tr>
+<tr><td>month</td><td>int</td><td>Month</td></tr>
+<tr><td>day</td><td>int</td><td>Day</td></tr>
+<tr><td>hour</td><td>int</td><td>Hour</td></tr>
+<tr><td>min</td><td>int</td><td>Minute</td></tr>
+<tr><td>sec</td><td>int</td><td>Second</td></tr>
+<tr><td>week</td><td>int</td><td>Week</td></tr>
+</tbody>
+</table>
+<h4 id="cfgsta">cfgSta</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>sta</td><td>int</td><td>Config or not 0 No, 1 Yes</td></tr>
+</tbody>
+</table>
+<h4 id="backupchadisccfg">backupChaDiscCfg</h4>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>forceChargeHigh</td><td>int</td><td>Charge upper threshold percentage</td></tr>
+<tr><td>discLower</td><td>int</td><td>Discharge lower threshold percentage</td></tr>
+</tbody>
+</table>
+</body>
+</html>

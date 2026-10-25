@@ -11,7 +11,7 @@ For a **separate Docker Home Assistant 2026.10.3** on `http://localhost:8124`, a
 - UI configuration of per-panel access key, secret key, serial and EU/global API endpoint; duplicate-serial prevention, reauthentication and credential replacement.
 - One asynchronous, signed EcoFlow client and one DataUpdateCoordinator per panel. Default polling is 60 seconds, configurable from 30–900 seconds, with failure backoff and rate-limit handling.
 - Every safe scalar quota leaf is discoverable, including dotted keys, nested objects, arrays, nulls and new fields. Raw access identity is preserved even when two display paths collide.
-- German/English friendly names and explanations for all 81 seed patterns, including indexed container fallbacks. Device channel labels are included safely without changing entity identity.
+- German/English friendly names and explanations for 92 catalog patterns (all 81 seed patterns plus 11 additions), including indexed container fallbacks. Device channel labels support strings and valid zero-padded UTF-8 byte lists without changing entity identity.
 - Native sensor/binary_sensor entities, stable device identity, dynamic discovery, clean unload/reload and safe aggregate diagnostics.
 - History exclusively through HA Recorder for enabled entities. No quota archive, extra database, snapshots or per-entity API requests.
 
@@ -23,9 +23,9 @@ The independent synthetic fixture contains **243 scalar leaves → 243 registry 
 | Backup battery percentage | 1 | Only 0–100; valid readings support measurement statistics |
 | Circuit supply source | 10 | 0 grid, 1 battery, 2 off; other codes unknown |
 | Nominal grid voltage/frequency | 2 | Configuration values, not live measurements |
-| Daily grid/backup energy fields | 2 | Raw daily counters without a unit or statistics pending verification |
+| Daily grid/backup energy fields | 2 | Community unit Wh; no statistics until resets and scale are verified |
 
-Channel power, per-storage percentages/power/temperature and other inferred fields remain individually enableable **raw diagnostics**, without guessed units or scaling. Backup `ctrlSta=2` conflicts between the manufacturer table and the existing charging helper, so it remains a raw code. The [entity catalog](docs/ENTITY_CATALOG.md) explains these decisions.
+Channel power and per-storage percentages/power/temperature remain individually enableable diagnostics. The supplementary sources now support explicit **community units** (W, %, °C); they receive no automatic statistics. Configured channel currents use A and documented operating time uses min. Unresolved capacity scales, remaining-time sentinels and energy-interval timing remain raw. Backup `ctrlSta=2` conflicts between the manufacturer table and the existing charging helper, so it remains a raw code. The [entity catalog](docs/ENTITY_CATALOG.md) explains these decisions.
 
 ## Installation in an isolated test instance
 
@@ -60,7 +60,7 @@ python3.14 -m venv .venv
 .venv/bin/pytest -q --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing
 ```
 
-Latest local result: **186 tests passed, 98% line coverage**. Tests use invented data, mocked HTTP and an in-memory HA Recorder database. `pytest-socket` blocks Internet access. The current sandbox blocks asyncio's internal self-pipe, so local tests run outside that sandbox with the same network-blocking pytest configuration. CI runs Ruff, catalog consistency, compilation, pytest, official hassfest and HACS custom-repository checks. HACS **brands** validation is explicitly deferred to M4; the other HACS checks remain enabled.
+Latest local result: **221 tests passed, 99% line coverage**. Tests use invented data, mocked HTTP and an in-memory HA Recorder database. `pytest-socket` blocks Internet access. The current sandbox blocks asyncio's internal self-pipe, so local tests run outside that sandbox with the same network-blocking pytest configuration. CI runs Ruff, catalog consistency, compilation, pytest, official hassfest and HACS custom-repository checks. Official hassfest and the offline CI suite have passed. HACS currently fails only because this repository has no topics; an owner must add suitable topics such as `home-assistant`, `hacs`, `ecoflow` in GitHub repository settings. HACS **brands** validation is explicitly deferred to M4; the other checks remain enabled.
 
 `scripts/sync_catalog.py` packages the field guide and generates entity translations inside the HACS install directory. All runtime files are self-contained there. Changes to catalog text must regenerate those resources. See [milestones and validation results](docs/MILESTONES.md).
 
@@ -68,7 +68,8 @@ Latest local result: **186 tests passed, 98% line coverage**. Tests use invented
 
 - [Official EcoFlow Smart Home Panel v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098).
 - [Read-only working Python reference](https://github.com/nickwinger/homeassistant_config/tree/main/ecoflow), particularly signing, indexed channel interpretation and fresh-status behavior.
-- [Source/evidence details](docs/REFERENCE_SOURCES.md), including sanitized text extracted from the owner's supplied manufacturer documentation. Original browser exports remain local and unchanged.
+- All **three supplied HTML documents** were read and incorporated: [General HTTP/signing](docs/reference/ecoflow_general_http.html), [SHP v1 HTTP/properties](docs/reference/ecoflow_smart_home_panel_v1_http.html), and [28 property supplements](docs/reference/ecoflow_shp_v1_property_ergaenzungen.html). The third document is a community-source review, not an official EcoFlow schema.
+- [Source/evidence details](docs/REFERENCE_SOURCES.md) identify the original filenames and pinned source revisions. Published reference copies substitute synthetic demo credentials/serials; the three owner-supplied originals remain local and unchanged.
 
 Credentials are stored in HA-managed config entries; serials also participate in HA-managed registry identities, never display names. The integration logs neither request URLs nor payloads. Sensitive quota subtrees are excluded, diagnostics contain only counts/status, and malformed/dynamic inputs are bounded. Treat HA backups/config entry storage as private.
 

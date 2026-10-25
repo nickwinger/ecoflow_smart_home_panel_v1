@@ -78,7 +78,7 @@ Batch source switching reference order: `[7,6,3,1,2,4,5,8,9,10]`, with verificat
 
 ## Safety/provenance
 
-No invented unit conversion or enum labels. The field guide distinguishes `documented`, `inferred`, `unknown`, `local_implementation`. Some example values conflict with nominal scales; reflect this uncertainty in names/descriptions, not guessed computed values.
+No invented unit conversion or enum labels. The field guide distinguishes `documented`, `community`, `inferred`, `unknown`, `local_implementation`. Some example values conflict with nominal scales; reflect this uncertainty in names/descriptions, not guessed computed values.
 
 ## Implemented M1/M2 decisions
 
@@ -115,12 +115,19 @@ keys/values are excluded. Registry churn beyond 4,096 identities is refused and
 reported by aggregate diagnostics, including across reloads. No pruning silently
 recycles identities. These limits intentionally bound exotic future layouts.
 
-Manufacturer evidence does not establish every seed unit. Only supported,
-validated percentage fields and nominal voltage/frequency get units; configured
-values have no measurement statistics. Daily energy fields are raw counters,
-without an assumed reset boundary or TOTAL_INCREASING. Inferred storage and power
-fields remain raw, disabled diagnostics. The seed unit/enum is visible separately
-as evidence metadata, never silently promoted to a verified measurement.
+Manufacturer evidence and the three supplied HTML references are distinguished
+in catalog metadata. Supplementary community evidence supports explicit W, °C,
+%, A and daily Wh units without scaling or automatic statistics. Daily reset,
+timezone, capacity scale and remaining-time sentinels remain unresolved; no
+TOTAL_INCREASING or Energy Dashboard claim is made. Only documented, valid panel
+battery percentage has MEASUREMENT. Nominal settings are not live measurements.
+`unit_confidence` and the supplementary evidence reference are unrecorded static
+attributes; community units never silently become manufacturer guarantees.
+
+Channel names may be strings or zero-padded UTF-8 bytes. Reconstruction uses only
+the current safe scalar snapshot, requires one unambiguous contiguous byte array,
+and never mutates raw values or identities. Invalid bytes/gaps produce no label.
+Each byte remains an independently selectable diagnostic, with no new archive.
 
 M3 correction from the working source: channel grid writes require BOTH
 `ctrlMode=0` and `sta=0`; battery requires BOTH to be 1. No such writes are

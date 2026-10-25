@@ -33,6 +33,16 @@ class QuotaSensor(QuotaEntity, SensorEntity):
             self._attr_device_class = SensorDeviceClass.VOLTAGE
         elif field.unit == "Hz":
             self._attr_device_class = SensorDeviceClass.FREQUENCY
+        elif field.unit == "A":
+            self._attr_device_class = SensorDeviceClass.CURRENT
+        elif field.unit == "W":
+            self._attr_device_class = SensorDeviceClass.POWER
+        elif field.unit == "Wh":
+            self._attr_device_class = SensorDeviceClass.ENERGY
+        elif field.unit == "°C":
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        elif field.unit == "min":
+            self._attr_device_class = SensorDeviceClass.DURATION
 
     @property
     def native_value(self) -> Scalar:

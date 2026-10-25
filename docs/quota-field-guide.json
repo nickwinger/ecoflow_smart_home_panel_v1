@@ -10,9 +10,10 @@
     "The local _cached_at and _has_loadCmdChCtrlInfos fields originate in the existing cache layer and are NOT raw EcoFlow quota data.",
     "Inferred/unknown notes do not establish unit, scaling, enum or type correctness. Do not guess or silently normalize.",
     "The seed covers 81 documented patterns but is not the full set of raw scalar quota leaves; unknown fields must get disabled-by-default entities with truthful fallback descriptions.",
-    "A disabled entity must not generate history or a shadow raw JSON archive."
+    "A disabled entity must not generate history or a shadow raw JSON archive.",
+    "Community-backed units are explicit and never imply automatic statistics or verified physical direction. Rest-time sentinels, capacity scaling and daily resets remain unresolved."
   ],
-  "field_count": 81,
+  "field_count": 92,
   "fields": [
     {
       "path": "_cached_at",
@@ -66,23 +67,30 @@
       "value_type": "integer",
       "unit": "min",
       "enum": null,
-      "notes": "Vorhandene Beispielwerte sind ungewöhnlich hoch; vor Umrechnung Skalierung verifizieren.",
+      "notes": "Rücksetzpunkt und Firmware-Skalierung vor Auswertung prüfen. Keine Statistik oder Umrechnung.",
       "confidence": "documented",
       "friendly_name_en": "Device operating time",
-      "meaning_en": "Device operating time, documented in minutes. Observed magnitudes cast doubt on scaling; no conversion is applied.",
-      "enum_en": null
+      "meaning_en": "Vendor documents device operating time in minutes. Reset origin and firmware scale require validation; no statistics or conversion.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-18",
+        "sources": [
+          "https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L15"
+        ]
+      },
+      "unit_confidence": "documented"
     },
     {
       "path": "heartbeat.backupFullCap",
       "friendly_name_de": "Vollkapazität Backup",
-      "meaning_de": "Angegebene maximale Kapazität des Backup-Systems",
+      "meaning_de": "Angegebene maximale Kapazität des Backup-Systems Community nennt Wh, doch Einheit und Skalierung sind nicht ausreichend abgesichert; keine Umrechnung.",
       "value_type": "integer",
       "unit": null,
       "enum": null,
       "notes": "Der Dokumentation ist keine sichere Einheit bzw. Skalierung zu entnehmen.",
       "confidence": "documented",
       "friendly_name_en": "Backup full capacity",
-      "meaning_en": "Reported maximum capacity of the backup system. Unit and scaling are not established.",
+      "meaning_en": "Reported maximum capacity of the backup system. Unit and scaling are not established. Community code mentions Wh, but unit and scaling remain insufficiently supported; no conversion.",
       "enum_en": null
     },
     {
@@ -101,43 +109,67 @@
     {
       "path": "heartbeat.gridDayWatth",
       "friendly_name_de": "Netzenergie heute",
-      "meaning_de": "Täglicher Energieverbrauch aus dem Stromnetz",
+      "meaning_de": "Tägliche Energie; Bedeutung laut Hersteller, Einheit Wh laut Community. Rücksetzzeit, Zeitzone und Firmware-Skalierung noch manuell prüfen; keine Langzeitstatistik oder Energy-Dashboard-Zusage. Community-Einheit, keine automatische Langzeitstatistik.",
       "value_type": "number",
       "unit": "Wh",
       "enum": null,
       "notes": null,
       "confidence": "documented",
       "friendly_name_en": "Grid energy today",
-      "meaning_en": "Reported daily grid energy. The seed guide lists Wh; the supplied manufacturer text does not explicitly specify a unit or reset timing. Exposed as a raw daily counter without statistics.",
-      "implementation_notes_de": "Tageszähler. Wh steht im Seed-Katalog, ist im bereitgestellten Herstellertext aber nicht ausdrücklich belegt; Rücksetzzeit und Skalierung sind offen. Anzeige ohne Einheit und Statistik.",
-      "enum_en": null
+      "meaning_en": "Daily energy: vendor-defined meaning, community unit Wh. Reset time, timezone and firmware scale still need manual validation; no long-term statistics or Energy Dashboard eligibility. Community unit; no automatic long-term statistics.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-16",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L164",
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L481",
+          "https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L51"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "heartbeat.backupDayWatth",
       "friendly_name_de": "Backup-Energie heute",
-      "meaning_de": "Täglicher Energieverbrauch aus dem Backup-System",
+      "meaning_de": "Tägliche Energie; Bedeutung laut Hersteller, Einheit Wh laut Community. Rücksetzzeit, Zeitzone und Firmware-Skalierung noch manuell prüfen; keine Langzeitstatistik oder Energy-Dashboard-Zusage. Community-Einheit, keine automatische Langzeitstatistik.",
       "value_type": "number",
       "unit": "Wh",
       "enum": null,
       "notes": null,
       "confidence": "documented",
       "friendly_name_en": "Backup energy today",
-      "meaning_en": "Reported daily backup energy. The seed guide lists Wh; the supplied manufacturer text does not explicitly specify a unit or reset timing. Exposed as a raw daily counter without statistics.",
-      "implementation_notes_de": "Tageszähler. Wh steht im Seed-Katalog, ist im bereitgestellten Herstellertext aber nicht ausdrücklich belegt; Rücksetzzeit und Skalierung sind offen. Anzeige ohne Einheit und Statistik.",
-      "enum_en": null
+      "meaning_en": "Daily energy: vendor-defined meaning, community unit Wh. Reset time, timezone and firmware scale still need manual validation; no long-term statistics or Energy Dashboard eligibility. Community unit; no automatic long-term statistics.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-17",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L165",
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L481"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "heartbeat.backupChaTime",
       "friendly_name_de": "Backup-Entladezeit",
       "meaning_de": "Von der Dokumentation als Backup-Entladezeit beschrieben",
       "value_type": "integer",
-      "unit": null,
+      "unit": "min",
       "enum": null,
-      "notes": "Zeitformat bzw. Einheit nicht hinreichend definiert.",
+      "notes": "Community: geschätzte Restlaufzeit in Minuten; sehr große Sonderwerte und Leerlaufgültigkeit ungeklärt. Anzeige ohne Einheit, keine Ersetzung durch 0.",
       "confidence": "documented",
       "friendly_name_en": "Backup discharge time",
-      "meaning_en": "Documented as backup discharge time. Unit and time format are unspecified.",
-      "enum_en": null
+      "meaning_en": "Community interprets this as remaining discharge time in minutes. Sentinels and idle validity unresolved; exposed raw without a unit, never replaced with zero.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-19",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L149",
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L305",
+          "https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/__fixtures__/shpProperties.ts#L351"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "heartbeat.time",
@@ -288,6 +320,12 @@
         "0": "Grid",
         "1": "Battery",
         "2": "Off"
+      },
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-12",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L53"
+        ]
       }
     },
     {
@@ -307,6 +345,12 @@
       "enum_en": {
         "0": "Automatic",
         "1": "Manual"
+      },
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-13",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L61"
+        ]
       }
     },
     {
@@ -441,10 +485,10 @@
       "value_type": "array",
       "unit": null,
       "enum": null,
-      "notes": "Dokumentierte Stufen 6/13/16/20/30. Aktueller Beispielcache zeigt 12 Einträge mit diesen zulässigen Werten: vermutlich 10 Last- plus 2 Backup-Kanäle. Einheit A ist naheliegend, aber in diesem Text nicht explizit bestätigt.",
+      "notes": "Konfigurierte Nennströme; Community-Einheit A, kein aktueller Messwert. Einzelwerte und physische Backup-Zuordnung vor Ort prüfen.",
       "confidence": "documented",
       "friendly_name_en": "Channel current configuration",
-      "meaning_en": "Configured current level per array entry. Documentation lists 6/13/16/20/30, but does not explicitly specify amperes. Entries after the ten load channels are not conclusively assigned.",
+      "meaning_en": "Configured rated current levels, community unit A; not live measurements. Individual settings and physical backup assignment need local validation.",
       "enum_en": null
     },
     {
@@ -459,7 +503,13 @@
       "friendly_name_en": "Nominal grid voltage",
       "meaning_en": "Configured nominal voltage, range 100 to 250 V. This is a setting, not measured live grid voltage.",
       "implementation_notes_de": "Konfigurierte Nennspannung, kein aktueller Spannungsmesswert.",
-      "enum_en": null
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-20",
+        "sources": [
+          "https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L1127"
+        ]
+      }
     },
     {
       "path": "gridInfo.gridFreq",
@@ -473,7 +523,13 @@
       "friendly_name_en": "Nominal grid frequency",
       "meaning_en": "Configured nominal frequency (50 or 60 Hz), not a live frequency measurement.",
       "implementation_notes_de": "Konfigurierte Nennfrequenz, kein aktueller Frequenzmesswert.",
-      "enum_en": null
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-21",
+        "sources": [
+          "https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L1139"
+        ]
+      }
     },
     {
       "path": "epsModeInfo.eps",
@@ -505,7 +561,13 @@
       "confidence": "documented",
       "friendly_name_en": "Channel enabled",
       "meaning_en": "Whether the load circuit is enabled; array index zero is circuit one. This does not indicate its supply source or grid availability.",
-      "enum_en": null
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-14",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L32"
+        ]
+      }
     },
     {
       "path": "loadChInfo",
@@ -536,15 +598,23 @@
     {
       "path": "loadChInfo.info[].chName",
       "friendly_name_de": "Kanalname",
-      "meaning_de": "Benutzerdefinierter Anzeigename des betreffenden Lastkanals",
+      "meaning_de": "Benutzerdefinierter Anzeigename des betreffenden Lastkanals String oder nullaufgefüllte UTF-8-Byte-Liste je Datenquelle. Umbenennung ändert keine Entitäts-ID.",
       "value_type": "string",
       "unit": null,
       "enum": null,
       "notes": null,
       "confidence": "documented",
       "friendly_name_en": "Channel name",
-      "meaning_en": "User-defined display name of the load circuit. Renaming does not change entity identity.",
-      "enum_en": null
+      "meaning_en": "User-defined display name of the load circuit. Renaming does not change entity identity. String or zero-padded UTF-8 byte list depending on source. Invalid byte sequences are not used as labels.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-15",
+        "sources": [
+          "https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/schemas/src/smartHomePanel/getProperties.ts#L38",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L181",
+          "https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/test/lastQuotas/panel.json#L15"
+        ]
+      }
     },
     {
       "path": "loadChInfo.info[].iconNum",
@@ -575,15 +645,21 @@
     {
       "path": "emergencyStrategy.chSta[].priority",
       "friendly_name_de": "Notstrom-Priorität",
-      "meaning_de": "Priorität des betreffenden Kanals",
+      "meaning_de": "Priorität des betreffenden Kanals Rangrichtung nicht dokumentiert.",
       "value_type": "integer",
       "unit": null,
       "enum": null,
       "notes": null,
       "confidence": "documented",
       "friendly_name_en": "Emergency priority",
-      "meaning_en": "Configured priority for this emergency channel rule.",
-      "enum_en": null
+      "meaning_en": "Configured priority for this emergency channel rule. Ranking direction is undocumented.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-25",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L123"
+        ]
+      }
     },
     {
       "path": "emergencyStrategy.chSta[].isEnable",
@@ -602,6 +678,12 @@
       "enum_en": {
         "0": "Off / No",
         "1": "On / Yes"
+      },
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-24",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L113"
+        ]
       }
     },
     {
@@ -869,28 +951,42 @@
     {
       "path": "backupChaDiscCfg.forceChargeHigh",
       "friendly_name_de": "Obere Backup-Ladegrenze",
-      "meaning_de": "Oberer Schwellenwert für das Laden",
+      "meaning_de": "Oberer Schwellenwert für das Laden Abweichende Community-Eingabegrenzen sind keine allgemeine Gerätegarantie; 0–100 ist nur die Prozent-Plausibilitätsprüfung.",
       "value_type": "integer",
       "unit": "%",
       "enum": null,
       "notes": null,
       "confidence": "documented",
       "friendly_name_en": "Backup upper charge limit",
-      "meaning_en": "Upper backup charging threshold in percent. Valid range 0 to 100.",
-      "enum_en": null
+      "meaning_en": "Upper backup charging threshold in percent. Valid range 0 to 100. Different community write limits are not a universal device guarantee; 0–100 is only percentage plausibility validation.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-22",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L275",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L453"
+        ]
+      }
     },
     {
       "path": "backupChaDiscCfg.discLower",
       "friendly_name_de": "Untere Backup-Entladegrenze",
-      "meaning_de": "Unterer Schwellenwert für das Entladen",
+      "meaning_de": "Unterer Schwellenwert für das Entladen Abweichende Community-Eingabegrenzen sind keine allgemeine Gerätegarantie; 0–100 ist nur die Prozent-Plausibilitätsprüfung.",
       "value_type": "integer",
       "unit": "%",
       "enum": null,
       "notes": null,
       "confidence": "documented",
       "friendly_name_en": "Backup lower discharge limit",
-      "meaning_en": "Lower backup discharging threshold in percent. Valid range 0 to 100.",
-      "enum_en": null
+      "meaning_en": "Lower backup discharging threshold in percent. Valid range 0 to 100. Different community write limits are not a universal device guarantee; 0–100 is only percentage plausibility validation.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-23",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L255",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L465"
+        ]
+      }
     },
     {
       "path": "channelPower.infoList",
@@ -909,29 +1005,48 @@
     {
       "path": "channelPower.infoList[].chWatt",
       "friendly_name_de": "Kanalwirkleistung",
-      "meaning_de": "Aktueller Leistungswert des Kanals (Feldname chWatt)",
+      "meaning_de": "Gemeldete Kanalleistung in W laut Community. Indizes 0–9: Stromkreise 1–10; 10/11: Speicheranschlüsse laut Community, Vorzeichen und Richtung dort unbestätigt. Community-Einheit, keine automatische Langzeitstatistik.",
       "value_type": "number",
       "unit": "W",
       "enum": null,
       "notes": null,
-      "confidence": "inferred",
-      "friendly_name_en": "Channel power (raw)",
-      "meaning_en": "Reported chWatt value. The working helper uses it as channel power, but watts and scaling are inferred rather than established by the supplied manufacturer text.",
-      "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
-      "enum_en": null
+      "confidence": "community",
+      "friendly_name_en": "Channel power",
+      "meaning_en": "Reported channel power in W according to community code. Indices 0–9: circuits 1–10; 10/11: storage connections according to community code, with sign and direction unverified. Community unit; no automatic long-term statistics.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-02",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L179",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L139"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "channelPower.infoList[].powType",
       "friendly_name_de": "Kanal-Leistungstyp",
-      "meaning_de": "Undokumentierter Typcode zur Kanalleistung",
+      "meaning_de": "Community-Zuordnung: 0 Netz, 1 Batterie. Anzeige als Rohcode; weitere Codes unbekannt. Kein Beweis für einen ausgeführten Schaltbefehl.",
       "value_type": "integer",
       "unit": null,
-      "enum": null,
-      "notes": "Nicht stillschweigend als Netz-/Batteriequelle interpretieren.",
-      "confidence": "unknown",
+      "enum": {
+        "0": "Netz (Community)",
+        "1": "Batterie (Community)"
+      },
+      "notes": null,
+      "confidence": "community",
       "friendly_name_en": "Channel power type (raw)",
-      "meaning_en": "Undocumented power type code. Do not interpret it as grid or battery supply.",
-      "enum_en": null
+      "meaning_en": "Community mapping: 0 grid, 1 battery. Exposed as a raw code; other codes unknown. Does not verify a switching command.",
+      "enum_en": {
+        "0": "Grid (community)",
+        "1": "Battery (community)"
+      },
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-03",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L181"
+        ]
+      }
     },
     {
       "path": "heartbeat.energyInfos",
@@ -950,62 +1065,84 @@
     {
       "path": "heartbeat.energyInfos[].batteryPercentage",
       "friendly_name_de": "Batteriestand Einzelgerät",
-      "meaning_de": "Gemeldeter Batteriestand des jeweiligen Speichereintrags",
+      "meaning_de": "Gemeldeter Speicher-Ladezustand in % laut Community; nur 0–100 gültig. Aggregation zum Panelwert nicht dokumentiert. Community-Einheit, keine automatische Langzeitstatistik.",
       "value_type": "integer",
       "unit": "%",
       "enum": null,
-      "notes": "Der aktuelle Beispielcache zeigt 49 und 30; das Panel zeigt 40. Gewichtung/Aggregation nicht dokumentiert.",
-      "confidence": "inferred",
-      "friendly_name_en": "Storage battery level (raw)",
-      "meaning_en": "Reported battery percentage field. Unit and aggregation are inferred; values are exposed raw without statistics.",
-      "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
-      "enum_en": null
+      "notes": null,
+      "confidence": "community",
+      "friendly_name_en": "Storage battery level",
+      "meaning_en": "Reported storage state of charge in % according to community code; only 0–100 is valid. Aggregation into the panel value is undocumented. Community unit; no automatic long-term statistics.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-04",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L135",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L607"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "heartbeat.energyInfos[].outputPower",
       "friendly_name_de": "Leistung des Speichers",
-      "meaning_de": "Vom Einzelgerät gemeldete Ausgangsleistung",
+      "meaning_de": "Vom Speicher gemeldete Ausgangsleistung in W laut Community, ohne zusätzliche Skalierung. Community-Einheit, keine automatische Langzeitstatistik.",
       "value_type": "number",
       "unit": "W",
       "enum": null,
       "notes": null,
-      "confidence": "inferred",
-      "friendly_name_en": "Storage output power (raw)",
-      "meaning_en": "Reported storage output power field. Watts and scaling are inferred; no conversion or measurement statistics are applied.",
-      "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
-      "enum_en": null
+      "confidence": "community",
+      "friendly_name_en": "Storage output power",
+      "meaning_en": "Storage-reported output power in W according to community code, without additional scaling. Community unit; no automatic long-term statistics.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-06",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L160",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L620"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "heartbeat.energyInfos[].emsBatTemp",
       "friendly_name_de": "Batterietemperatur",
-      "meaning_de": "Gemeldete Batterie-Temperatur",
+      "meaning_de": "Vom Energiemanagement gemeldete Batterietemperatur, Rohwert direkt in °C laut Community. Community-Einheit, keine automatische Langzeitstatistik.",
       "value_type": "number",
       "unit": "°C",
       "enum": null,
       "notes": null,
-      "confidence": "inferred",
-      "friendly_name_en": "Storage temperature (raw)",
-      "meaning_en": "Reported battery temperature field. Celsius and scaling are inferred; exposed without a temperature unit or statistics.",
-      "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
-      "enum_en": null
+      "confidence": "community",
+      "friendly_name_en": "Storage temperature",
+      "meaning_en": "Battery temperature reported by energy management; community code uses the raw value directly in °C. Community unit; no automatic long-term statistics.",
+      "enum_en": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-07",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L154",
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L333",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L633"
+        ]
+      },
+      "unit_confidence": "community"
     },
     {
       "path": "heartbeat.energyInfos[].fullCap",
       "friendly_name_de": "Kapazitätsrohwert",
-      "meaning_de": "Batterie-Kapazitätsfeld des Gerätes",
+      "meaning_de": "Batterie-Kapazitätsfeld des Gerätes Community nennt Wh, doch Einheit und Skalierung sind nicht ausreichend abgesichert; keine Umrechnung.",
       "value_type": "number",
       "unit": null,
       "enum": null,
       "notes": "Nicht ohne belegte Skalierung als Wh oder Ah interpretieren.",
       "confidence": "unknown",
       "friendly_name_en": "Storage capacity (raw)",
-      "meaning_en": "Storage capacity field. Do not interpret as Wh or Ah without evidence for unit and scaling.",
+      "meaning_en": "Storage capacity field. Do not interpret as Wh or Ah without evidence for unit and scaling. Community code mentions Wh, but unit and scaling remain insufficiently supported; no conversion.",
       "enum_en": null
     },
     {
       "path": "heartbeat.energyInfos[].stateBean.isConnect",
       "friendly_name_de": "Speicher verbunden",
-      "meaning_de": "Verbindungsflag des einzelnen Speichers",
+      "meaning_de": "Verbindungsflag des einzelnen Speichers; Community-Zuordnung: 0 = nein, 1 = ja. Anzeige weiterhin als Rohcode; andere Codes unbekannt.",
       "value_type": "integer",
       "unit": null,
       "enum": {
@@ -1013,13 +1150,19 @@
         "1": "Ein / Ja"
       },
       "notes": null,
-      "confidence": "inferred",
+      "confidence": "community",
       "friendly_name_en": "Storage connected flag (raw)",
-      "meaning_en": "Inferred storage connection flag. Numeric meanings are not promoted to verified binary states.",
-      "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
+      "meaning_en": "Community mapping: 0 no, 1 yes. The existing raw-code sensor is retained; other codes are unknown.",
       "enum_en": {
         "0": "Off / No",
         "1": "On / Yes"
+      },
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-10",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L136",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L708"
+        ]
       }
     },
     {
@@ -1045,7 +1188,7 @@
     {
       "path": "heartbeat.energyInfos[].stateBean.isGridCharge",
       "friendly_name_de": "Speicher-Netzladung",
-      "meaning_de": "Flag für Laden aus dem Netz",
+      "meaning_de": "Flag für Laden aus dem Netz; Community-Zuordnung: 0 = nein, 1 = ja. Anzeige weiterhin als Rohcode; andere Codes unbekannt.",
       "value_type": "integer",
       "unit": null,
       "enum": {
@@ -1053,13 +1196,19 @@
         "1": "Ein / Ja"
       },
       "notes": null,
-      "confidence": "inferred",
+      "confidence": "community",
       "friendly_name_en": "Storage grid charging flag (raw)",
-      "meaning_en": "Inferred grid-charging flag. No physical charging state is asserted from an undocumented code.",
-      "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
+      "meaning_en": "Community mapping: 0 no, 1 yes. The existing raw-code sensor is retained; other codes are unknown.",
       "enum_en": {
         "0": "Off / No",
         "1": "On / Yes"
+      },
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-11",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L138",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L721"
+        ]
       }
     },
     {
@@ -1085,42 +1234,42 @@
     {
       "path": "mainsLoadWatt.watth",
       "friendly_name_de": "Netzlast-Energiereihen",
-      "meaning_de": "Stündlich angeordnete Energiewerte aus dem Stromnetz (vermutlich)",
+      "meaning_de": "Stündlich angeordnete Energiewerte aus dem Stromnetz (vermutlich) Ergänzung: Community interpretiert Kanal/Anschluss × Stunde 0–23 in Wh; Zeit- und Zeitzonenbezug offen.",
       "value_type": "array",
       "unit": null,
       "enum": null,
       "notes": "Arraystruktur beobachtet; Zeitbezug, Skalierung und Messintervall verifizieren.",
       "confidence": "inferred",
       "friendly_name_en": "Grid energy series (raw)",
-      "meaning_en": "Array of grid energy entries, possibly hourly. Time reference, scale and interval are unverified.",
+      "meaning_en": "Array of grid energy entries, possibly hourly. Time reference, scale and interval are unverified. Supplement: community interprets circuit/connection × hour 0–23 in Wh; time reference and timezone unresolved.",
       "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
       "enum_en": null
     },
     {
       "path": "backupLoadWatt.watth",
       "friendly_name_de": "Backup-Energiereihen",
-      "meaning_de": "Array der Backup-Energieverbräuche",
+      "meaning_de": "Array der Backup-Energieverbräuche Ergänzung: Community interpretiert Kanal/Anschluss × Stunde 0–23 in Wh; Zeit- und Zeitzonenbezug offen.",
       "value_type": "array",
       "unit": null,
       "enum": null,
       "notes": "Zeitbezug und Messintervall nicht sicher.",
       "confidence": "inferred",
       "friendly_name_en": "Backup energy series (raw)",
-      "meaning_en": "Array of backup energy entries. Time reference, scale and interval are unverified.",
+      "meaning_en": "Array of backup energy entries. Time reference, scale and interval are unverified. Supplement: community interprets circuit/connection × hour 0–23 in Wh; time reference and timezone unresolved.",
       "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
       "enum_en": null
     },
     {
       "path": "topupLoadWatt.watth",
       "friendly_name_de": "Lade-Energiereihen",
-      "meaning_de": "Array der Ladeenergie",
+      "meaning_de": "Array der Ladeenergie Ergänzung: Community interpretiert Kanal/Anschluss × Stunde 0–23 in Wh; Zeit- und Zeitzonenbezug offen.",
       "value_type": "array",
       "unit": null,
       "enum": null,
       "notes": "Zeitbezug und Messintervall nicht sicher.",
       "confidence": "inferred",
       "friendly_name_en": "Charging energy series (raw)",
-      "meaning_en": "Array of charging energy entries. Time reference, scale and interval are unverified.",
+      "meaning_en": "Array of charging energy entries. Time reference, scale and interval are unverified. Supplement: community interprets circuit/connection × hour 0–23 in Wh; time reference and timezone unresolved.",
       "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
       "enum_en": null
     },
@@ -1205,7 +1354,197 @@
       "meaning_en": "Device error-code array. Zero entries do not prove absence of errors without a documented code table.",
       "implementation_notes_de": "Bedeutung bzw. Einheit nur abgeleitet. Anzeige als Rohwert ohne bestätigte Einheit, Enum-Deutung oder Langzeitstatistik.",
       "enum_en": null
+    },
+    {
+      "path": "heartbeat.energyInfos[].lcdInputWatts",
+      "friendly_name_de": "Speicher-Eingangsleistung",
+      "friendly_name_en": "Storage input power",
+      "meaning_de": "Vom Speicher gemeldete Eingangsleistung; Community-Einheit W, ohne Aufteilung nach Energiequelle. Community-Einheit, keine automatische Langzeitstatistik.",
+      "meaning_en": "Storage-reported input power; community unit W, without attributing an energy source. Community unit; no automatic long-term statistics.",
+      "value_type": "number",
+      "confidence": "community",
+      "unit": "W",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-05",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L156"
+        ]
+      },
+      "unit_confidence": "community"
+    },
+    {
+      "path": "heartbeat.energyInfos[].chargeTime",
+      "friendly_name_de": "Verbleibende Ladezeit (Rohwert)",
+      "friendly_name_en": "Remaining charge time (raw)",
+      "meaning_de": "Geschätzte Restzeit; Community verwendet Minuten. Sonderwerte und Leerlaufgültigkeit ungeklärt; unveränderter Rohwert ohne Einheit oder Null-Ersatz.",
+      "meaning_en": "Estimated remaining time; community uses minutes. Sentinels and idle validity are unresolved; unscaled raw value without a unit or replacement with zero.",
+      "value_type": "integer",
+      "confidence": "community",
+      "unit": "min",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-08",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L139",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L647"
+        ]
+      }
+    },
+    {
+      "path": "heartbeat.energyInfos[].dischargeTime",
+      "friendly_name_de": "Verbleibende Entladezeit (Rohwert)",
+      "friendly_name_en": "Remaining discharge time (raw)",
+      "meaning_de": "Geschätzte Restzeit; Community verwendet Minuten. Sonderwerte und Leerlaufgültigkeit ungeklärt; unveränderter Rohwert ohne Einheit oder Null-Ersatz.",
+      "meaning_en": "Estimated remaining time; community uses minutes. Sentinels and idle validity are unresolved; unscaled raw value without a unit or replacement with zero.",
+      "value_type": "integer",
+      "confidence": "community",
+      "unit": "min",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-09",
+        "sources": [
+          "https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L139",
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L661"
+        ]
+      }
+    },
+    {
+      "path": "loadChCurInfo.cur[]",
+      "friendly_name_de": "Konfigurierter Nennstrom",
+      "friendly_name_en": "Configured rated current",
+      "meaning_de": "Eingestellter Kanal-Nennstrom in A laut ergänzenden Quellen; keine aktuelle Strommessung. Dokumentierte und beobachtete Einstellwerte weichen ab; keine erfundene Werteauswahl. Community-Einheit, keine automatische Langzeitstatistik.",
+      "meaning_en": "Configured channel rated current in A according to the supplementary sources; not live current. Documented and observed choices differ; no invented allowed-value set. Community unit; no automatic long-term statistics.",
+      "value_type": "integer",
+      "confidence": "community",
+      "unit": "A",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-01",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L131",
+          "https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L2947"
+        ]
+      },
+      "unit_confidence": "community"
+    },
+    {
+      "path": "mainsLoadWatt.watth[][]",
+      "friendly_name_de": "Netzenergie im Stundenintervall (Rohwert)",
+      "friendly_name_en": "Grid energy interval (raw)",
+      "meaning_de": "Community: erste Dimension Stromkreis bzw. bei topup Speicheranschluss, zweite Dimension Stunde 0–23; Wh pro Intervall. Zeitbezug und Zeitzone ungeklärt; keine Summen oder Statistik.",
+      "meaning_en": "Community: first dimension circuit (storage connection for topup), second dimension hour 0–23, Wh per interval. Time reference and timezone unresolved; no totals or statistics.",
+      "value_type": "number",
+      "confidence": "community",
+      "unit": "Wh",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-26",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L29"
+        ]
+      }
+    },
+    {
+      "path": "backupLoadWatt.watth[][]",
+      "friendly_name_de": "Backupenergie im Stundenintervall (Rohwert)",
+      "friendly_name_en": "Backup energy interval (raw)",
+      "meaning_de": "Community: erste Dimension Stromkreis bzw. bei topup Speicheranschluss, zweite Dimension Stunde 0–23; Wh pro Intervall. Zeitbezug und Zeitzone ungeklärt; keine Summen oder Statistik.",
+      "meaning_en": "Community: first dimension circuit (storage connection for topup), second dimension hour 0–23, Wh per interval. Time reference and timezone unresolved; no totals or statistics.",
+      "value_type": "number",
+      "confidence": "community",
+      "unit": "Wh",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-27",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L30"
+        ]
+      }
+    },
+    {
+      "path": "topupLoadWatt.watth[][]",
+      "friendly_name_de": "Ladeenergie im Stundenintervall (Rohwert)",
+      "friendly_name_en": "Charging energy interval (raw)",
+      "meaning_de": "Community: erste Dimension Stromkreis bzw. bei topup Speicheranschluss, zweite Dimension Stunde 0–23; Wh pro Intervall. Zeitbezug und Zeitzone ungeklärt; keine Summen oder Statistik.",
+      "meaning_en": "Community: first dimension circuit (storage connection for topup), second dimension hour 0–23, Wh per interval. Time reference and timezone unresolved; no totals or statistics.",
+      "value_type": "number",
+      "confidence": "community",
+      "unit": "Wh",
+      "enum": null,
+      "enum_en": null,
+      "notes": null,
+      "evidence": {
+        "review": "docs/reference/ecoflow_shp_v1_property_ergaenzungen.html#property-28",
+        "sources": [
+          "https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L31"
+        ]
+      }
+    },
+    {
+      "path": "loadChInfo.info[].chName[]",
+      "friendly_name_de": "Kanalname UTF-8-Byte",
+      "friendly_name_en": "Channel name UTF-8 byte",
+      "meaning_de": "Byte eines nullaufgefüllten UTF-8-Kanalnamens aus Community-Datenformen; String-Form ebenfalls unterstützt. Rohbyte bleibt separat deaktivierte Diagnose.",
+      "meaning_en": "Byte of a zero-padded UTF-8 channel name seen in community data; string form is also supported. Each raw byte remains a separate disabled diagnostic.",
+      "value_type": "integer",
+      "confidence": "community",
+      "unit": null,
+      "enum": null,
+      "enum_en": null,
+      "notes": null
+    },
+    {
+      "path": "selfCheck.chErrorSta",
+      "friendly_name_de": "Kanal-Fehlerstatus",
+      "friendly_name_en": "Channel error status",
+      "meaning_de": "Datenform im Community-HTTP-Schema vorhanden; vollständige Codebedeutung unbekannt. Unveränderter Rohwert.",
+      "meaning_en": "Shape present in the community HTTP schema; full code meanings unknown. Unscaled raw value.",
+      "value_type": "array",
+      "confidence": "unknown",
+      "unit": null,
+      "enum": null,
+      "enum_en": null,
+      "notes": null
+    },
+    {
+      "path": "selfCheck.phaseType",
+      "friendly_name_de": "Selbsttest-Phasentyp",
+      "friendly_name_en": "Self-test phase type",
+      "meaning_de": "Datenform im Community-HTTP-Schema vorhanden; vollständige Codebedeutung unbekannt. Unveränderter Rohwert.",
+      "meaning_en": "Shape present in the community HTTP schema; full code meanings unknown. Unscaled raw value.",
+      "value_type": "array",
+      "confidence": "unknown",
+      "unit": null,
+      "enum": null,
+      "enum_en": null,
+      "notes": null
+    },
+    {
+      "path": "selfCheck.flag",
+      "friendly_name_de": "Selbsttest-Flag",
+      "friendly_name_en": "Self-test flag",
+      "meaning_de": "Datenform im Community-HTTP-Schema vorhanden; vollständige Codebedeutung unbekannt. Unveränderter Rohwert.",
+      "meaning_en": "Shape present in the community HTTP schema; full code meanings unknown. Unscaled raw value.",
+      "value_type": "integer",
+      "confidence": "unknown",
+      "unit": null,
+      "enum": null,
+      "enum_en": null,
+      "notes": null
     }
   ],
-  "implementation_evidence": "Manufacturer copies in docs/reference/ecoflow_general.txt and docs/reference/ecoflow_smart_home_panel_v1.txt; https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098. Runtime unit/enum decisions are deliberately stricter than the seed."
+  "implementation_evidence": "Three supplied HTML references dated 2026-10-25, preserved as sanitized copies in docs/reference/: general HTTP, SHP v1 HTTP and property supplements. Community mappings retain their source and confidence; they are not manufacturer guarantees."
 }

@@ -20,22 +20,22 @@ Acceptance: files present in GitHub. **No claim of a working integration at this
 
 Acceptance: read-only HA integration loads in isolated HA 2026.10.3 tests and fetches synthetic SHP v1 quota. Device identity is checked conservatively by user confirmation plus topology; the manufacturer list API has no model field. No hardware claim.
 
-Validation: `pytest -q --tb=short --show-capture=no --timeout=30` (40 tests), `ruff check custom_components tests`, `ruff format --check custom_components tests`. Commit: [`34f6aba`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/34f6aba) (`feat: implement M1 signed read-only cloud core`). M2 entities are still pending at this commit.
+Validation: `pytest -q --tb=short --show-capture=no --timeout=30` (40 tests), `ruff check custom_components tests`, `ruff format --check custom_components tests`. Commit: [`223d1f7`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/223d1f7d24d4fa5fcff6bf4d9ac65607b7f7d67b) (`feat: implement M1 signed read-only cloud core`). M2 entities are still pending at this commit.
 
 ## M2 — complete selectable entity model [IMPLEMENTED / OFFLINE VERIFIED]
 
 - [x] Generic raw quota leaf coverage incl. dotted keys, nested dicts and indexed lists.
-- [x] All 81 catalog descriptions/patterns integrated, plus truthful fallback for unknown paths.
+- [x] All 81 seed descriptions plus 11 supplementary patterns integrated (92 total), plus truthful fallback for unknown paths.
 - [x] Stable unique IDs, friendly de/en names, path, description, confidence, verified states/units.
 - [x] Essential sensors enabled, diagnostics disabled; no independent historical storage.
 - [x] Valid state classes/long-term statistics for supported numeric readings.
 - [x] Unit tests comparing fixture leaves to entity catalog, missing fields and enablement defaults.
 
-Acceptance verified in isolated HA: all 243 synthetic scalar leaves register, all can be enabled; 16 enabled and 227 disabled by default. A real in-memory Recorder test proves disabled entities have no rows, static metadata is omitted and prior history survives disabling. No shadow store. All 81 patterns have German/English metadata and truthful fallbacks.
+Acceptance verified in isolated HA: all 243 synthetic scalar leaves register, all can be enabled; 16 enabled and 227 disabled by default. A real in-memory Recorder test proves disabled entities have no rows, static metadata is omitted and prior history survives disabling. No shadow store. All 92 patterns have German/English metadata and truthful fallbacks.
 
-Default-enabled: grid availability (1), panel battery percentage (1), ten load supply states (10), nominal grid settings (2), raw daily energy counters (2). Inferred power/storage/temperature readings remain raw diagnostics without units/statistics. Only the valid documented panel battery percentage has measurement statistics.
+Default-enabled: grid availability (1), panel battery percentage (1), ten load supply states (10), nominal grid settings (2), daily energy counters with community Wh units (2). Power/storage/temperature readings have attributed community units but remain disabled diagnostics without statistics. Only the valid documented panel battery percentage has measurement statistics.
 
-M2 commit: `feat: expose complete bounded quota entities with selective history`; exact SHA will be linked by the validation-results commit. Current local checks: Ruff, formatter, catalog regeneration check, compileall, and the full offline pytest suite. See the verification record below for the final count and CI results.
+M2 commit: [`544287c`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/544287cf29a868aaf29b4ad0b645a7be080bca9e), `feat: expose complete bounded quota entities with selective history`. Current local checks: Ruff, formatter, catalog regeneration check, compileall, and the full offline pytest suite. See the verification record below for the final count and CI results.
 
 ## M3 — verified, explicit source/charge control [TODO]
 
@@ -63,6 +63,8 @@ Each completed milestone must include commit link, test commands/outcomes and re
 - Python 3.14.4, Home Assistant 2026.10.3; no real EcoFlow requests or hardware writes.
 - `ruff check custom_components tests scripts` and `ruff format --check custom_components tests scripts`: **passed** (22 Python files).
 - `python scripts/sync_catalog.py --check` and `python -m compileall -q custom_components`: **passed**.
-- `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **186 passed**, 98% line coverage (573 statements, 9 uncovered), 8.58 seconds.
-- Official hassfest and HACS run in GitHub Actions after push; Docker is unavailable in this WSL environment. HACS skips only `brands`, explicitly deferred to M4.
+- `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **221 passed**, 99% line coverage (609 statements, 8 uncovered), 9.89 seconds.
+- [Official hassfest and offline CI](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40177067830): **passed** on M2. Docker is unavailable in this WSL environment.
+- [HACS check](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40177067803): all enabled checks pass except repository `topics` (none configured). Owner action: add topics such as `home-assistant`, `hacs`, `ecoflow`. The available GitHub connector cannot edit repository topics. Only `brands` is skipped, explicitly deferred to M4.
+- All three new HTML references fully reviewed; all 28 supplementary property sections linked to catalog evidence. Additional tests cover sourced units, raw sentinel preservation and UTF-8 byte names. Latest source changes will rerun the same CI checks.
 - Remaining: user hardware read validation, actual HACS installation/upgrade acceptance, authoritative model/error metadata, inferred units/scales and daily counter reset semantics. M3 controls and M4 release approval remain open.

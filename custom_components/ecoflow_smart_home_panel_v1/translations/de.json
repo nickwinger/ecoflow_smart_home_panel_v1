@@ -157,7 +157,7 @@
         "name": "{context}Verknüpfter Kanal{detail}"
       },
       "loadchcurinfo_cur": {
-        "name": "{context}Stromkonfiguration pro Kanal{detail}"
+        "name": "{context}Konfigurierter Nennstrom{detail}"
       },
       "gridinfo_gridvol": {
         "name": "{context}Netz-Nennspannung{detail}"
@@ -178,7 +178,7 @@
         "name": "{context}Lastkanal-Namen{detail}"
       },
       "loadchinfo_info_chname": {
-        "name": "{context}Kanalname{detail}"
+        "name": "{context}Kanalname UTF-8-Byte{detail}"
       },
       "loadchinfo_info_iconnum": {
         "name": "{context}Kanalicon{detail}"
@@ -296,13 +296,13 @@
         "name": "{context}Speicher-MPPT-Ladung{detail}"
       },
       "mainsloadwatt_watth": {
-        "name": "{context}Netzlast-Energiereihen{detail}"
+        "name": "{context}Netzenergie im Stundenintervall (Rohwert){detail}"
       },
       "backuploadwatt_watth": {
-        "name": "{context}Backup-Energiereihen{detail}"
+        "name": "{context}Backupenergie im Stundenintervall (Rohwert){detail}"
       },
       "topuploadwatt_watth": {
-        "name": "{context}Lade-Energiereihen{detail}"
+        "name": "{context}Ladeenergie im Stundenintervall (Rohwert){detail}"
       },
       "selfcheck_errorcode": {
         "name": "{context}Selbsttest-Fehlercode{detail}"
@@ -321,6 +321,24 @@
       },
       "heartbeat_errorcodes": {
         "name": "{context}Fehlercode-Liste{detail}"
+      },
+      "heartbeat_energyinfos_lcdinputwatts": {
+        "name": "{context}Speicher-Eingangsleistung{detail}"
+      },
+      "heartbeat_energyinfos_chargetime": {
+        "name": "{context}Verbleibende Ladezeit (Rohwert){detail}"
+      },
+      "heartbeat_energyinfos_dischargetime": {
+        "name": "{context}Verbleibende Entladezeit (Rohwert){detail}"
+      },
+      "selfcheck_cherrorsta": {
+        "name": "{context}Kanal-Fehlerstatus{detail}"
+      },
+      "selfcheck_phasetype": {
+        "name": "{context}Selbsttest-Phasentyp{detail}"
+      },
+      "selfcheck_flag": {
+        "name": "{context}Selbsttest-Flag{detail}"
       },
       "unknown_quota": {
         "name": "Unbekanntes Quota-Feld {path}"
@@ -415,7 +433,7 @@
         "name": "{context}Verknüpfter Kanal{detail}"
       },
       "loadchcurinfo_cur": {
-        "name": "{context}Stromkonfiguration pro Kanal{detail}"
+        "name": "{context}Konfigurierter Nennstrom{detail}"
       },
       "gridinfo_gridvol": {
         "name": "{context}Netz-Nennspannung{detail}"
@@ -436,7 +454,7 @@
         "name": "{context}Lastkanal-Namen{detail}"
       },
       "loadchinfo_info_chname": {
-        "name": "{context}Kanalname{detail}"
+        "name": "{context}Kanalname UTF-8-Byte{detail}"
       },
       "loadchinfo_info_iconnum": {
         "name": "{context}Kanalicon{detail}"
@@ -544,13 +562,13 @@
         "name": "{context}Speicher-MPPT-Ladung{detail}"
       },
       "mainsloadwatt_watth": {
-        "name": "{context}Netzlast-Energiereihen{detail}"
+        "name": "{context}Netzenergie im Stundenintervall (Rohwert){detail}"
       },
       "backuploadwatt_watth": {
-        "name": "{context}Backup-Energiereihen{detail}"
+        "name": "{context}Backupenergie im Stundenintervall (Rohwert){detail}"
       },
       "topuploadwatt_watth": {
-        "name": "{context}Lade-Energiereihen{detail}"
+        "name": "{context}Ladeenergie im Stundenintervall (Rohwert){detail}"
       },
       "selfcheck_errorcode": {
         "name": "{context}Selbsttest-Fehlercode{detail}"
@@ -569,6 +587,24 @@
       },
       "heartbeat_errorcodes": {
         "name": "{context}Fehlercode-Liste{detail}"
+      },
+      "heartbeat_energyinfos_lcdinputwatts": {
+        "name": "{context}Speicher-Eingangsleistung{detail}"
+      },
+      "heartbeat_energyinfos_chargetime": {
+        "name": "{context}Verbleibende Ladezeit (Rohwert){detail}"
+      },
+      "heartbeat_energyinfos_dischargetime": {
+        "name": "{context}Verbleibende Entladezeit (Rohwert){detail}"
+      },
+      "selfcheck_cherrorsta": {
+        "name": "{context}Kanal-Fehlerstatus{detail}"
+      },
+      "selfcheck_phasetype": {
+        "name": "{context}Selbsttest-Phasentyp{detail}"
+      },
+      "selfcheck_flag": {
+        "name": "{context}Selbsttest-Flag{detail}"
       },
       "unknown_quota": {
         "name": "Unbekanntes Quota-Feld {path}"

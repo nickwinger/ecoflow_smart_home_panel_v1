@@ -45,6 +45,16 @@ _UNITS = {
     "timeTask[].cfg.param.lowBattery": "%",
     "backupChaDiscCfg.forceChargeHigh": "%",
     "backupChaDiscCfg.discLower": "%",
+    "heartbeat.workTime": "min",
+    # Explicitly sourced community units. No scaling or statistics implied.
+    "loadChCurInfo.cur[]": "A",
+    "channelPower.infoList[].chWatt": "W",
+    "heartbeat.energyInfos[].batteryPercentage": "%",
+    "heartbeat.energyInfos[].lcdInputWatts": "W",
+    "heartbeat.energyInfos[].outputPower": "W",
+    "heartbeat.energyInfos[].emsBatTemp": "°C",
+    "heartbeat.gridDayWatth": "Wh",
+    "heartbeat.backupDayWatth": "Wh",
 }
 
 

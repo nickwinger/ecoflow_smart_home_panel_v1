@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EcoFlow SHP v1: Fachliche Property-Ergänzungen</title></head>
+<body>
+<p>Repository reference copy, 2026-10-25. Manufacturer demo credentials and serials were replaced by synthetic values; the full signing vector was recalculated. Original authors retain ownership.</p>
+<h1>EcoFlow Smart Home Panel v1: Fachliche Property-Ergänzungen</h1>
+<p>Recherche: 25.10.2026. Umfang: SHP v1 / SP10, Properties der HTTP-API. Ergänzung zur <a href="ecoflow_smart_home_panel_v1_http.html">bereinigten HTTP-Dokumentation</a>.</p>
+<p>Die beigefügte EcoFlow-API-Dokumentation bleibt die Grundlage. Zusätzliche Einheiten und Bedeutungen aus fremden Implementierungen sind als Community-Zuordnung gekennzeichnet. Das untersuchte <a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/schemas/src/smartHomePanel/getProperties.ts">HTTP-Schema</a> enthält die Property-Strukturen der 28 Einträge im folgenden Verzeichnis; es ist kein offizielles EcoFlow-Schema. Die <a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/lib/devices/Device.ts#L32">Client-Basisklasse</a> liest sie über den <a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/lib/RestClient.ts#L211">HTTP-Client</a>. Das bestätigt die Zuordnung im Code, nicht den konkreten Rückgabeumfang eurer Firmware.</p>
+<h2>Adressierung und Indizes</h2>
+<p>i = Stromkreisindex 0–9; b = Speicheranschlussindex 0–1; h = Stundenindex 0–23 nach Community-Auslegung. Bei channelPower.infoList ordnet die Community die Indizes 10/11 den beiden Speicheranschlüssen zu. Für diese beiden Einträge bleiben Vorzeichen und Leistungsrichtung gesondert zu prüfen.</p>
+<p>Punkte können Bestandteil eines echten JSON-Schlüssels sein: <code>data["heartbeat.energyInfos"][0]["batteryPercentage"]</code>. Dagegen liegt der Name im untersuchten HTTP-Schema unter <code>data["loadChInfo"]["info"][0]["chName"]</code>. Die untenstehenden Pfade sind lesbare Bezeichnungen, keine allgemeine Vorschrift zur Aufteilung an jedem Punkt.</p>
+<h2>Property-Verzeichnis</h2>
+<h3 id="property-01"><code>loadChCurInfo.cur[i]</code> — Konfigurierter Kanal-Nennstrom</h3>
+<p>Eingestellter Stromwert des Kanals; keine Messung der momentanen Stromaufnahme.</p>
+<p><strong>Einheit / Werte:</strong> A</p>
+<p><strong>Beleglage:</strong> API-Konfigurationsbefehl; Herstellerhandbuch erklärt den Nennstrom. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L131">MichelFR/ha-ecoflow-iot</a>; <a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L2947">foxthefox/ioBroker.ecoflow-mqtt</a>.</p>
+<h3 id="property-02"><code>channelPower.infoList[i].chWatt</code> — Kanalleistung</h3>
+<p>Momentane Leistung des Stromkreises bzw. Batterieanschlusses.</p>
+<p><strong>Einheit / Werte:</strong> W</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung; Property im HTTP-Schema. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L179">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L139">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-03"><code>channelPower.infoList[i].powType</code> — Versorgungsquelle des Kanals</h3>
+<p>0 = Netz; 1 = Batterie, nach Community-Zuordnung.</p>
+<p><strong>Einheit / Werte:</strong> Statuscode</p>
+<p><strong>Beleglage:</strong> Community; andere Codes bleiben unbekannt. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L181">tolwi/hassio-ecoflow-cloud</a>.</p>
+<h3 id="property-04"><code>heartbeat.energyInfos[b].batteryPercentage</code> — Batterie-Ladezustand</h3>
+<p>Ladezustand des am Anschluss angeschlossenen Speichers.</p>
+<p><strong>Einheit / Werte:</strong> %</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L135">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L607">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-05"><code>heartbeat.energyInfos[b].lcdInputWatts</code> — Batterie-Eingangsleistung</h3>
+<p>Vom Speicher gemeldete Eingangsleistung; keine unbelegte Aufteilung nach Energiequelle.</p>
+<p><strong>Einheit / Werte:</strong> W</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L156">tolwi/hassio-ecoflow-cloud</a>.</p>
+<h3 id="property-06"><code>heartbeat.energyInfos[b].outputPower</code> — Batterie-Ausgangsleistung</h3>
+<p>Vom Speicher gemeldete Ausgangsleistung.</p>
+<p><strong>Einheit / Werte:</strong> W</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L160">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L620">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-07"><code>heartbeat.energyInfos[b].emsBatTemp</code> — Batterietemperatur</h3>
+<p>Vom Energiemanagement gemeldete Batterietemperatur.</p>
+<p><strong>Einheit / Werte:</strong> °C</p>
+<p><strong>Beleglage:</strong> Community nutzt den Rohwert direkt als °C. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L154">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L333">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L633">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-08"><code>heartbeat.energyInfos[b].chargeTime</code> — Verbleibende Ladezeit</h3>
+<p>Geschätzte Restzeit für das Laden.</p>
+<p><strong>Einheit / Werte:</strong> min laut Community</p>
+<p><strong>Beleglage:</strong> Sonderwerte und Gültigkeit im Leerlauf ungeklärt. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L139">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L647">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-09"><code>heartbeat.energyInfos[b].dischargeTime</code> — Verbleibende Entladezeit</h3>
+<p>Geschätzte Restlaufzeit bei Entladung.</p>
+<p><strong>Einheit / Werte:</strong> min laut Community</p>
+<p><strong>Beleglage:</strong> Sonderwerte und Gültigkeit im Leerlauf ungeklärt. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L139">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L661">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-10"><code>heartbeat.energyInfos[b].stateBean.isConnect</code> — Speicher verbunden</h3>
+<p>Verbindungsstatus des Speicheranschlusses.</p>
+<p><strong>Einheit / Werte:</strong> 0 = nein; 1 = ja</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung; 0/1 im HTTP-Schema. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L136">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L708">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-11"><code>heartbeat.energyInfos[b].stateBean.isGridCharge</code> — Speicher lädt aus dem Netz</h3>
+<p>Status der Netzladung.</p>
+<p><strong>Einheit / Werte:</strong> 0 = nein; 1 = ja</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung; 0/1 im HTTP-Schema. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L138">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L721">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-12"><code>heartbeat.loadCmdChCtrlInfos[i].ctrlSta</code> — Versorgungszustand des Stromkreises</h3>
+<p>0 = Netzversorgung; 1 = Speicherversorgung; 2 = aus.</p>
+<p><strong>Einheit / Werte:</strong> Statuscode</p>
+<p><strong>Beleglage:</strong> In der beigefügten API-Dokumentation vorhanden; Community bestätigt die Bedienzuordnung. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L53">tolwi/hassio-ecoflow-cloud</a>.</p>
+<h3 id="property-13"><code>heartbeat.loadCmdChCtrlInfos[i].ctrlMode</code> — Steuerungsmodus des Stromkreises</h3>
+<p>0 = automatisch; 1 = manuell. Separat vom Versorgungszustand auswerten.</p>
+<p><strong>Einheit / Werte:</strong> Statuscode</p>
+<p><strong>Beleglage:</strong> API-Dokumentation und Community. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L61">tolwi/hassio-ecoflow-cloud</a>.</p>
+<h3 id="property-14"><code>chUseInfo.isEnable[i]</code> — Stromkreis konfiguriert/aktiviert</h3>
+<p>Kennzeichnet die Nutzung des Stromkreises in der Konfiguration; allein kein Nachweis für einen gerade eingeschalteten Ausgang.</p>
+<p><strong>Einheit / Werte:</strong> bool</p>
+<p><strong>Beleglage:</strong> API-Konfiguration und Community. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L32">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-15"><code>loadChInfo.info[i].chName</code> — Benutzerdefinierter Stromkreisname</h3>
+<p>Name des Stromkreises. Community-Beispieldaten enthalten UTF-8-Bytes mit Nullauffüllung; ein anderes HTTP-Schema erwartet einen String. Beide Formen berücksichtigen.</p>
+<p><strong>Einheit / Werte:</strong> String oder Byte-Liste, je Quelle</p>
+<p><strong>Beleglage:</strong> Abweichende Datenformen direkt in den Quellen sichtbar. <a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/schemas/src/smartHomePanel/getProperties.ts#L38">rustyy/ecoflow-api</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L181">MichelFR/ha-ecoflow-iot</a>; <a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/test/lastQuotas/panel.json#L15">foxthefox/ioBroker.ecoflow-mqtt</a>.</p>
+<h3 id="property-16"><code>heartbeat.gridDayWatth</code> — Netzenergie heute</h3>
+<p>Tagesenergie aus dem Netz.</p>
+<p><strong>Einheit / Werte:</strong> Wh laut Community</p>
+<p><strong>Beleglage:</strong> Zusätzliche Einheit gegenüber der beigefügten Dokumentation. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L164">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L481">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L51">foxthefox/ioBroker.ecoflow-mqtt</a>.</p>
+<h3 id="property-17"><code>heartbeat.backupDayWatth</code> — Backup-Energie heute</h3>
+<p>Tagesenergie aus der Backup-Versorgung.</p>
+<p><strong>Einheit / Werte:</strong> Wh laut Community</p>
+<p><strong>Beleglage:</strong> Zusätzliche Einheit gegenüber der beigefügten Dokumentation. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L165">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L481">tolwi/hassio-ecoflow-cloud</a>.</p>
+<h3 id="property-18"><code>heartbeat.workTime</code> — Geräte-Betriebsdauer</h3>
+<p>Vom Panel gemeldeter Betriebszeitzähler.</p>
+<p><strong>Einheit / Werte:</strong> min laut beigefügter API-Dokumentation</p>
+<p><strong>Beleglage:</strong> Definition des Rücksetzpunkts ungeklärt. <a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L15">foxthefox/ioBroker.ecoflow-mqtt</a>.</p>
+<h3 id="property-19"><code>heartbeat.backupChaTime</code> — Backup-Restlaufzeit</h3>
+<p>Community interpretiert das Feld als verbleibende Entladezeit.</p>
+<p><strong>Einheit / Werte:</strong> min laut Community</p>
+<p><strong>Beleglage:</strong> Sehr große Beispielwerte: Sonderwertbehandlung offen. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L149">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L305">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/__fixtures__/shpProperties.ts#L351">rustyy/ecoflow-api</a>.</p>
+<h3 id="property-20"><code>gridInfo.gridVol</code> — Konfigurierte Netzspannung</h3>
+<p>Netzspannungsparameter des Konfigurationsbefehls; nicht ohne Weiteres als laufende Spannungsmessung verwenden.</p>
+<p><strong>Einheit / Werte:</strong> V</p>
+<p><strong>Beleglage:</strong> Als Konfiguration im Original beschrieben; Community liefert die Einheit. <a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L1127">foxthefox/ioBroker.ecoflow-mqtt</a>.</p>
+<h3 id="property-21"><code>gridInfo.gridFreq</code> — Konfigurierte Netzfrequenz</h3>
+<p>Netzfrequenzparameter des Konfigurationsbefehls; nicht ohne Weiteres als laufende Frequenzmessung verwenden.</p>
+<p><strong>Einheit / Werte:</strong> Hz</p>
+<p><strong>Beleglage:</strong> Als Konfiguration im Original beschrieben; Community liefert die Einheit. <a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js#L1139">foxthefox/ioBroker.ecoflow-mqtt</a>.</p>
+<h3 id="property-22"><code>backupChaDiscCfg.forceChargeHigh</code> — Obere Ladegrenze</h3>
+<p>Eingestellte obere Ladezustandsgrenze.</p>
+<p><strong>Einheit / Werte:</strong> %</p>
+<p><strong>Beleglage:</strong> API-Dokumentation; Community-Grenzen weichen voneinander ab. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L275">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L453">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-23"><code>backupChaDiscCfg.discLower</code> — Untere Entladegrenze</h3>
+<p>Eingestellte untere Ladezustandsgrenze.</p>
+<p><strong>Einheit / Werte:</strong> %</p>
+<p><strong>Beleglage:</strong> API-Dokumentation; Community-Grenzen weichen voneinander ab. <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L255">tolwi/hassio-ecoflow-cloud</a>; <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L465">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-24"><code>emergencyStrategy.chSta[i].isEnable</code> — Stromkreis für Notstrom eingeplant</h3>
+<p>Aktivierung des Stromkreises innerhalb der Notstromstrategie.</p>
+<p><strong>Einheit / Werte:</strong> 0 = nein; 1 = ja</p>
+<p><strong>Beleglage:</strong> Community-Zuordnung; Hersteller erklärt die Notstromauswahl. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L113">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-25"><code>emergencyStrategy.chSta[i].priority</code> — Notstrom-Priorität des Stromkreises</h3>
+<p>Prioritätswert innerhalb der Notstromstrategie.</p>
+<p><strong>Einheit / Werte:</strong> Ganzzahl; Rangrichtung offen</p>
+<p><strong>Beleglage:</strong> Keine unbelegte Annahme, dass größere Werte höhere Priorität bedeuten. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L123">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-26"><code>mainsLoadWatt.watth[i][h]</code> — Stündliche Netzenergie je Stromkreis</h3>
+<p>Community interpretiert die Matrix als Kanal × 24 Stunden.</p>
+<p><strong>Einheit / Werte:</strong> Wh pro Intervall laut Community</p>
+<p><strong>Beleglage:</strong> Stunden-/Zeitzonenbezug vor Auswertung prüfen. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L29">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-27"><code>backupLoadWatt.watth[i][h]</code> — Stündliche Backup-Energie je Stromkreis</h3>
+<p>Community interpretiert die Matrix als Kanal × 24 Stunden.</p>
+<p><strong>Einheit / Werte:</strong> Wh pro Intervall laut Community</p>
+<p><strong>Beleglage:</strong> Stunden-/Zeitzonenbezug vor Auswertung prüfen. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L30">MichelFR/ha-ecoflow-iot</a>.</p>
+<h3 id="property-28"><code>topupLoadWatt.watth[b][h]</code> — Stündliche Ladeenergie je Speicheranschluss</h3>
+<p>Community interpretiert die Matrix als Anschluss × 24 Stunden.</p>
+<p><strong>Einheit / Werte:</strong> Wh pro Intervall laut Community</p>
+<p><strong>Beleglage:</strong> Stunden-/Zeitzonenbezug vor Auswertung prüfen. <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L31">MichelFR/ha-ecoflow-iot</a>.</p>
+<h2>Offene oder widersprüchliche Angaben</h2>
+<ul>
+<li><code>heartbeat.backupFullCap</code> und <code>heartbeat.energyInfos[b].fullCap</code>: Kapazitätsrohwerte. Community-Code nennt Wh; Einheit und Skalierung sind damit noch nicht ausreichend abgesichert. Die <a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/__fixtures__/shpProperties.ts">HTTP-Testdaten</a> enthalten beispielsweise 304000 und 80000. Ohne Bezugsmessung keine feste Wh- oder kWh-Umrechnung ergänzen.</li>
+<li><code>heartbeat.backupChaTime</code>, <code>chargeTime</code> und <code>dischargeTime</code>: Community verwendet Minuten. Deren <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py#L305">Restzeit-Sensorklasse</a> verwirft allerdings Werte über 5000 als 0. Das ist Implementierungsverhalten, keine dokumentierte API-Regel; ungültige oder unklare Werte nicht als echte Restzeit 0 übernehmen.</li>
+<li>Lade-/Entladegrenzen: <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L255">eine Integration</a> begrenzt die Eingaben auf 0–30 % bzw. 50–100 %, <a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py#L453">eine andere</a> auf 0–100 %. Daraus lässt sich kein allgemeingültiger Gerätebereich ableiten.</li>
+<li><code>heartbeat.errorCodes</code>, <code>selfCheck.chErrorSta</code>, <code>selfCheck.result</code>, <code>selfCheck.flag</code>, <code>selfCheck.phaseType</code>: Datenformen sind sichtbar, aber keine vollständig belastbare Fehler-/Statuszuordnung gefunden. Rohwerte erhalten; Bedeutungen offenlassen.</li>
+<li><code>emergencyStrategy.backupMode</code>, <code>emergencyStrategy.overloadMode</code> und <code>timeTask.cfg.comCfg.timeScale</code>: Keine ausreichend belegte vollständige Kodierung gefunden.</li>
+<li>Felder wie <code>infoList.total_circuits</code> oder <code>infoList.total_circuits_battery</code> sind im untersuchten <a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py#L215">Home-Assistant-Code</a> berechnete Größen. Sie gehören nicht als native HTTP-Properties in das Verzeichnis.</li>
+</ul>
+<h2>Herstellerkontext</h2>
+<p>Das <a href="https://websiteoss.ecoflow.com/cms/upload/2024/4/23/EcoFlow%20Smart%20Home%20Panel-APP%20User%20Manual%20V1.1%28EN%29_1713863059672.pdf">offizielle EcoFlow-App-Handbuch</a> erklärt auf Seite 3 die konfigurierten Nennströme der zehn Hausstromkreise und der Anschlüsse Infinity AC1/AC2. Seite 6 beschreibt die Notstromauswahl und Stromkreisprioritäten. Diese Funktionsbeschreibungen helfen bei fachlichen Namen; die Zuordnung zu den konkreten API-Schlüsseln erfolgt anhand der API-Dokumentation und des verlinkten Codes.</p>
+<h2>Quellenstand</h2>
+<ul>
+<li><a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/schemas/src/smartHomePanel/getProperties.ts">rustyy/ecoflow-api / packages/schemas/src/smartHomePanel/getProperties.ts</a>; Git-Stand <code>f9804e04c8712670f28feb2a5317f26c460ba62a</code>.</li>
+<li><a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/__fixtures__/shpProperties.ts">rustyy/ecoflow-api / packages/rest-client/src/__fixtures__/shpProperties.ts</a>; Git-Stand <code>f9804e04c8712670f28feb2a5317f26c460ba62a</code>.</li>
+<li><a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/lib/devices/SmartHomePanel.ts">rustyy/ecoflow-api / packages/rest-client/src/lib/devices/SmartHomePanel.ts</a>; Git-Stand <code>f9804e04c8712670f28feb2a5317f26c460ba62a</code>.</li>
+<li><a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/lib/devices/Device.ts">rustyy/ecoflow-api / packages/rest-client/src/lib/devices/Device.ts</a>; Git-Stand <code>f9804e04c8712670f28feb2a5317f26c460ba62a</code>.</li>
+<li><a href="https://github.com/rustyy/ecoflow-api/blob/f9804e04c8712670f28feb2a5317f26c460ba62a/packages/rest-client/src/lib/RestClient.ts">rustyy/ecoflow-api / packages/rest-client/src/lib/RestClient.ts</a>; Git-Stand <code>f9804e04c8712670f28feb2a5317f26c460ba62a</code>.</li>
+<li><a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py">tolwi/hassio-ecoflow-cloud / custom_components/ecoflow_cloud/devices/public/smart_home_panel.py</a>; Git-Stand <code>de02d680cdfe1adcec60c43047ff3ed3da15e0ee</code>.</li>
+<li><a href="https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/sensor.py">tolwi/hassio-ecoflow-cloud / custom_components/ecoflow_cloud/sensor.py</a>; Git-Stand <code>de02d680cdfe1adcec60c43047ff3ed3da15e0ee</code>.</li>
+<li><a href="https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py">MichelFR/ha-ecoflow-iot / custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py</a>; Git-Stand <code>0805a1ea8d4ead69c698172eea78eecac51fdda3</code>.</li>
+<li><a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js">foxthefox/ioBroker.ecoflow-mqtt / lib/dict_data/ef_panel_data.js</a>; Git-Stand <code>9df54323e17a90e5c553ba5f10771667bd9ac4fb</code>.</li>
+<li><a href="https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/test/lastQuotas/panel.json">foxthefox/ioBroker.ecoflow-mqtt / test/lastQuotas/panel.json</a>; Git-Stand <code>9df54323e17a90e5c553ba5f10771667bd9ac4fb</code>.</li>
+</ul>
+</body>
+</html>

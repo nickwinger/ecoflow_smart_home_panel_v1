@@ -157,7 +157,7 @@
         "name": "{context}Linked channel{detail}"
       },
       "loadchcurinfo_cur": {
-        "name": "{context}Channel current configuration{detail}"
+        "name": "{context}Configured rated current{detail}"
       },
       "gridinfo_gridvol": {
         "name": "{context}Nominal grid voltage{detail}"
@@ -178,7 +178,7 @@
         "name": "{context}Load channel names{detail}"
       },
       "loadchinfo_info_chname": {
-        "name": "{context}Channel name{detail}"
+        "name": "{context}Channel name UTF-8 byte{detail}"
       },
       "loadchinfo_info_iconnum": {
         "name": "{context}Channel icon{detail}"
@@ -263,7 +263,7 @@
         "name": "{context}Channel power entries{detail}"
       },
       "channelpower_infolist_chwatt": {
-        "name": "{context}Channel power (raw){detail}"
+        "name": "{context}Channel power{detail}"
       },
       "channelpower_infolist_powtype": {
         "name": "{context}Channel power type (raw){detail}"
@@ -272,13 +272,13 @@
         "name": "{context}Storage entries{detail}"
       },
       "heartbeat_energyinfos_batterypercentage": {
-        "name": "{context}Storage battery level (raw){detail}"
+        "name": "{context}Storage battery level{detail}"
       },
       "heartbeat_energyinfos_outputpower": {
-        "name": "{context}Storage output power (raw){detail}"
+        "name": "{context}Storage output power{detail}"
       },
       "heartbeat_energyinfos_emsbattemp": {
-        "name": "{context}Storage temperature (raw){detail}"
+        "name": "{context}Storage temperature{detail}"
       },
       "heartbeat_energyinfos_fullcap": {
         "name": "{context}Storage capacity (raw){detail}"
@@ -296,13 +296,13 @@
         "name": "{context}Storage solar charging flag (raw){detail}"
       },
       "mainsloadwatt_watth": {
-        "name": "{context}Grid energy series (raw){detail}"
+        "name": "{context}Grid energy interval (raw){detail}"
       },
       "backuploadwatt_watth": {
-        "name": "{context}Backup energy series (raw){detail}"
+        "name": "{context}Backup energy interval (raw){detail}"
       },
       "topuploadwatt_watth": {
-        "name": "{context}Charging energy series (raw){detail}"
+        "name": "{context}Charging energy interval (raw){detail}"
       },
       "selfcheck_errorcode": {
         "name": "{context}Self-test error code{detail}"
@@ -321,6 +321,24 @@
       },
       "heartbeat_errorcodes": {
         "name": "{context}Device error codes{detail}"
+      },
+      "heartbeat_energyinfos_lcdinputwatts": {
+        "name": "{context}Storage input power{detail}"
+      },
+      "heartbeat_energyinfos_chargetime": {
+        "name": "{context}Remaining charge time (raw){detail}"
+      },
+      "heartbeat_energyinfos_dischargetime": {
+        "name": "{context}Remaining discharge time (raw){detail}"
+      },
+      "selfcheck_cherrorsta": {
+        "name": "{context}Channel error status{detail}"
+      },
+      "selfcheck_phasetype": {
+        "name": "{context}Self-test phase type{detail}"
+      },
+      "selfcheck_flag": {
+        "name": "{context}Self-test flag{detail}"
       },
       "unknown_quota": {
         "name": "Unknown quota field {path}"
@@ -415,7 +433,7 @@
         "name": "{context}Linked channel{detail}"
       },
       "loadchcurinfo_cur": {
-        "name": "{context}Channel current configuration{detail}"
+        "name": "{context}Configured rated current{detail}"
       },
       "gridinfo_gridvol": {
         "name": "{context}Nominal grid voltage{detail}"
@@ -436,7 +454,7 @@
         "name": "{context}Load channel names{detail}"
       },
       "loadchinfo_info_chname": {
-        "name": "{context}Channel name{detail}"
+        "name": "{context}Channel name UTF-8 byte{detail}"
       },
       "loadchinfo_info_iconnum": {
         "name": "{context}Channel icon{detail}"
@@ -511,7 +529,7 @@
         "name": "{context}Channel power entries{detail}"
       },
       "channelpower_infolist_chwatt": {
-        "name": "{context}Channel power (raw){detail}"
+        "name": "{context}Channel power{detail}"
       },
       "channelpower_infolist_powtype": {
         "name": "{context}Channel power type (raw){detail}"
@@ -520,13 +538,13 @@
         "name": "{context}Storage entries{detail}"
       },
       "heartbeat_energyinfos_batterypercentage": {
-        "name": "{context}Storage battery level (raw){detail}"
+        "name": "{context}Storage battery level{detail}"
       },
       "heartbeat_energyinfos_outputpower": {
-        "name": "{context}Storage output power (raw){detail}"
+        "name": "{context}Storage output power{detail}"
       },
       "heartbeat_energyinfos_emsbattemp": {
-        "name": "{context}Storage temperature (raw){detail}"
+        "name": "{context}Storage temperature{detail}"
       },
       "heartbeat_energyinfos_fullcap": {
         "name": "{context}Storage capacity (raw){detail}"
@@ -544,13 +562,13 @@
         "name": "{context}Storage solar charging flag (raw){detail}"
       },
       "mainsloadwatt_watth": {
-        "name": "{context}Grid energy series (raw){detail}"
+        "name": "{context}Grid energy interval (raw){detail}"
       },
       "backuploadwatt_watth": {
-        "name": "{context}Backup energy series (raw){detail}"
+        "name": "{context}Backup energy interval (raw){detail}"
       },
       "topuploadwatt_watth": {
-        "name": "{context}Charging energy series (raw){detail}"
+        "name": "{context}Charging energy interval (raw){detail}"
       },
       "selfcheck_errorcode": {
         "name": "{context}Self-test error code{detail}"
@@ -569,6 +587,24 @@
       },
       "heartbeat_errorcodes": {
         "name": "{context}Device error codes{detail}"
+      },
+      "heartbeat_energyinfos_lcdinputwatts": {
+        "name": "{context}Storage input power{detail}"
+      },
+      "heartbeat_energyinfos_chargetime": {
+        "name": "{context}Remaining charge time (raw){detail}"
+      },
+      "heartbeat_energyinfos_dischargetime": {
+        "name": "{context}Remaining discharge time (raw){detail}"
+      },
+      "selfcheck_cherrorsta": {
+        "name": "{context}Channel error status{detail}"
+      },
+      "selfcheck_phasetype": {
+        "name": "{context}Self-test phase type{detail}"
+      },
+      "selfcheck_flag": {
+        "name": "{context}Self-test flag{detail}"
       },
       "unknown_quota": {
         "name": "Unknown quota field {path}"

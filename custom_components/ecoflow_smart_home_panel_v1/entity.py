@@ -25,6 +25,34 @@ def safe_label(value: Scalar) -> str:
     )[:48]
 
 
+def channel_label(leaves: dict[RawPath, Scalar], index: int) -> str:
+    """Resolve one unambiguous string or contiguous, zero-padded UTF-8 name."""
+    target = f"loadChInfo.info[{index}].chName"
+    strings = []
+    byte_groups: dict[RawPath, dict[int, Scalar]] = {}
+    for path, value in leaves.items():
+        if display_path(path) == target:
+            strings.append(value)
+        elif type(path[-1]) is int and display_path(path[:-1]) == target:
+            byte_groups.setdefault(path[:-1], {})[path[-1]] = value
+    if len(strings) + len(byte_groups) != 1:
+        return ""
+    if strings:
+        return safe_label(strings[0])
+    values = next(iter(byte_groups.values()))
+    if set(values) != set(range(len(values))) or any(
+        type(v) is not int or not 0 <= v <= 255 for v in values.values()
+    ):
+        return ""
+    raw = bytes(values[i] for i in range(len(values))).rstrip(b"\x00")
+    if b"\x00" in raw:
+        return ""
+    try:
+        return safe_label(raw.decode("utf-8"))
+    except UnicodeDecodeError:
+        return ""
+
+
 @callback
 def async_discover(
     coordinator: EcoFlowCoordinator,
@@ -66,6 +94,8 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
             "documented_unit",
             "documented_enum",
             "channel_label",
+            "unit_confidence",
+            "evidence_reference",
         }
     )
 
@@ -103,12 +133,7 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
         index = int(match[1])
         if index >= 10:
             return ""
-        matches = [
-            v
-            for p, v in self.coordinator.data.leaves.items()
-            if display_path(p) == f"loadChInfo.info[{index}].chName"
-        ]
-        return safe_label(matches[0]) if len(matches) == 1 else ""
+        return channel_label(self.coordinator.data.leaves, index)
 
     def _placeholders(self) -> dict[str, str]:
         path = display_path(self.field.path)
@@ -146,7 +171,7 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
                 context += f" ({channel_label})"
             context += " – "
         detail = ""
-        if not self.field.exact:
+        if not self.field.exact or len(indexes) > 1:
             # Source suffix disambiguates unnamed array scalars/unknown children.
             detail = f" ({path[:120]})"
         return {"context": context, "detail": detail}
@@ -173,6 +198,10 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
             result["documented_enum"] = (
                 source.get("enum_en") if self.language == "en" else source["enum"]
             )
+            if evidence := source.get("evidence"):
+                result["evidence_reference"] = evidence["review"]
+            if unit_confidence := source.get("unit_confidence"):
+                result["unit_confidence"] = unit_confidence
         if label := self._channel_label():
             result["channel_label"] = label
         # Keep unknown enums/invalid percentages inspectable without pretending

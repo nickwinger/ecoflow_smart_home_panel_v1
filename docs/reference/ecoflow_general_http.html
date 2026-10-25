@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoFlow HTTP API - General</title>
+</head>
+<body>
+<p>Repository reference copy, 2026-10-25. Manufacturer demo credentials and serials were replaced by synthetic values; the full signing vector was recalculated. Original authors retain ownership.</p>
+<h1>EcoFlow HTTP API - General</h1>
+<h2 id="host">Host</h2>
+<table>
+<thead>
+<tr><th>Key</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>host</td><td><a href="https://api.ecoflow.com">https://api.ecoflow.com</a></td></tr>
+</tbody>
+</table>
+<h2 id="http-access-steps">HTTP access steps</h2>
+<p>Create a signature with accesskey and secretkey for authentication when HTTP requesting.</p>
+<p><strong>Step 1</strong>: request parameters must be sorted by ASCII value and concatenated with characters =, &amp;</p>
+<p>E.g. str=param1=value1&amp;param2=value2</p>
+<p><strong>Step 2</strong>: if the type is nested, expand and splice according to the method of step 1.</p>
+<p>E.g. deviceInfo.id=1&amp;deviceList[0].id=1&amp;deviceList[1].id=2&amp;ids[0]=1&amp;ids[1]=2&amp;ids[2]=3&amp;name=demo1</p>
+<pre><code>{
+    // General Parameter, expand to: name=demo1
+    "name" : "demo1" ,
+    // Array, expand to: ids[0]=1&amp;ids[1]=2&amp;ids[2]=3
+    "ids" :[1, 2, 3],
+    // Object, expand to: deviceInfo.id=1
+    "deviceInfo" :{
+        "id" :1
+    },
+    // Object Array, expand to: deviceList[0].id=1&amp;deviceList[1].id=2
+    "deviceList" :[
+        {
+            "id" :1
+        },
+        {
+            "id" :2
+        }
+    ]
+}</code></pre>
+<p><strong>Step 3</strong>: concatenate accessKey, nonce, timestamp</p>
+<p>E.g. str=param1=value1&amp;param2=value2&amp;accessKey=***&amp;nonce=...&amp;timestamp=...</p>
+<p><strong>Step 4</strong>: encrypt</p>
+<p>E.g. byte[] signBytes = HMAC-SHA256(str, secretKey)</p>
+<p><strong>Step 5</strong>: convert byte[] to hexadecimal string. String sign = bytesToHexString(signBytes)</p>
+<p>E.g. sign=85776ede686fe4783eac48135b0b1748ba2d7e9bb7791b826dc942fc29d4ada8</p>
+<p><strong>Step 6</strong>: add accessKey, nonce, timestamp, sign to HTTP header</p>
+<p>E.g.</p>
+<pre><code>// HTTP Header
+accessKey:ba2d7e9...
+nonce:123456
+timestamp:1671171709428
+sign:85776ede686fe...</code></pre>
+<p><strong>Step 7</strong>: get request data according to Content-Type header</p>
+<p>If Content-Type is "application/json;charset=UTF-8", get request data from request body, else get from request query string.</p>
+<p>E.g.</p>
+<pre><code>// HTTP header content-type=application/json;charset=UTF-8
+// HTTP body
+{
+ "name": "...",   
+ "begin_time": 123456789
+}
+
+// HTTP header content-type is none or other
+// HTTP query string
+https://${host}//iot-open/sign/device/quota/all?sn=123</code></pre>
+<p><strong>Step8</strong>: verify that the steps to generate the signature are correct</p>
+<pre><code>accessKey=example-access-key
+secretKey=example-secret-key
+nonce=345164
+timestamp=1671171709428
+
+// HTTP json Body
+{
+    "sn" : "SHP-EXAMPLE-0000" ,
+    "params" :{
+        "cmdSet" :11,
+        "id" :24,
+        "eps" :0
+    }
+}
+
+// key-value string
+params.cmdSet=11&amp;params.eps=0&amp;params.id=24&amp;sn=SHP-EXAMPLE-0000&amp;accessKey=example-access-key&amp;nonce=345164&amp;timestamp=1671171709428
+
+// sign. If the signature you generated is this value, than is correct
+4932391f0b8e8212d89e9b064ea9b32fc11018704cdc0f0ac485d441f860ff6d</code></pre>
+<h2 id="general-http-header"><strong>General HTTP Header</strong></h2>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>accessKey</td><td>string</td><td>Yes</td><td>Get from IoT platform</td></tr>
+<tr><td>nonce</td><td>int</td><td>Yes</td><td>Random number, 6 digits. Such as 537642</td></tr>
+<tr><td>timestamp</td><td>long</td><td>Yes</td><td>UTC timestamp. Such as 1672382607378</td></tr>
+<tr><td>sign</td><td>string</td><td>Yes</td><td>Creating by the signature rule</td></tr>
+</tbody>
+</table>
+<h2 id="query-the-users-bound-device-list"><strong>Query the user's bound device list</strong></h2>
+<p>Only returns the device bound to itself, not by share.</p>
+<table>
+<thead>
+<tr><th>Key</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>Method</td><td>GET</td></tr>
+<tr><td>URL</td><td><a href="https://${host}/iot-open/sign/device/list">https://${host}/iot-open/sign/device/list</a></td></tr>
+<tr><td>Content-Type</td><td>none</td></tr>
+</tbody>
+</table>
+<p>Request Body</p>
+<p>None</p>
+<p>Response Body</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>code</td><td>string</td><td>Yes</td><td>0: success</td></tr>
+<tr><td>message</td><td>string</td><td></td><td></td></tr>
+<tr><td>data</td><td>List&lt;deviceinfo&gt;</td><td></td><td>Device's info list</td></tr>
+</tbody>
+</table>
+<p>DeviceInfo</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>sn</td><td>string</td><td>Yes</td><td>Device's sequence number</td></tr>
+<tr><td>deviceName</td><td>string</td><td>Yes</td><td>Device's name</td></tr>
+<tr><td>online</td><td>int</td><td>Yes</td><td>Device online or not0: No, 1: Yes</td></tr>
+</tbody>
+</table>
+<p>Example</p>
+<pre><code>// request
+curl -X GET https://api.ecoflow.com/iot-open/sign/device/list \
+-H 'accessKey:OCHzRuj6NLF7o43***' \
+-H 'timestamp:1681796503289' \
+-H 'nonce:234762' \
+-H 'sign:f560c3e31d96ad31e4567939f9b3dca7b2c454ca7003f60***'
+
+// response
+{
+    "code":"0",
+    "message":"Success",
+    "data":[
+        {
+            "sn":"DCABZ****",
+            "online":1
+        }
+    ]
+}</code></pre>
+<h2 id="setting-devices-function"><strong>Setting device's function</strong></h2>
+<table>
+<thead>
+<tr><th>Key</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>Method</td><td>PUT</td></tr>
+<tr><td>URL</td><td><a href="https://${host}/iot-open/sign/device/quota">https://${host}/iot-open/sign/device/quota</a></td></tr>
+<tr><td>Content-Type</td><td>application/json;charset=UTF-8</td></tr>
+</tbody>
+</table>
+<p>Request Body</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>sn</td><td>string</td><td>Yes</td><td>Device's sequence number</td></tr>
+<tr><td>params</td><td>SetCmdRequest</td><td>Yes</td><td></td></tr>
+</tbody>
+</table>
+<p>Response Body</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>code</td><td>string</td><td>Yes</td><td>0: success</td></tr>
+<tr><td>message</td><td>string</td><td></td><td></td></tr>
+</tbody>
+</table>
+<p>Example</p>
+<pre><code>// Delta Pro: Setting the X-Boost switch
+// Request
+curl -X PUT https://api.ecoflow.com/iot-open/sign/device/quota \
+-H 'Content-Type:application/json;charset=UTF-8' \
+-H 'accessKey:OCHzRuj6NLF7o43***' \
+-H 'timestamp:1681872798000' \
+-H 'nonce:238752' \
+-H 'sign:0f3a1b102cd9a306307b7a9a0f0a9add7b8bfc93cf11***' \
+-d '{"sn":"DCABZ***","params":{"cmdSet":32,"id":66,"enabled":1}}'
+
+// Response
+{
+    "code":"0",
+    "message":"Success"
+}</code></pre>
+<h2 id="query-the-devices-quota-infomation"><strong>Query the device's quota infomation</strong></h2>
+<table>
+<thead>
+<tr><th>Key</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>Method</td><td>POST</td></tr>
+<tr><td>URL</td><td><a href="https://${host}/iot-open/sign/device/quota">https://${host}/iot-open/sign/device/quota</a></td></tr>
+<tr><td>Content-Type</td><td>application/json;charset=UTF-8</td></tr>
+</tbody>
+</table>
+<p>Request Body</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>sn</td><td>string</td><td>Yes</td><td>Device's sequence number</td></tr>
+<tr><td>params</td><td>GetCmdRequest</td><td>Yes</td><td></td></tr>
+</tbody>
+</table>
+<p>Response Body</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>code</td><td>string</td><td>Yes</td><td>0: success</td></tr>
+<tr><td>message</td><td>string</td><td></td><td></td></tr>
+<tr><td>data</td><td>GetCmdResponse</td><td></td><td></td></tr>
+</tbody>
+</table>
+<p>Example</p>
+<pre><code>// Delta Pro: Get the X-Boost switch value
+// Request
+curl -X POST https://api.ecoflow.com/iot-open/sign/device/quota \
+-H 'Content-Type:application/json;charset=UTF-8' \
+-H 'accessKey:OCHzRuj6NLF7o43***' \
+-H 'timestamp:1681872798000' \
+-H 'nonce:238752' \
+-H 'sign:1e48307441d06a6b31d4c0d66be1580c7748fd0***' \
+-d '{"sn":"DCABZ***","params":{"cmdSet":32,"id":66,"quotas":["inv.cfgAcEnabled"]}}'
+
+// Response
+{
+    "code":"0",
+    "message":"Success",
+    "data":{
+        "inv.cfgAcEnabled":1
+    }
+}</code></pre>
+<h2 id="query-devices-all-quota-infomation"><strong>Query device's all quota infomation</strong></h2>
+<table>
+<thead>
+<tr><th>Key</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>Method</td><td>GET</td></tr>
+<tr><td>URL</td><td><a href="https://${host}/iot-open/sign/device/quota/all">https://${host}/iot-open/sign/device/quota/all</a></td></tr>
+<tr><td>Content-Type</td><td>none</td></tr>
+</tbody>
+</table>
+<p>Request Query String</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>sn</td><td>string</td><td>Yes</td><td>Device's sequence number</td></tr>
+</tbody>
+</table>
+<p>Response Body</p>
+<table>
+<thead>
+<tr><th>Field</th><th>Field's Type</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>code</td><td>string</td><td>Yes</td><td>0: success</td></tr>
+<tr><td>message</td><td>string</td><td></td><td></td></tr>
+<tr><td>data</td><td>GetAllQuotaResponse</td><td></td><td></td></tr>
+</tbody>
+</table>
+<p>Example</p>
+<pre><code>// Get Delta Pro all quota values
+// Request
+curl -X GET https://api.ecoflow.com/iot-open/sign/device/quota/all?sn=DCABZ*** \
+-H 'accessKey:OCHzRuj6NLF7o43***' \
+-H 'timestamp:1681872798000' \
+-H 'nonce:238752' \
+-H 'sign:534215ccfe93979588975630ea0ad7091c7e250ae5***'
+
+// Response
+{
+    "code":"0",
+    "message":"Success",
+    "data":{
+        "bmsMaster.soc":"100",
+        "bmsMaster.temp":"34",
+        "bmsMaster.inputWatts":"0",
+        "bmsMaster.outputWatts":"0",
+        "pd.remainTime":"14781",
+        "inv.cfgAcEnabled":"0",
+        "mppt.carState":"0",
+        "pd.usb1Watts":"0",
+        "pd.usb2Watts":"0",
+        "pd.qcUsb1Watts":"0",
+        ...
+    }
+}</code></pre>
+</body>
+</html>

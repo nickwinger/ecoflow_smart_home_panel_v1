@@ -12,6 +12,7 @@ from custom_components.ecoflow_smart_home_panel_v1.const import DOMAIN
 from custom_components.ecoflow_smart_home_panel_v1.diagnostics import (
     async_get_config_entry_diagnostics,
 )
+from custom_components.ecoflow_smart_home_panel_v1.entity import channel_label
 from custom_components.ecoflow_smart_home_panel_v1.quota import identity
 
 from .test_quota import independent_leaves
@@ -222,3 +223,76 @@ async def test_enable_every_leaf_and_unknown_null(hass, entry, mock_quota, quota
     null = entity_for(hass, entry, ("future", "null"))
     assert hass.states.get(null.entity_id).state == "unknown"
     assert mock_quota.await_count == 2
+
+
+@pytest.mark.parametrize(
+    "values,expected",
+    [
+        ([75, 195, 188, 99, 104, 101, 0, 0], "Küche"),
+        ([65, 0, 66], ""),
+        ([255], ""),
+        ([256], ""),
+        ([True], ""),
+        ([None], ""),
+        ([0, 0], ""),
+    ],
+)
+def test_utf8_channel_names_are_strict_and_preserve_raw_bytes(values, expected):
+    leaves = {("loadChInfo", "info", 0, "chName", i): v for i, v in enumerate(values)}
+    before = dict(leaves)
+    assert channel_label(leaves, 0) == expected
+    assert leaves == before
+
+
+def test_ambiguous_or_partial_name_is_not_displayed():
+    leaves = {("loadChInfo", "info", 0, "chName", 1): 65}
+    assert channel_label(leaves, 0) == ""
+    leaves = {
+        ("loadChInfo", "info", 0, "chName"): "one",
+        ("loadChInfo.info", 0, "chName"): "two",
+    }
+    assert channel_label(leaves, 0) == ""
+
+
+async def test_byte_names_update_presentation_without_changing_circuit_identity(
+    hass, entry, mock_quota, quota
+):
+    await setup(hass, entry)
+    circuit = entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta"))
+    quota["loadChInfo"]["info"][0]["chName"] = [75, 195, 188, 99, 104, 101, 0]
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert "Küche" in hass.states.get(circuit.entity_id).name
+    assert (
+        circuit.unique_id
+        == entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta")).unique_id
+    )
+    for index in range(7):
+        byte = entity_for(hass, entry, ("loadChInfo", "info", 0, "chName", index))
+        assert byte.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+        assert hass.states.get(byte.entity_id) is None
+
+
+async def test_community_metadata_and_units_in_native_ha_states(hass, entry, mock_quota, quota):
+    quota["heartbeat.energyInfos"][0].update(
+        {"lcdInputWatts": 234, "chargeTime": 4294967295, "dischargeTime": 0}
+    )
+    await setup(hass, entry)
+    registry = er.async_get(hass)
+    paths = {
+        ("heartbeat.energyInfos", 0, "lcdInputWatts"): ("W", "power"),
+        ("heartbeat.energyInfos", 0, "emsBatTemp"): ("°C", "temperature"),
+        ("loadChCurInfo.cur", 0): ("A", "current"),
+        ("heartbeat.workTime",): ("min", "duration"),
+        ("heartbeat.gridDayWatth",): ("Wh", "energy"),
+    }
+    for path in paths:
+        registry.async_update_entity(entity_for(hass, entry, path).entity_id, disabled_by=None)
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    for path, (unit, device_class) in paths.items():
+        state = hass.states.get(entity_for(hass, entry, path).entity_id)
+        assert state.attributes["unit_of_measurement"] == unit
+        assert state.attributes["device_class"] == device_class
+        assert "state_class" not in state.attributes
+        assert "property-" in state.attributes["evidence_reference"]

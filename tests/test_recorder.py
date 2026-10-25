@@ -48,6 +48,8 @@ async def test_only_enabled_entities_record_and_static_metadata_is_omitted(
         assert "quota_access_path" not in attrs
         assert "confidence" not in attrs
         assert "documented_enum" not in attrs
+        assert "unit_confidence" not in attrs
+        assert "evidence_reference" not in attrs
     battery = entity_for(hass, entry, ("heartbeat.backupBatPer",))
     assert any(
         row[0] == battery.entity_id and row[2].get("state_class") == "measurement" for row in rows
