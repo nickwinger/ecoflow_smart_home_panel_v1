@@ -2,13 +2,13 @@
 
 **M1 + M2 implemented and verified offline.** Native, read-only integration for the first-generation EcoFlow Smart Home Panel. Hardware acceptance, safe controls (M3) and release readiness (M4) remain open. No GitHub release has been published. SHP2/3 and other EcoFlow devices are unsupported.
 
-## Isolated local live-device test (one command)
+## Test in VS Code (isolated real EcoFlow GETs)
 
-**From WSL host:** `bash scripts/dev-ha.sh start` starts Home Assistant DEV on `http://localhost:8124`, automatically creates a local **test / test** user and completes initial onboarding, then opens our EcoFlow integration dialog in the browser. **VS Code → Dev Containers: Reopen in Container** also runs that startup automatically. The browser login and initial entry of your EcoFlow API credentials remain the only manual steps.
+Open this repository in **WSL: Ubuntu** with VS Code, then choose **Dev Containers: Rebuild and Reopen in Container**. The Dev Container now uses **one Docker Compose project** for the Python workspace and a disposable Home Assistant 2026.10.3 sibling container. It reuses the existing DEV volume at **http://localhost:8124**, bootstraps local user **test/test**, and tries to open the forwarded DEV UI in a browser. No nested host-side `initializeCommand` or Docker socket.
 
-`bash scripts/dev-ha.sh restart` reloads integration code; `bash scripts/dev-ha.sh stop` preserves history; `bash scripts/dev-ha.sh reset` wipes **only** the DEV volume and starts from a clean entity registry. See [the full step-by-step instructions](docs/LOCAL_LIVE_TEST.md).
+The integration is **not shown on the already-configured integration dashboard** until you add it. Click **Settings → Devices & services → Add integration → EcoFlow Smart Home Panel v1**, then enter EcoFlow credentials once in the isolated DEV UI. Only active entities generate new Recorder history. Hardware reads currently use GET only; do not expose the insecure DEV login externally.
 
-**Never expose the weak DEV user remotely.** No production HA volume/token/config or devices are touched. Live EcoFlow calls are GET-only at this M1/M2 stage. HACS is not needed for the local runtime test.
+From a normal **WSL host terminal**, `bash scripts/dev-ha.sh start` starts only HA DEV; `bash scripts/dev-ha.sh doctor` verifies the manifest mount and logs; `bash scripts/dev-ha.sh restart` reloads code; `bash scripts/dev-ha.sh reset` deletes *only* HA DEV's credentials/registry/Recorder DB, preserving the Python workspace and production Home Assistant. [Full German instructions and troubleshooting](docs/LOCAL_LIVE_TEST.md).
 
 ## What works
 
