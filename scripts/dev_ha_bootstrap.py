@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from collections.abc import Mapping
 from typing import Any
@@ -57,6 +58,8 @@ class Client:
     def __init__(self, base_url: str = BASE_URL) -> None:
         if base_url not in (BASE_URL, COMPOSE_LOOPBACK_URL):
             raise BootstrapError("Only the dedicated local DEV Home Assistant is permitted")
+        if base_url == COMPOSE_LOOPBACK_URL and os.environ.get("ECOFLOW_DEV_BOOTSTRAP") != "1":
+            raise BootstrapError("Port 8123 is reserved for the isolated DEV Compose bootstrap")
         self.base_url = base_url
         self._opener = request.build_opener(request.ProxyHandler({}), RejectRedirects())
 
