@@ -1,16 +1,25 @@
 {
-  "name": "EcoFlow SHP v1 - Python 3.14",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
+  "name": "EcoFlow SHP v1 - VS Code + Home Assistant DEV",
+  "dockerComposeFile": "ha.compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/ecoflow_smart_home_panel_v1",
+  "runServices": [
+    "workspace",
+    "bootstrap"
+  ],
+  "shutdownAction": "none",
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
-  "initializeCommand": [
-    "bash",
-    "${localWorkspaceFolder}/scripts/dev-ha.sh",
-    "start"
+  "forwardPorts": [
+    "homeassistant:8123"
   ],
+  "portsAttributes": {
+    "8123": {
+      "label": "EcoFlow Home Assistant DEV",
+      "onAutoForward": "openBrowserOnce",
+      "requireLocalPort": false
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
