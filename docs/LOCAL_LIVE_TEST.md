@@ -89,7 +89,7 @@ python scripts/sync_catalog.py --check
 pytest -q --timeout=30
 ```
 
-Änderungen an `custom_components/ecoflow_smart_home_panel_v1/` landen durch die geteilte Quellcode-Einbindung direkt im HA DEV. Nach Python-Codeänderungen `restart` aus einem **zweiten WSL-Host-Terminal** ausführen; es wird kein HACS-Installationsprozess benötigt. Der Devcontainer selbst hat bewusst keinen Docker-Zugriff und kann nicht versehentlich andere Container verwalten.
+Änderungen an `custom_components/ecoflow_smart_home_panel_v1/` landen durch die geteilte Quellcode-Einbindung direkt im HA DEV. **Sicherheitsmaßnahme nach einem FI-Vorfall:** DEV hat nun `ECOFLOW_SHP_DEV_READ_ONLY=1`; alle Geräte-`PUT`-Aufrufe werden im API-Client abgewiesen. Ein `restart` erstellt den DEV-HA-Container neu (das DEV-Datenvolume bleibt erhalten), damit diese Umgebungsvariable zuverlässig aktiv ist. Die Sammelschaltung ist aktuell auch außerhalb von DEV gesperrt, bis die Ursache des Vorfalls geprüft wurde. Nach Python-Codeänderungen `restart` aus einem **zweiten WSL-Host-Terminal** ausführen; es wird kein HACS-Installationsprozess benötigt. Der Devcontainer selbst hat bewusst keinen Docker-Zugriff und kann nicht versehentlich andere Container verwalten.
 
 ## 6. Falls VS Code wieder „Starting Docker“ meldet
 

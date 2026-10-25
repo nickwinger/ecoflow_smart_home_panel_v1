@@ -1,6 +1,5 @@
 """Mode changes preserve fresh source state; no physical device is contacted."""
 
-import asyncio
 from copy import deepcopy
 
 import pytest

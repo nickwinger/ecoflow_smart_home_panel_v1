@@ -167,6 +167,10 @@ class EcoFlowClient:
     async def _request(
         self, method: str, parameters: dict[str, Any], *, endpoint: str | None = None
     ) -> dict[str, Any]:
+        # Second hard guard: even a future direct _request("PUT") call must not
+        # send hardware commands from the disposable DEV instance.
+        if method == "PUT" and os.environ.get("ECOFLOW_SHP_DEV_READ_ONLY") == "1":
+            raise EcoFlowError("EcoFlow device writes are disabled in DEV Home Assistant")
         async with self._lock:
             if time.monotonic() < self._retry_at:
                 raise RateLimitError(max(1, int(self._retry_at - time.monotonic()) + 1))

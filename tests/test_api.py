@@ -279,4 +279,8 @@ async def test_dev_home_assistant_hard_interlock_forbids_every_put(monkeypatch, 
                 await client.put_quota(
                     {"cmdSet": 11, "id": 16, "ch": 0, "ctrlMode": 1, "sta": 1}
                 )
+            with pytest.raises(EcoFlowError, match="disabled in DEV"):
+                await client._request(
+                    "PUT", {"sn": "SHP-TEST-0001", "params": {"cmdSet": 11, "id": 16}}
+                )
             assert ("PUT", PUT_URL) not in mocked.requests
