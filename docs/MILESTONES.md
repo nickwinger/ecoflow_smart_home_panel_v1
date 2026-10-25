@@ -499,3 +499,21 @@ Manual verification without switching: install via the documented HACS custom
 repository, restart HA, inspect the version and new notification checkbox, keep
 controls off initially and observe grid/power/battery entities with the phone app
 closed. Existing entry options, names and disabled choices should remain intact.
+
+## M4 follow-up — README icon in the HACS repository page
+
+- The owner's HACS screenshot showed the image's alternative text. The README
+  used a relative HTML `img src`; HACS retrieves the Markdown without rebasing
+  that source URL to GitHub. Changed README to the absolute HTTPS raw GitHub PNG
+  URL. The installed local brand asset and integration version remain unchanged.
+- Verified the exact public URL with `curl --fail --silent --show-error --location`
+  and compared the downloaded file with the repository asset using `cmp`:
+  **HTTP 200, image/png, 5,693 bytes, byte-identical 256×256 PNG**.
+  `git diff --check`: **passed**. No new runtime tests were needed for this
+  documentation-only fix; the preceding 548-test result still describes the
+  unchanged integration code, not a new test run.
+- Manual check: refresh repository information in HACS and reload its description
+  page. No HA restart or integration reinstallation is necessary for this image
+  link change. Browser/frontend display after refresh remains an owner check.
+- Quota coverage/defaults remain **245/245, 44 enabled / 201 disabled**, as listed
+  above. No HA/device commands or reference-repository changes.
