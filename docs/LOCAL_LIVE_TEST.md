@@ -2,6 +2,8 @@
 
 **Empfohlen: VS Code → Dev Containers: Reopen in Container.** Die Konfiguration startet jetzt den Python-Arbeitscontainer und Home Assistant DEV als **zwei Dienste im selben Docker-Compose-Projekt**. Der Benutzer `test/test` wird beim ersten Start automatisch durch einen dritten, kurzlebigen Setup-Dienst angelegt. Der Python-Container hat **keinen Docker-Socket** und keinerlei Zugang zu Produktiv-HA-Konfigurationen.
 
+**Netzwerksicherheit des Bootstrap-Skripts:** Beim Start aus WSL verwendet `dev_ha_bootstrap.py` `127.0.0.1:8124` (die lokale DEV-Portfreigabe). Der Docker-Compose-Dienst `bootstrap` verwendet `127.0.0.1:8123`, teilt dafür aber mit `network_mode: service:homeassistant` **ausschließlich den Netzwerk-Namespace des DEV-HA-Containers**. Das ist ausdrücklich **nicht** die Produktivinstallation und kein DNS-Hostname. Der interne Modus erfordert zusätzlich `ECOFLOW_DEV_BOOTSTRAP=1` aus der DEV-Compose-Konfiguration. HTTP-Proxies und Weiterleitungen sind deaktiviert; falls DEV nicht erreichbar ist, wird abgebrochen statt einen fremden Host zu kontaktieren.
+
 **Sicherheitsgrenze:** Dieses `test/test` ist bewusst nur für eine lokale Wegwerf-Testinstanz. Kein Tunnel, Portforward zu anderen Hosts oder öffentliches Netzwerk! Home Assistant DEV lauscht am Host auf `127.0.0.1:8124`. Seit M3 (0.2.0) gibt es optionale echte PUT-Befehle. Für diese Leseprüfung **alle drei Steuerfreigaben ausgeschaltet lassen** und keine Schreibaktionen oder Steuerautomationen aufrufen. Ein Container schützt das reale Panel nicht vor Cloud-Befehlen. Details und Abbruchverhalten: [CONTROLS.md](CONTROLS.md). Die EcoFlow Cloud und ihre API-Limits sind trotz lokaler HA-Isolation **echt**.
 
 ## 1. Einmalig: VS Code starten

@@ -83,4 +83,5 @@ Ohne `--check` schreibt das Skript `catalog.json`, `strings.json` und die Übers
 - Docker-Kommandos nur im **WSL-Host-Terminal**; der Python-Devcontainer hat bewusst keinen Docker-Socket.
 - Das DEV-Webinterface ist an **127.0.0.1:8124** gebunden. `test/test` keinesfalls über Tunnel, Portweiterleitungen oder Proxies öffentlich machen.
 - Die DEV-Instanz und die Produktivinstallation verwenden **keine gemeinsamen HA-Datenvolumes**.
+- Die automatische Anmeldung darf ausschließlich die DEV-Loopback-Adressen erreichen: WSL-Host `127.0.0.1:8124`, Compose-Bootstrap `127.0.0.1:8123` innerhalb des **DEV-HA-Netzwerk-Namespace** (`network_mode: service:homeassistant`). Kein DNS, kein Proxy, keine HTTP-Weiterleitung; für 8123 ist zusätzlich die DEV-Compose-Markierung erforderlich.
 - Das reale EcoFlow-Gerät kann mit Cloud-GET-Abfragen gelesen werden. Die Cloud-API-Limits gelten trotz lokaler Trennung weiterhin.

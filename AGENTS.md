@@ -29,6 +29,7 @@ Treat `nickwinger/homeassistant_config` as a **read-only reference repository**.
 - For HA Recorder: numeric time-series can receive a verified `state_class` and appropriate unit; daily resetting counters require special care and must NOT blindly use `TOTAL_INCREASING`. Text, booleans and arbitrary diagnostics do not automatically get permanent long-term statistics.
 - Check effective defaults of sensor/device/entity categories and their opt-in registry enablement with tests.
 - Keep existing `nickwinger/homeassistant_config` automation operational until a separate explicit migration.
+- DEV onboarding must target only hardcoded loopback IPs: `127.0.0.1:8124` from WSL, or `127.0.0.1:8123` when sharing the isolated DEV HA network namespace via `network_mode: service:homeassistant`, guarded by `ECOFLOW_DEV_BOOTSTRAP=1`. Never replace this with DNS, host networking, redirects, HTTP proxies, a user-provided URL, or any production HA address.
 - If you encounter an uncertain capability, investigate/document it before inventing behavior. Avoid scope creep into other EcoFlow integrations or unrelated devices.
 
 ## Completion reporting
