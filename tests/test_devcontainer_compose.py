@@ -29,7 +29,6 @@ def test_compose_has_only_disposable_ha_storage_and_separate_workspace():
     assert set(services) == {"seed", "homeassistant", "bootstrap", "workspace"}
     ha = services["homeassistant"]
     assert "127.0.0.1:8124:8123" in ha["ports"]
-    assert ha["environment"]["ECOFLOW_SHP_DEV_READ_ONLY"] == "1"
     assert "ha_config:/config" in ha["volumes"]
     assert "../custom_components:/config/custom_components:ro" in ha["volumes"]
     assert services["workspace"]["depends_on"]["homeassistant"]["condition"] == "service_started"

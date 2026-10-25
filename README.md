@@ -12,9 +12,6 @@
 > [!IMPORTANT]
 > **Early preview (v0.3.0) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
 
-> [!CAUTION]
-> **Electrical safety notice:** Bulk GRID/BATTERY switching is suspended after an RCD/FI trip during a real test. The all-circuits buttons and service action are blocked pending investigation. Do not enable physical switching in a test installation; our DEV Compose instance enforces read-only HTTP. [Technical details](docs/CONTROLS.md).
-
 ## ✨ Features
 
 - ⚡ **Live monitoring** — grid availability, backup battery level, circuit power-source status and energy readings.

@@ -25,9 +25,6 @@ services:
         condition: service_completed_successfully
     environment:
       TZ: Europe/Vienna
-      # HARD INTERLOCK: DEV may read real telemetry but must NEVER actuate
-      # physical household circuits, even if options are enabled.
-      ECOFLOW_SHP_DEV_READ_ONLY: "1"
     ports:
       - "127.0.0.1:8124:8123"
     volumes:

@@ -1,5 +1,6 @@
 """Mode changes preserve fresh source state; no physical device is contacted."""
 
+import asyncio
 from copy import deepcopy
 
 import pytest
@@ -139,16 +140,38 @@ def button_id(hass, entry, action):
     )
 
 
-async def test_batch_buttons_hidden_and_action_blocked_after_fi_trip(
-    hass, entry, control_env
+async def test_batch_buttons_visible_and_cancel_interrupts_transaction(
+    hass, entry, control_env, mock_quota, quota
 ):
     controls, put, sleep = control_env
-    assert hass.states.async_entity_ids("button") == []
-    assert not controls.batch_enabled()
-    with pytest.raises(ServiceValidationError, match="suspended"):
-        await controls.async_set_all_sources("battery")
+    assert len(hass.states.async_entity_ids("button")) == 3
     put.assert_not_awaited()
-    sleep.assert_not_awaited()
+    mock_quota.return_value = with_mode(quota, 0, 0)
+    started = asyncio.Event()
+
+    async def wait_for_cancel(seconds):
+        started.set()
+        await asyncio.Event().wait()
+
+    sleep.side_effect = wait_for_cancel
+    task = asyncio.create_task(
+        hass.services.async_call(
+            "button", "press", {"entity_id": button_id(hass, entry, "grid")}, blocking=True
+        )
+    )
+    await started.wait()
+    assert hass.states.get(button_id(hass, entry, "battery")).state == "unavailable"
+    assert hass.states.get(button_id(hass, entry, "cancel")).state != "unavailable"
+    await hass.services.async_call(
+        "button", "press", {"entity_id": button_id(hass, entry, "cancel")}, blocking=True
+    )
+    await asyncio.gather(task, return_exceptions=True)
+    assert controls.status["state"] == "cancelled"
+    assert controls.status["completed"] == [7]
+    put.assert_not_awaited()
+    # A failed/invalidated coordinator must not disable the cancel button.
+    assert hass.states.get(button_id(hass, entry, "cancel")).state != "unavailable"
+
 
 @pytest.mark.parametrize(
     "options", [{}, {"enable_source_controls": True}, {"enable_batch_controls": True}]

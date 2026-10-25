@@ -116,9 +116,7 @@ case "$COMMAND" in
     restart)
         [ "$#" -eq 0 ] || die "Unexpected arguments."
         preflight
-        # Recreate the DEV *container*, not its data volume, to apply new
-        # environment safety flags such as ECOFLOW_SHP_DEV_READ_ONLY.
-        compose up -d --force-recreate homeassistant
+        compose restart homeassistant
         python3 "$BOOTSTRAP"
         echo "DEV Home Assistant restarted; integration source reloaded."
         ;;

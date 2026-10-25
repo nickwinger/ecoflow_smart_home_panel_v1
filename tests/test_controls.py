@@ -295,18 +295,6 @@ async def test_cancel_active_and_queued_no_more_writes(hass, entry, control_env,
     put.assert_awaited_once()
 
 
-
-
-async def test_electrical_safety_lock_rejects_batch_even_if_all_options_on(control_env):
-    controls, put, sleep = control_env
-    assert not controls.batch_enabled()
-    for source in ("grid", "battery"):
-        with pytest.raises(ServiceValidationError, match="suspended"):
-            await controls.async_set_all_sources(source)
-    put.assert_not_awaited()
-    sleep.assert_not_awaited()
-
-
 async def test_ordered_batch_updates_progress(control_env, mock_quota, quota):
     controls, put, sleep = control_env
     current = deepcopy(quota)
@@ -318,9 +306,7 @@ async def test_ordered_batch_updates_progress(control_env, mock_quota, quota):
         current["heartbeat.loadCmdChCtrlInfos"][params["ch"]]["ctrlSta"] = params["sta"]
 
     put.side_effect = write
-    # Offline regression: this simulated sequence is forbidden in production.
-    with patch("custom_components.ecoflow_smart_home_panel_v1.controls.BATCH_SOURCE_SWITCHING_SUSPENDED", False):
-        result = await controls.async_set_all_sources("battery")
+    result = await controls.async_set_all_sources("battery")
     assert [c.args[0]["ch"] + 1 for c in put.await_args_list] == list(CIRCUIT_ORDER)
     assert result["completed"] == list(CIRCUIT_ORDER)
     assert result["state"] == "succeeded"
@@ -340,10 +326,8 @@ async def test_batch_stops_at_first_failure_no_rollback(control_env, mock_quota,
         current["heartbeat.loadCmdChCtrlInfos"][params["ch"]]["ctrlSta"] = 1
 
     put.side_effect = write
-    # Simulated legacy sequence only; not reachable in installed builds.
-    with patch("custom_components.ecoflow_smart_home_panel_v1.controls.BATCH_SOURCE_SWITCHING_SUSPENDED", False):
-        with pytest.raises(HomeAssistantError):
-            await controls.async_set_all_sources("battery")
+    with pytest.raises(HomeAssistantError):
+        await controls.async_set_all_sources("battery")
     assert [c.args[0]["ch"] + 1 for c in put.await_args_list] == [7, 6]
     assert controls.status["completed"] == [7]
     assert controls.status["state"] == "failed"

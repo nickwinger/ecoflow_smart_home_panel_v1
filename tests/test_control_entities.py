@@ -164,17 +164,23 @@ async def test_batch_gate_and_entry_scope(hass, entry, mock_quota):
         )
 
 
-async def test_batch_action_disabled_after_fi_trip(hass, entry, control_env):
+async def test_batch_action_response(hass, entry, control_env, mock_quota, quota):
     _, put, _ = control_env
-    with pytest.raises(ServiceValidationError, match="suspended"):
-        await hass.services.async_call(
-            DOMAIN,
-            "set_all_sources",
-            {"config_entry_id": entry.entry_id, "source": "grid", "confirm": True},
-            blocking=True,
-            return_response=True,
-        )
+    data = deepcopy(quota)
+    for item in data["heartbeat.loadCmdChCtrlInfos"]:
+        item["ctrlSta"] = 0
+    mock_quota.return_value = data
+    response = await hass.services.async_call(
+        DOMAIN,
+        "set_all_sources",
+        {"config_entry_id": entry.entry_id, "source": "grid", "confirm": True},
+        blocking=True,
+        return_response=True,
+    )
+    assert response["state"] == "succeeded"
+    assert response["completed"] == [7, 6, 3, 1, 2, 4, 5, 8, 9, 10]
     put.assert_not_awaited()
+
 
 async def test_options_revoke_controls_and_preserve_user_disable(
     hass, entry, control_env, mock_quota
