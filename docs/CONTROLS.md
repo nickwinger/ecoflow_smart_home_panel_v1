@@ -1,5 +1,9 @@
 # M3: Stromkreise und Laden steuern (0.3.0)
 
+> [!CAUTION]
+> **Bulk switching is temporarily disabled following an RCD/FI trip during a real test.** The `set_all_sources` action and the all-to-grid/all-to-battery buttons are blocked, even when their options are selected. Do not reactivate them until the actual device command timeline and interaction with legacy scripts have been independently verified. **Our local DEV Home Assistant additionally blocks all EcoFlow device `PUT` requests.** This does not update or stop already-running installations: disable control options in Home Assistant and reload after updating the integration.
+
+
 Die Installation und jedes Upgrade bleiben standardmäßig lesend. Es gibt keine
 Schaltbefehle beim Start, Neustart, Wiederherstellen, Polling oder bei API-Fehlern.
 Bestehende Konfigurationseinträge erhalten keine automatische Steuerfreigabe.

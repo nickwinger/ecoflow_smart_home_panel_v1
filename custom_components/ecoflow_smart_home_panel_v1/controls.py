@@ -27,6 +27,12 @@ CHARGE_SETTLE_SECONDS = 2  # ecoflow_config.SETTLE_AFTER_SET_SECONDS for ecoflow
 RETRY_SECONDS = 15
 MAX_ATTEMPTS = 8
 
+# PHYSICAL SAFETY STOP: an RCD/FI tripped during a real bulk-switch attempt.
+# Individual Python awaits cannot prove the panel/Cloud applied each command
+# separately. Do NOT turn this on without explicit owner/electrician sign-off,
+# hardware logs, coordination with all legacy writers, and a verified interlock.
+BATCH_SOURCE_SWITCHING_SUSPENDED = True
+
 
 def read_control_states(data: dict[str, Any]) -> dict[str, tuple[str | bool | None, ...]]:
     """Derive state only from complete, unambiguous actual control arrays.
@@ -102,11 +108,16 @@ class PanelControls:
 
     def batch_enabled(self) -> bool:
         return (
-            self.enabled("source")
+            not BATCH_SOURCE_SWITCHING_SUSPENDED
+            and self.enabled("source")
             and self.coordinator.config_entry.options.get(CONF_BATCH_CONTROLS) is True
         )
 
     def _require_enabled(self, kind: str, batch: bool = False) -> None:
+        if batch and BATCH_SOURCE_SWITCHING_SUSPENDED:
+            raise ServiceValidationError(
+                "SHP bulk source switching is suspended after an electrical safety incident"
+            )
         if not self.enabled(kind) or (
             batch and self.coordinator.config_entry.options.get(CONF_BATCH_CONTROLS) is not True
         ):

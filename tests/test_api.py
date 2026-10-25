@@ -263,3 +263,20 @@ async def test_certification_and_read_only_heartbeat_signed_transport():
             msg = f"params.quotas[0]=heartbeat.time&sn=SHP-TEST-0001&accessKey=test-access&nonce={h['nonce']}&timestamp={h['timestamp']}"
             assert h["sign"] == hmac.new(b"test-secret", msg.encode(), hashlib.sha256).hexdigest()
             assert not any(k[0] == "PUT" for k in mocked.requests)
+
+
+async def test_dev_home_assistant_hard_interlock_forbids_every_put(monkeypatch, quota):
+    """Never actuate the real panel from isolated DEV, even with control options."""
+    monkeypatch.setenv("ECOFLOW_SHP_DEV_READ_ONLY", "1")
+    async with aiohttp.ClientSession() as session:
+        client = EcoFlowClient(session, "test-access", "test-secret", "SHP-TEST-0001")
+        with MockHTTP() as mocked:
+            mocked.get(URL, payload={"code": "0", "data": quota})
+            # Safe GET is still allowed.
+            assert await client.get_quota_all() == quota
+            # No write leaves the process.
+            with pytest.raises(EcoFlowError, match="disabled in DEV"):
+                await client.put_quota(
+                    {"cmdSet": 11, "id": 16, "ch": 0, "ctrlMode": 1, "sta": 1}
+                )
+            assert ("PUT", PUT_URL) not in mocked.requests

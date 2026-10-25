@@ -10,6 +10,7 @@ import asyncio
 import hashlib
 import hmac
 import json
+import os
 import secrets
 import time
 from typing import Any
@@ -143,7 +144,9 @@ class EcoFlowClient:
         return payload["data"]
 
     async def put_quota(self, params: dict[str, int]) -> None:
-        """Send a signed command. An acknowledgment does not confirm device state."""
+        """Block any physical device command from our read-only DEV environment."""
+        if os.environ.get("ECOFLOW_SHP_DEV_READ_ONLY") == "1":
+            raise EcoFlowError("EcoFlow device writes are disabled in DEV Home Assistant")
         await self._request("PUT", {"sn": self._serial, "params": params})
 
     async def request_heartbeat(self) -> None:
