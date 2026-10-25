@@ -23,6 +23,7 @@ from .const import (
     poll_interval,
 )
 from .controls import PanelControls, read_control_states
+from .logging_utils import failure_reason
 from .quota import (
     MAX_ENTITIES,
     QuotaLimitError,
@@ -109,15 +110,15 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
         try:
             data = await self.client.get_quota_all()
             snapshot = extract_leaves(data, self._sensitive)
-        except AuthenticationError:
-            raise ConfigEntryAuthFailed("EcoFlow authentication rejected") from None
+        except AuthenticationError as error:
+            raise ConfigEntryAuthFailed(failure_reason(error)) from None
         except (EcoFlowError, QuotaLimitError) as error:
             self.failures = min(self.failures + 1, 5)
             seconds = min(900, self.poll_interval * 2**self.failures)
             if isinstance(error, RateLimitError):
                 seconds = max(seconds, error.retry_after)
             self.update_interval = timedelta(seconds=seconds)
-            raise UpdateFailed(str(error)) from None
+            raise UpdateFailed(f"{failure_reason(error)}; next poll in {seconds} seconds") from None
         self.failures = 0
         self.successful_quota_refreshes += 1
         self.last_successful_quota_refresh = dt_util.utcnow()

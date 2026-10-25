@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import time
 from asyncio import sleep
 from typing import TYPE_CHECKING
@@ -23,12 +24,14 @@ from .api import (
     RateLimitError,
     quota_member,
 )
+from .logging_utils import failure_reason
 from .quota import QuotaLimitError, RawPath, Scalar, display_path, extract_leaves
 
 if TYPE_CHECKING:
     from .coordinator import EcoFlowCoordinator
 
 POWER_MAX_AGE_SECONDS = 30
+_LOGGER = logging.getLogger(__name__)
 
 
 def mqtt_credentials(data: dict) -> tuple[str, int, str, str]:
@@ -92,6 +95,17 @@ class PowerTelemetry:
         self._client: mqtt.Client | None = None
         self._ready = asyncio.Event()
         self._disconnected = asyncio.Event()
+        self._outage_logged = False
+
+    def _log_outage(self, reason: str) -> None:
+        """One warning per outage, reset only when a fresh power frame arrives."""
+        if not self._outage_logged:
+            _LOGGER.warning(
+                "EcoFlow entry %s: live power updates unavailable: %s; reconnect is automatic",
+                self.coordinator.config_entry.entry_id[:8],
+                reason,
+            )
+            self._outage_logged = True
 
     def start(self) -> None:
         self.enabled = True
@@ -121,6 +135,8 @@ class PowerTelemetry:
         result = dict(leaves)
         age = self.power_age()
         fresh = self.connected and age is not None and age <= POWER_MAX_AGE_SECONDS
+        if self.connected and age is not None and not fresh:
+            self._log_outage("no recent power reports from EcoFlow")
         for path in leaves.keys() | self.coordinator.known_paths:
             logical = display_path(path)
             if logical.startswith("channelPower.infoList["):
@@ -142,6 +158,7 @@ class PowerTelemetry:
             self.error = None
         else:
             self.error = "mqtt_auth_or_connection_rejected"
+            self._log_outage("MQTT connection rejected by EcoFlow")
             self._disconnected.set()
 
     def _disconnect_callback(self, client, *_args) -> None:
@@ -149,6 +166,7 @@ class PowerTelemetry:
 
     def _accept_disconnect(self, client) -> None:
         if client is self._client:
+            self._log_outage("MQTT connection lost")
             self._invalidate()
             self._disconnected.set()
 
@@ -164,6 +182,12 @@ class PowerTelemetry:
             return
         self.last_power_at = time.monotonic()
         self.reports += 1
+        if self._outage_logged:
+            _LOGGER.info(
+                "EcoFlow entry %s: live power updates recovered; fresh reports are arriving",
+                self.coordinator.config_entry.entry_id[:8],
+            )
+            self._outage_logged = False
 
     def _create_client(self, credentials: tuple[str, int, str, str]) -> mqtt.Client:
         host, port, account, password = credentials
@@ -191,21 +215,25 @@ class PowerTelemetry:
         hass = self.coordinator.hass
         while True:
             delay = 30
+            stage = "requesting MQTT credentials"
             try:
                 credentials = mqtt_credentials(
                     await self.coordinator.client.get_mqtt_certification()
                 )
                 self._ready.clear()
                 self._disconnected.clear()
+                stage = "connecting to MQTT"
                 self._client = await hass.async_add_executor_job(self._create_client, credentials)
                 await hass.async_add_executor_job(self._client.loop_start)
                 async with asyncio.timeout(20):
                     await self._ready.wait()
                 if self.connected:
+                    stage = "subscribing to power updates"
                     topic = f"/open/{credentials[2]}/{self.coordinator.serial}/quota"
                     result, _ = self._client.subscribe(topic, qos=0)
                     if result != mqtt.MQTT_ERR_SUCCESS:
                         raise EcoFlowError("Cloud telemetry subscription failed")
+                    stage = "waiting for power updates"
                     while not self._disconnected.is_set():
                         try:
                             async with asyncio.timeout(60):
@@ -216,12 +244,19 @@ class PowerTelemetry:
                                 raise EcoFlowError("Cloud power telemetry stalled") from None
             except AuthenticationError:
                 self.error = "authentication_failed"
+                _LOGGER.error(
+                    "EcoFlow entry %s: live power authentication rejected; reauthenticate the integration",
+                    self.coordinator.config_entry.entry_id[:8],
+                )
                 self.coordinator.config_entry.async_start_reauth(hass)
                 return
             except (EcoFlowError, OSError, ValueError, TimeoutError) as error:
                 self.error = "telemetry_connection_failed"
                 if isinstance(error, RateLimitError):
                     delay = max(delay, error.retry_after)
+                self._log_outage(
+                    f"{stage}: {failure_reason(error)}; next attempt in {delay} seconds"
+                )
             finally:
                 client, self._client = self._client, None
                 self._invalidate()

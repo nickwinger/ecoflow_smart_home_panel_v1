@@ -20,6 +20,7 @@ def async_register_services(hass: HomeAssistant) -> None:
         return entry.runtime_data
 
     async def set_all_sources(call: ServiceCall) -> dict:
+        """Await all confirmations and pauses; never detach from the calling automation."""
         return await coordinator(call).controls.async_set_all_sources(call.data["source"])
 
     async def cancel_commands(call: ServiceCall) -> None:

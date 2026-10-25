@@ -47,7 +47,7 @@
           "poll_interval": "Abfrageintervall (1–600 Sekunden)",
           "enable_source_controls": "Stromkreise steuern (Quelle und Betriebsart)",
           "enable_charge_controls": "Laden steuern",
-          "enable_batch_controls": "Tasten zum Umschalten aller Stromkreise anzeigen"
+          "enable_batch_controls": "Sammelschaltung freigeben (Automationen und Tasten)"
         },
         "description": "Nach der Freigabe erscheinen die Bedienelemente auf der Geräteseite. Die Freigabe allein schaltet nichts. Für die Tasten „Alle auf Netzstrom“, „Alle auf Batterie“ und „Schaltung abbrechen“ zusätzlich die Stromkreissteuerung aktivieren. Standard-Abfrageintervall: 5 Sekunden."
       }
@@ -650,7 +650,7 @@
   "services": {
     "set_all_sources": {
       "name": "Alle Stromkreise umschalten",
-      "description": "Alle Stromkreise in der Reihenfolge 7,6,3,1,2,4,5,8,9,10 mit Pausen und Bestätigung umschalten. Nach einzelnen Fehlern fortfahren und diese am Ende gesammelt melden. Kann mehrere Minuten dauern; Abbruch über cancel_commands. Benötigt beide Freigaben und Bestätigung.",
+      "description": "Alle Stromkreise in der Reihenfolge 7,6,3,1,2,4,5,8,9,10 mit Pausen und Bestätigung umschalten. Nach einzelnen Fehlern fortfahren und diese am Ende gesammelt melden. Kann mehrere Minuten dauern; Abbruch über cancel_commands. Benötigt beide Freigaben und Bestätigung. Wartet bis zum Ende der Folge. Die Automation wird nur bei vollständiger Bestätigung fortgesetzt; andernfalls wird ein Fehler gemeldet.",
       "fields": {
         "config_entry_id": {
           "name": "Integrationseintrag"

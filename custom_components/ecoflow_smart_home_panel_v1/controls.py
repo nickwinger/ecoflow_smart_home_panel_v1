@@ -7,6 +7,7 @@ can prove success. Timings and circuit order follow shp_mode.py.
 from __future__ import annotations
 
 import asyncio
+import logging
 from asyncio import sleep
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -14,8 +15,9 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
-from .api import AuthenticationError, EcoFlowError, quota_member
+from .api import AuthenticationError, quota_member
 from .const import CONF_BATCH_CONTROLS, CONF_CHARGE_CONTROLS, CONF_SOURCE_CONTROLS, DOMAIN
+from .logging_utils import failure_reason
 from .quota import Snapshot
 
 if TYPE_CHECKING:
@@ -26,6 +28,7 @@ SETTLE_SECONDS = 10
 CHARGE_SETTLE_SECONDS = 2  # ecoflow_config.SETTLE_AFTER_SET_SECONDS for ecoflow_set.py
 RETRY_SECONDS = 15
 MAX_ATTEMPTS = 8
+_LOGGER = logging.getLogger(__name__)
 
 
 class BatchSwitchError(HomeAssistantError):
@@ -155,6 +158,37 @@ class PanelControls:
         self.status = {**self.status, **values}
         self.coordinator.async_update_listeners()
 
+    def _log_channel_failure(self, error: Exception, *, batch: bool) -> None:
+        """Log only validated targets, bounded progress and an allowlisted cause."""
+        _LOGGER.error(
+            "EcoFlow entry %s: %s %s -> %s failed during %s (attempt %s/%s): %s.%s",
+            self.coordinator.config_entry.entry_id[:8],
+            "backup charging"
+            if self.status["kind"] == "charge"
+            else "circuit " + self.status["kind"],
+            self.status.get("channel", "not started"),
+            self.status["target"],
+            self.status.get("stage", "preflight"),
+            self.status.get("attempt", 0),
+            MAX_ATTEMPTS,
+            failure_reason(error),
+            " Continuing with remaining circuits after the normal pause." if batch else "",
+        )
+
+    def _log_unconfirmed(self, attempt: int) -> None:
+        _LOGGER.log(
+            logging.WARNING if attempt == 1 else logging.DEBUG,
+            "EcoFlow entry %s: %s %s -> %s not yet confirmed (attempt %s/%s); following the configured retry sequence",
+            self.coordinator.config_entry.entry_id[:8],
+            "backup charging"
+            if self.status["kind"] == "charge"
+            else "circuit " + self.status["kind"],
+            self.status["channel"],
+            self.status["target"],
+            attempt,
+            MAX_ATTEMPTS,
+        )
+
     @asynccontextmanager
     async def _operation(
         self, kind: str, target: str | bool, *, batch: bool = False
@@ -173,28 +207,62 @@ class PanelControls:
                     "batch": batch,
                     "completed": [],
                     "failed": [],
+                    "stage": "preflight",
                 }
                 self._status()
+                _LOGGER.info(
+                    "EcoFlow entry %s: starting %s%s -> %s",
+                    self.coordinator.config_entry.entry_id[:8],
+                    "all-circuit " if batch else "",
+                    kind,
+                    target,
+                )
                 try:
                     yield
                 except asyncio.CancelledError:
                     self._status(state="cancelled")
+                    _LOGGER.warning(
+                        "EcoFlow entry %s: %s -> %s cancelled; confirmed circuits=%s, failed circuits=%s, last channel=%s; an already sent command may still take effect",
+                        self.coordinator.config_entry.entry_id[:8],
+                        kind,
+                        target,
+                        self.status["completed"],
+                        self.status["failed"],
+                        self.status.get("channel", "not started"),
+                    )
                     self.coordinator.async_control_error(
                         HomeAssistantError("EcoFlow command cancelled; device outcome unconfirmed")
                     )
                     raise
-                except (EcoFlowError, HomeAssistantError) as error:
+                except Exception as error:
                     self._status(state="failed")
                     self.coordinator.async_control_error(error)
                     if isinstance(error, AuthenticationError):
                         self.coordinator.config_entry.async_start_reauth(self.coordinator.hass)
                     if isinstance(error, BatchSwitchError):
+                        _LOGGER.error(
+                            "EcoFlow entry %s: all-circuit switching -> %s finished with failures; confirmed circuits=%s; unconfirmed circuits=%s",
+                            self.coordinator.config_entry.entry_id[:8],
+                            target,
+                            self.status["completed"],
+                            self.status["failed"],
+                        )
                         raise
+                    self._log_channel_failure(error, batch=False)
                     raise HomeAssistantError(
                         "EcoFlow command failed; target was not confirmed"
                     ) from None
                 else:
-                    self._status(state="succeeded")
+                    self._status(state="succeeded", stage="complete")
+                    _LOGGER.info(
+                        "EcoFlow entry %s: %s%s -> %s completed and confirmed; channel=%s, confirmed circuits=%s",
+                        self.coordinator.config_entry.entry_id[:8],
+                        "all-circuit " if batch else "",
+                        kind,
+                        target,
+                        self.status.get("channel", "not started"),
+                        self.status["completed"],
+                    )
         finally:
             self._tasks.discard(task)
 
@@ -210,17 +278,22 @@ class PanelControls:
         }
         for attempt in range(1, MAX_ATTEMPTS + 1):
             self._require_enabled(kind, batch)
-            self._status(channel=index + 1, attempt=attempt)
+            self._status(channel=index + 1, attempt=attempt, stage="preflight")
             snapshot = await self.coordinator.async_control_refresh()
             if control_state(snapshot, state_kind, index) == target:
                 return
             self._require_enabled(kind, batch)
+            self._status(stage="write")
             await self.coordinator.client.put_quota(params)
+            self._status(stage="settle")
             await sleep(SETTLE_SECONDS if kind == "source" else CHARGE_SETTLE_SECONDS)
+            self._status(stage="verify")
             snapshot = await self.coordinator.async_control_refresh()
             if control_state(snapshot, state_kind, index) == target:
                 return
+            self._log_unconfirmed(attempt)
             if batch or attempt < MAX_ATTEMPTS:
+                self._status(stage="retry wait")
                 await sleep(RETRY_SECONDS)
         raise HomeAssistantError("EcoFlow target not confirmed after eight attempts")
 
@@ -248,7 +321,7 @@ class PanelControls:
         async with self._operation("mode", target):
             for attempt in range(1, MAX_ATTEMPTS + 1):
                 self._require_enabled("mode")
-                self._status(channel=index + 1, attempt=attempt)
+                self._status(channel=index + 1, attempt=attempt, stage="preflight")
                 snapshot = await self.coordinator.async_control_refresh()
                 if control_state(snapshot, "mode", index) == target:
                     return
@@ -256,6 +329,7 @@ class PanelControls:
                 if target == "manual" and source not in ("grid", "battery", "off"):
                     raise HomeAssistantError("Current circuit supply state is unknown")
                 self._require_enabled("mode")
+                self._status(stage="write")
                 await self.coordinator.client.put_quota(
                     {
                         "cmdSet": 11,
@@ -267,11 +341,15 @@ class PanelControls:
                         else {"grid": 0, "battery": 1, "off": 2}[source],
                     }
                 )
+                self._status(stage="settle")
                 await sleep(SETTLE_SECONDS)
+                self._status(stage="verify")
                 snapshot = await self.coordinator.async_control_refresh()
                 if control_state(snapshot, "mode", index) == target:
                     return
+                self._log_unconfirmed(attempt)
                 if attempt < MAX_ATTEMPTS:
+                    self._status(stage="retry wait")
                     await sleep(RETRY_SECONDS)
             raise HomeAssistantError("EcoFlow control mode not confirmed after eight attempts")
 
@@ -286,11 +364,13 @@ class PanelControls:
                     await self._set("source", channel - 1, target, batch=True)
                 except Exception as error:  # Same per-channel boundary as shp_mode.run_mode.
                     self._status(failed=[*self.status["failed"], channel])
+                    self._log_channel_failure(error, batch=True)
                     self.coordinator.async_control_error(error)
                     if isinstance(error, AuthenticationError):
                         self.coordinator.config_entry.async_start_reauth(self.coordinator.hass)
                 else:
                     self._status(completed=[*self.status["completed"], channel])
+                self._status(stage="channel pause")
                 await sleep(SETTLE_SECONDS)
             if self.status["failed"]:
                 raise BatchSwitchError(

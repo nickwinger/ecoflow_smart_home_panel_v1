@@ -1,5 +1,6 @@
 """Native UI setup, options, credential replacement and reauthentication."""
 
+import logging
 import re
 from typing import Any
 
@@ -35,6 +36,9 @@ from .const import (
     NAME,
     poll_interval,
 )
+from .logging_utils import failure_reason
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def credential_schema(*, initial: bool) -> vol.Schema:
@@ -86,15 +90,16 @@ class EcoFlowConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         try:
             validate_shp_v1(await client.get_quota_all())
-        except AuthenticationError:
-            return {"base": "invalid_auth"}
-        except UnsupportedDeviceError:
-            return {"base": "unsupported_device"}
-        except RateLimitError:
-            return {"base": "rate_limited"}
-        except InvalidResponseError:
-            return {"base": "invalid_response"}
-        except EcoFlowError:
+        except EcoFlowError as error:
+            _LOGGER.warning("EcoFlow setup validation failed: %s", failure_reason(error))
+            for exception, code in (
+                (AuthenticationError, "invalid_auth"),
+                (UnsupportedDeviceError, "unsupported_device"),
+                (RateLimitError, "rate_limited"),
+                (InvalidResponseError, "invalid_response"),
+            ):
+                if isinstance(error, exception):
+                    return {"base": code}
             return {"base": "cannot_connect"}
         return {}
 
