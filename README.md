@@ -1,8 +1,8 @@
 # EcoFlow Smart Home Panel v1 — Home Assistant integration
 
-> **Status: development scaffold (not functional yet).** This repository contains the implementation brief, agent instructions, initial HACS layout and a quota field guide. **Do not install it as a working integration or publish a release yet.**
+> **Status: M1 read-only core implemented and tested offline; M2 entity work follows.** Not hardware-validated or release-ready. No device controls are exposed.
 
-A future HACS-installable, native Home Assistant integration for **EcoFlow Smart Home Panel, first generation (v1)**. This repository deliberately **does not target Smart Home Panel 2 or newer generations**.
+A developing HACS-installable, native Home Assistant integration for **EcoFlow Smart Home Panel, first generation (v1)**. This repository deliberately **does not target Smart Home Panel 2 or newer generations**.
 
 ## Goals
 
@@ -19,7 +19,7 @@ A future HACS-installable, native Home Assistant integration for **EcoFlow Smart
 
 Read [CODEX_TASK.md](CODEX_TASK.md), [AGENTS.md](AGENTS.md), [docs/MILESTONES.md](docs/MILESTONES.md), and [docs/ENTITY_CATALOG.md](docs/ENTITY_CATALOG.md) before coding. The reference source repository is not this integration: it is read-only input.
 
-The initial skeleton under `custom_components/ecoflow_smart_home_panel_v1/` is **not yet a runnable integration**. Do not enable it on a production Home Assistant instance or issue live switching commands from development tests.
+The core supports UI setup, duplicate-serial prevention, credential replacement/reauthentication, a shared async client, polling every 60 seconds (30–900 configurable), bounded failure backoff, rate-limit delays and clean unload. The initial device check requires explicit SHP v1 confirmation and the v1 control-array topology; it is not authoritative model identification. HTTP 401/403 triggers reauth; undocumented application errors remain generic failures. Development uses Home Assistant 2026.10.3 and Python 3.14 in an isolated test environment.
 
 ## Quota name examples
 
@@ -40,3 +40,5 @@ Never commit API keys, tokens, device serials, production cache files, logs or i
 ## License
 
 MIT, see [LICENSE](LICENSE). This project is independently maintained and is not affiliated with EcoFlow or Home Assistant.
+
+Official EcoFlow reference: [Smart Home Panel v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098). Local manufacturer copies are listed in [reference sources](docs/REFERENCE_SOURCES.md).

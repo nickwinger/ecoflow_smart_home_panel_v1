@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EcoFlow Smart Home Panel v1",
+        "description": "Nur lesender Zugriff. Zugangsdaten werden in Home Assistant gespeichert.",
+        "data": {
+          "access_key": "Access Key",
+          "secret_key": "Secret Key",
+          "serial": "Panel-Seriennummer",
+          "region": "API-Region",
+          "confirm_v1": "Mein Panel ist ein Smart Home Panel v1 (erste Generation)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zugangsdaten erneuern",
+        "data": {
+          "access_key": "Access Key",
+          "secret_key": "Secret Key"
+        }
+      },
+      "reconfigure": {
+        "title": "Zugangsdaten erneuern",
+        "data": {
+          "access_key": "Access Key",
+          "secret_key": "Secret Key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Zugriff abgelehnt. Zugangsdaten und API-Berechtigung prüfen.",
+      "invalid_input": "Bitte gültige Zugangsdaten und Seriennummer eingeben.",
+      "confirm_v1": "Bitte die erste Panel-Generation bestätigen.",
+      "unsupported_device": "SHP-v1-Struktur nicht bestätigt (10 Last- und 2 Backup-Kanäle). Bei Teilantwort erneut versuchen; SHP2/3 werden nicht unterstützt.",
+      "rate_limited": "EcoFlow begrenzt Abfragen. Bitte später erneut versuchen.",
+      "invalid_response": "Ungültige oder abgelehnte Quota-Antwort.",
+      "cannot_connect": "Verbindung zu EcoFlow fehlgeschlagen."
+    },
+    "abort": {
+      "already_configured": "Dieses Panel ist bereits eingerichtet.",
+      "reauth_successful": "Authentifizierung erneuert.",
+      "reconfigure_successful": "Konfiguration aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "poll_interval": "Abfrageintervall (30–900 Sekunden)"
+        }
+      }
+    }
+  }
+}

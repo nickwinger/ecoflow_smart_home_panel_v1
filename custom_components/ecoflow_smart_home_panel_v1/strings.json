@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EcoFlow Smart Home Panel v1",
+        "description": "Read-only access. Credentials are stored in Home Assistant.",
+        "data": {
+          "access_key": "Access Key",
+          "secret_key": "Secret Key",
+          "serial": "Panel serial number",
+          "region": "API region",
+          "confirm_v1": "My panel is a Smart Home Panel v1 (first generation)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Replace credentials",
+        "data": {
+          "access_key": "Access Key",
+          "secret_key": "Secret Key"
+        }
+      },
+      "reconfigure": {
+        "title": "Replace credentials",
+        "data": {
+          "access_key": "Access Key",
+          "secret_key": "Secret Key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Access denied. Check credentials and API permissions.",
+      "invalid_input": "Enter valid credentials and a serial number.",
+      "confirm_v1": "Please confirm the first-generation panel.",
+      "unsupported_device": "SHP v1 layout not confirmed (10 load and 2 backup channels). Retry a partial response; SHP2/3 are unsupported.",
+      "rate_limited": "EcoFlow rate limit. Please try again later.",
+      "invalid_response": "Invalid or rejected quota response.",
+      "cannot_connect": "Cannot connect to EcoFlow."
+    },
+    "abort": {
+      "already_configured": "This panel is already configured.",
+      "reauth_successful": "Reauthentication successful.",
+      "reconfigure_successful": "Configuration updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "poll_interval": "Polling interval (30–900 seconds)"
+        }
+      }
+    }
+  }
+}

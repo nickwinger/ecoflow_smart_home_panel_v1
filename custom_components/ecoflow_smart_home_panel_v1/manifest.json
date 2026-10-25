@@ -1,11 +1,12 @@
 {
   "domain": "ecoflow_smart_home_panel_v1",
   "name": "EcoFlow Smart Home Panel v1",
-  "version": "0.0.1",
+  "codeowners": ["@nickwinger"],
+  "config_flow": true,
   "documentation": "https://github.com/nickwinger/ecoflow_smart_home_panel_v1",
   "issue_tracker": "https://github.com/nickwinger/ecoflow_smart_home_panel_v1/issues",
-  "codeowners": ["@nickwinger"],
   "iot_class": "cloud_polling",
   "integration_type": "device",
-  "requirements": []
+  "requirements": [],
+  "version": "0.1.0"
 }

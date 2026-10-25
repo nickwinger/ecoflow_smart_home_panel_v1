@@ -11,14 +11,16 @@ Milestone status below distinguishes repository scaffolding from functioning Hom
 
 Acceptance: files present in GitHub. **No claim of a working integration at this milestone.**
 
-## M1 — UI configuration, API and polling [TODO]
+## M1 — UI configuration, API and polling [IMPLEMENTED / OFFLINE VERIFIED]
 
-- [ ] Asynchronous signed EcoFlow Cloud client, credentials via HA config flow, unique config entries by panel serial.
-- [ ] Connection and version checks (SHP v1 only), reauth and meaningful errors.
-- [ ] One DataUpdateCoordinator with shared timed fetch and appropriate rate/error handling.
-- [ ] Test config setup/unload/reload and cloud responses offline.
+- [x] Asynchronous signed EcoFlow Cloud client, credentials via HA config flow, unique config entries by panel serial.
+- [x] Connection and version checks (SHP v1 only), reauth and meaningful errors.
+- [x] One DataUpdateCoordinator with shared timed fetch and appropriate rate/error handling.
+- [x] Test config setup/unload/reload and cloud responses offline.
 
-Acceptance: read-only HA integration loads in test instance and fetches valid SHP v1 quota.
+Acceptance: read-only HA integration loads in isolated HA 2026.10.3 tests and fetches synthetic SHP v1 quota. Device identity is checked conservatively by user confirmation plus topology; the manufacturer list API has no model field. No hardware claim.
+
+Validation: `pytest -q --tb=short --show-capture=no --timeout=30` (40 tests), `ruff check custom_components tests`, `ruff format --check custom_components tests`. Commit: `feat: implement M1 signed read-only cloud core` (SHA recorded in the next milestone update). M2 entities are still pending at this commit.
 
 ## M2 — complete selectable entity model [TODO]
 

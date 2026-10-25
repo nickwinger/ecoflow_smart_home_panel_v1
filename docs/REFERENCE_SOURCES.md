@@ -27,3 +27,9 @@ Read current official references before coding; APIs change. Third-party example
 ## Constraints
 
 Do not paste any actual user key, secret, serial, Home Assistant token, proprietary logs, real channel names or live response snapshots into issues, tests, README, CI or public releases. No development-time control commands to an actual SHP v1. Existing production system remains untouched.
+
+## Supplied manufacturer copies (2026-10-25)
+
+- [Official SHP v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098), supplied locally as `docs/ecoflow_smart_home_panel_v1.txt`.
+- General signing/API reference supplied as `docs/ecoflow_general.txt`.
+- The copies define topology, basic status enums and configuration fields, but do not establish all units in the seed. Backup `ctrlSta=2` conflicts with the working charging helper. The device list has no authoritative model field; no HTTP application error-code table is supplied.
