@@ -51,7 +51,7 @@ Acceptance: side-effect-free CI; controlled real-device verification happens onl
 - [ ] Integration UI and HA diagnostics reviewed; full quality checks, hassfest, HACS validation.
 - [ ] HACS custom-repository install, upgrade and migration tested.
 - [ ] Translations/developer docs/security reviewed.
-- [ ] Optional HACS default listing and Home Assistant brands contribution.
+- [ ] Optional HACS default listing, repository topics and Home Assistant brands contribution.
 - [ ] First release only after user confirms real-hardware acceptance.
 
 Acceptance: repeatable install with no unrelated HA changes or data loss.
@@ -63,8 +63,8 @@ Each completed milestone must include commit link, test commands/outcomes and re
 - Python 3.14.4, Home Assistant 2026.10.3; no real EcoFlow requests or hardware writes.
 - `ruff check custom_components tests scripts` and `ruff format --check custom_components tests scripts`: **passed** (22 Python files).
 - `python scripts/sync_catalog.py --check` and `python -m compileall -q custom_components`: **passed**.
-- `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **221 passed**, 99% line coverage (609 statements, 8 uncovered), 9.89 seconds.
+- `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **221 passed**, 99% line coverage (609 statements, 8 uncovered), 10.87 seconds.
 - [Official hassfest and offline CI](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40177067830): **passed** on M2. Docker is unavailable in this WSL environment.
-- [HACS check](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40177067803): all enabled checks pass except repository `topics` (none configured). Owner action: add topics such as `home-assistant`, `hacs`, `ecoflow`. The available GitHub connector cannot edit repository topics. Only `brands` is skipped, explicitly deferred to M4.
+- [Initial HACS check](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40177067803): 8/9 passed, only repository topics failed. At the owner's request, `topics` joins `brands` as deferred default-listing metadata; all technical checks stay enabled. The manifest category warning is fixed. The available connector cannot edit repository topics.
 - All three new HTML references fully reviewed; all 28 supplementary property sections linked to catalog evidence. Additional tests cover sourced units, raw sentinel preservation and UTF-8 byte names. Latest source changes will rerun the same CI checks.
 - Remaining: user hardware read validation, actual HACS installation/upgrade acceptance, authoritative model/error metadata, inferred units/scales and daily counter reset semantics. M3 controls and M4 release approval remain open.
