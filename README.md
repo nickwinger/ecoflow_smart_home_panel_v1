@@ -28,7 +28,7 @@ This integration is available as a **custom HACS repository**. It is **not yet l
 
 1. Open **HACS** in Home Assistant.
 2. Open the **⋮ menu → Custom repositories**.
-3. Add \`https://github.com/nickwinger/ecoflow_smart_home_panel_v1\` and select **Integration**.
+3. Add `https://github.com/nickwinger/ecoflow_smart_home_panel_v1` and select **Integration**.
 4. Find **EcoFlow Smart Home Panel v1** in HACS and select **Download**.
 5. **Restart Home Assistant**, then follow [Configuration](#-configuration).
 
@@ -37,14 +37,14 @@ This integration is available as a **custom HACS repository**. It is **not yet l
 ### Option B: Manual installation
 
 1. Download this repository as a ZIP file.
-2. Copy the directory \`custom_components/ecoflow_smart_home_panel_v1\` to \`<config>/custom_components/\` in Home Assistant.
+2. Copy the directory `custom_components/ecoflow_smart_home_panel_v1` to `<config>/custom_components/` in Home Assistant.
 3. **Restart Home Assistant** and follow [Configuration](#-configuration).
 
 Your resulting path should be:
 
-\`\`\`text
+```text
 <config>/custom_components/ecoflow_smart_home_panel_v1/manifest.json
-\`\`\`
+```
 
 ## 🔑 Configuration
 
