@@ -84,7 +84,7 @@ class Client:
             raise BootstrapError(f"Cannot reach DEV Home Assistant at {path}") from exc
         try:
             return json.loads(body)
-        except ValueError, UnicodeDecodeError:
+        except ValueError:
             raise BootstrapError(f"Invalid JSON response for {path}") from None
 
     def steps_done(self) -> set[str]:
