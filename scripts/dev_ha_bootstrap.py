@@ -98,16 +98,16 @@ class Client:
             # stays available, and only responds normally after user onboarding.
             provider_status = self.call("/auth/providers")
             providers = (
-                provider_status.get("providers")
-                if isinstance(provider_status, dict)
-                else None
+                provider_status.get("providers") if isinstance(provider_status, dict) else None
             )
             if isinstance(providers, list) and any(
                 isinstance(provider, dict) and provider.get("type") == "homeassistant"
                 for provider in providers
             ):
                 return set(ALL_STEPS)
-            raise BootstrapError("DEV onboarding view missing without a local auth provider") from None
+            raise BootstrapError(
+                "DEV onboarding view missing without a local auth provider"
+            ) from None
         if not isinstance(progress, list) or not all(
             isinstance(item, dict)
             and isinstance(item.get("step"), str)
