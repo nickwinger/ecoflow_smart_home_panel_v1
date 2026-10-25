@@ -1,0 +1,18 @@
+# Seed only for the disposable Home Assistant Container.
+# This has no relation to any production /config or HA server.
+# Intentionally no production HA URL, access token, local device integration
+# or custom automations. The EcoFlow integration is mounted separately.
+homeassistant:
+  name: "EcoFlow SHP v1 DEV"
+  unit_system: metric
+  time_zone: Europe/Vienna
+
+default_config:
+
+# Only the disposable test instance uses this Recorder database/retention.
+recorder:
+  auto_purge: true
+  purge_keep_days: 3
+
+logger:
+  default: warning

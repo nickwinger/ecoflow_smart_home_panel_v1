@@ -1,0 +1,45 @@
+# Start from a WSL HOST terminal, outside the VS Code Python devcontainer:
+#   docker compose -f .devcontainer/ha.compose.yml up -d
+# Creates an entirely separate HA UI, entity registry, Recorder and config store.
+# Never mount a production Home Assistant /config or storage volume here.
+name: ecoflow-shp-v1-live-test
+
+services:
+  seed:
+    image: busybox:1.36
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ ! -f /config/configuration.yaml ]; then
+          cp /seed/configuration.yaml /config/configuration.yaml
+        fi
+    volumes:
+      - ha_config:/config
+      - ./ha-configuration.yaml:/seed/configuration.yaml:ro
+    restart: "no"
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:2026.10.3
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    environment:
+      TZ: Europe/Vienna
+    ports:
+      - "127.0.0.1:8124:8123"
+    volumes:
+      - ha_config:/config
+      - ../custom_components:/config/custom_components:ro
+    networks:
+      - dev_cloud
+    restart: "no"
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  dev_cloud:
+    driver: bridge
+
+volumes:
+  ha_config:

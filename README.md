@@ -2,6 +2,10 @@
 
 **M1 + M2 implemented and verified offline.** Native, read-only integration for the first-generation EcoFlow Smart Home Panel. Hardware acceptance, safe controls (M3) and release readiness (M4) remain open. No GitHub release has been published. SHP2/3 and other EcoFlow devices are unsupported.
 
+## Isolated local live-device test
+
+For a **separate Docker Home Assistant 2026.10.3** on `http://localhost:8124`, a Python 3.14 VS Code Dev Container, disposable local Recorder/registry state and live **read-only** EcoFlow Cloud polling, see [docs/LOCAL_LIVE_TEST.md](docs/LOCAL_LIVE_TEST.md). Do **not** test against production Home Assistant. HACS is not needed for this local runtime test.
+
 ## What works
 
 - UI configuration of per-panel access key, secret key, serial and EU/global API endpoint; duplicate-serial prevention, reauthentication and credential replacement.
