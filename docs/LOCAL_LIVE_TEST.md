@@ -1,67 +1,80 @@
-# EcoFlow SHP v1 — lokaler Devcontainer-Workflow
+# EcoFlow Smart Home Panel v1 – Entwicklungsworkflow (VS Code / WSL2)
 
-**Ziel:** `code .` → VS Code Dev Container öffnen → eigenständiges Home Assistant DEV startet und öffnet den Browser beim EcoFlow-Integrationsdialog. Der DEV-Benutzer **test / test** wird beim ersten Start automatisch angelegt. Echte EcoFlow-Cloud-Daten sind möglich, aber die Produktion bleibt unberührt.
+**Empfohlen: VS Code → Dev Containers: Reopen in Container.** Die Konfiguration startet jetzt den Python-Arbeitscontainer und Home Assistant DEV als **zwei Dienste im selben Docker-Compose-Projekt**. Der Benutzer `test/test` wird beim ersten Start automatisch durch einen dritten, kurzlebigen Setup-Dienst angelegt. Der Python-Container hat **keinen Docker-Socket** und keinerlei Zugang zu Produktiv-HA-Konfigurationen.
 
-> **Sicherheit:** Die absichtlich schwachen Zugangsdaten `test/test` sind NUR für diese lokale Wegwerf-Instanz. Das Webinterface ist über `127.0.0.1:8124` gebunden. Nicht über Port-Forwarding, Tunnel oder Proxy öffentlich machen. Keine Prod-HA-Konfiguration/Volume/API mounten. Der gegenwärtige Integrationsstand M1/M2 macht nur GET-Requests; ein späteres M3 muss vor Live-Tests neu auf Schreibsicherheit geprüft werden.
+**Sicherheitsgrenze:** Dieses `test/test` ist bewusst nur für eine lokale Wegwerf-Testinstanz. Kein Tunnel, Portforward zu anderen Hosts oder öffentliches Netzwerk! Home Assistant DEV lauscht am Host auf `127.0.0.1:8124`. Die aktuelle Integration M1/M2 unterstützt nur `GET /quota/all`; nach Implementierung von Schaltfunktionen müssen wir die Testsicherheit neu bewerten. Die EcoFlow Cloud und ihre API-Limits sind trotz lokaler HA-Isolation **echt**.
 
-## Einmalige Voraussetzungen
+## 1. Einmalig: VS Code starten
 
-- Windows 11, Ubuntu/WSL2, VS Code mit **WSL** und **Dev Containers** Extensions.
-- Docker Desktop mit aktivierter WSL-Integration für Ubuntu (oder Docker Engine + Compose v2 in WSL).
-- Repository **unter `~/dev` in WSL**, nicht unter `/mnt/c`.
-- Python 3 auf dem WSL-Host für das lokale DEV-Onboarding-Skript.
+Voraussetzung: Docker Desktop mit aktivierter Ubuntu-WSL-Integration; **sowohl** `docker version` unter WSL **als auch** in Windows PowerShell muss einen **Server** anzeigen. WSL kann funktionieren, während Windows/VS Code wegen einer fehlenden `dockerDesktopLinuxEngine`-Pipe trotzdem hängen bleibt. In diesem Fall ist der Docker-Desktop-Zugriff von Windows zu reparieren, nicht die EcoFlow-Integration.
 
-Beim ersten Klonen:
-
-```bash
-mkdir -p ~/dev && cd ~/dev
-git clone git@github.com:nickwinger/ecoflow_smart_home_panel_v1.git
-cd ecoflow_smart_home_panel_v1
-code .
-```
-
-### Schnellstart: automatisch über VS Code
-
-1. Öffne den Projektordner in VS Code (in WSL mit `code .`).
-2. Wähle **Dev Containers: Reopen in Container**. Die `initializeCommand` startet **vom WSL-Host aus** den separaten Home-Assistant-Container, wartet auf die API, erzeugt bei frischem Volume automatisch `test/test`, schließt die Onboarding-Schritte ab und öffnet den Browser direkt unter:
-
-   **http://localhost:8124/config/integrations/add?domain=ecoflow_smart_home_panel_v1**
-
-3. Melde dich beim erstmaligen Öffnen des Browsers mit **test / test** an. Der Browser merkt sich die Anmeldung normalerweise für spätere Sitzungen.
-4. **Nur beim ersten Einrichten des EcoFlow-Integrationsdialogs**: EcoFlow Access Key, Secret Key, Geräte-Seriennummer, Region (EU/global) und SHP-v1-Bestätigung eingeben. Die Daten landen nur in der **eigenen DEV-HA-Konfiguration**, niemals in Git oder in einem Skript.
-5. **Integration jetzt live testen**: Geräte und Entitäten öffnen; Default-Deaktivierungen, Friendly Names, Erklärungen, Quota-Pfade, Statuswerte, Kanalnamen und Recorder-Verlauf prüfen. Gegen das echte Smart Home Panel lesen wir, **nicht schalten**.
-
-Das sind die einzigen erwarteten manuellen UI-Schritte. **Eine neue DEV-Instanz benötigt ein einmaliges Browser-Login und die echten EcoFlow-Zugangsdaten.** Solche Cloud-Secrets übernehmen wir bewusst nicht aus deinem produktiven HA.
-
-Wenn VS Code beim Reopen eine Fehlermeldung wegen fehlendem Docker meldet, Docker Desktop starten, WSL-Integration prüfen und den Befehl erneut ausführen.
-
-### Schnellstart: ohne VS Code
-
-Im **normalen WSL-Host-Terminal** (nicht im Python-Devcontainer):
+Im **normalen WSL-Terminal**:
 
 ```bash
 cd ~/dev/ecoflow_smart_home_panel_v1
-bash scripts/dev-ha.sh start
+git pull --ff-only
+code .
 ```
 
-Das Kommando validiert Docker/Compose, startet Home Assistant DEV, wartet auf den Onboarding-Endpunkt, erzeugt `test/test` beim ersten Start, und öffnet unter Windows den Browser. Es ist idempotent: Ein erneuter Aufruf **behält** Nutzer, Geräte, Registry und Historie.
+Unten links muss `WSL: Ubuntu` stehen. In VS Code `Ctrl+Shift+P` → **Dev Containers: Rebuild and Reopen in Container** (bei späteren Starts genügt **Reopen in Container**).
 
-## Aufgaben im Alltag
+**Was VS Code nun automatisch übernimmt:**
+1. Baut den Python-3.14-Arbeitscontainer aus `.devcontainer/Dockerfile`.
+2. Startet `homeassistant` mit einer **eigenen** Konfiguration/Recorder-Datenbank und bindet die **lokalen** Projekt-Python-Dateien unter `/config/custom_components` read-only ein.
+3. Startet `bootstrap`, das die Home-Assistant-DEV-Einrichtung bei einem neuen Testvolume mit `test/test` abschließt (ohne `.storage` direkt zu manipulieren). Existierende DEV-Daten bleiben erhalten.
+4. VS Code versucht, den weitergeleiteten HA-Port automatisch im Browser zu öffnen (je nach Portbelegung kann das ein dynamischer localhost-Port sein). Die feste Adresse **http://localhost:8124** bleibt unabhängig davon verfügbar.
 
-Alle Docker-Kommandos werden im normalen **WSL-Host-Terminal** ausgeführt:
+Es gibt **kein** `initializeCommand` mehr, das vor dem Devcontainer-Aufbau seinerseits Docker Desktop startet und blockiert. Ein unter Windows defekter Docker-Client verhindert allerdings weiterhin den eigentlichen Devcontainer-Aufbau; siehe Fehlerbehebung.
 
-| Aufgabe | Kommando | Wirkung |
+## 2. Integration im Browser konfigurieren
+
+1. **http://localhost:8124** öffnen und mit **test / test** einloggen. VS Codes automatisch geöffneter Forwarding-Port führt zur *selben* HA-DEV-Instanz, er kann aber eine eigene Browser-Anmeldung benötigen.
+2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **EcoFlow Smart Home Panel v1** suchen. Die Übersichtsseite zeigt *nur bereits eingerichtete* Integrationen; die neue Integration steht deshalb **nicht schon als Kachel auf der Übersichtsseite**.
+3. Einmalig Access Key, Secret Key, Seriennummer und EU/global-Region des **echten SHP v1** eingeben. Die Secrets liegen ausschließlich im lokalen DEV-Volume und werden nicht in Git oder in Skripte übernommen.
+4. Den Gerätestatus, Friendly Names, technische Quota-Pfade, Diagnosesensoren und History kontrollieren. Bei paralleler Produktiv-Abfrage empfehlen wir zunächst **180–300 Sekunden** Polling in den Optionen, um EcoFlow-API-Limits zu schonen.
+
+Nach erfolgreicher Einrichtung brauchst du diese Schritte bei normalen Neustarts **nicht** erneut. Die Testinstanz verwendet dasselbe Volume. Nach einem vollständigen Reset musst du dagegen die EcoFlow-Credentials wieder eingeben.
+
+## 3. Alle Befehle: Start, Neustart, Diagnose, Reset
+
+Docker-Kommandos im **WSL-Host-Terminal** ausführen (nicht im isolierten Python-Devcontainer):
+
+| Aktion | Befehl | Ergebnis |
 | --- | --- | --- |
-| Starten + Browser öffnen | `bash scripts/dev-ha.sh start` | DEV starten, bei Bedarf automatisch initialisieren |
-| Integrationsdialog öffnen | `bash scripts/dev-ha.sh open` | Nur Browser öffnen |
-| Python-Quellcode neu laden | `bash scripts/dev-ha.sh restart` | Nur DEV Home Assistant neu starten |
-| Logs | `bash scripts/dev-ha.sh logs` | Live-Logs von DEV anzeigen (mit `Ctrl+C` verlassen) |
-| Status | `bash scripts/dev-ha.sh status` | DEV-Container anzeigen |
-| Stoppen | `bash scripts/dev-ha.sh stop` | Container stoppen, **alle DEV-Daten behalten** |
-| Vollständig zurücksetzen | `bash scripts/dev-ha.sh reset` | **Nur DEV-Volume löschen**, neu starten, neuen `test/test`-Benutzer anlegen |
-| DEV-Daten löschen ohne Neustart | `bash scripts/dev-ha.sh clean` | **Nur DEV** einschließlich Recorder/Auth/Entities entfernen |
+| Nur HA DEV starten + Browser öffnen | `bash scripts/dev-ha.sh start` | Verwendet bestehendes DEV-Volume, baut **nicht** den Python-Container |
+| Integration/Mount prüfen | `bash scripts/dev-ha.sh doctor` | Kontrolliert Manifest im HA-Container, zeigt relevante Logmeldungen |
+| Quellcode in HA neu laden | `bash scripts/dev-ha.sh restart` | Startet **nur HA DEV** neu, Entitätsregister bleibt |
+| Status | `bash scripts/dev-ha.sh status` | Zeigt laufende DEV-Dienste |
+| Logs | `bash scripts/dev-ha.sh logs` | Live-Log (`Ctrl+C` beendet nur die Ansicht) |
+| Nur HA DEV stoppen | `bash scripts/dev-ha.sh stop` | Testdaten und Python-Arbeitscontainer bleiben |
+| **Komplett neu anfangen** | `bash scripts/dev-ha.sh reset` | Löscht **nur** das HA-DEV-Volume, startet HA mit `test/test` neu |
+| DEV-Daten nur löschen | `bash scripts/dev-ha.sh clean` | Löscht die isolierte HA-Konfiguration ohne Neustart |
 
-Im **VS-Code-Devcontainer-Terminal** (offline, ohne Docker-Socket) die Tests starten:
+Beim `reset` werden ausschließlich die HA-DEV-Konten, eingerichteten EcoFlow-Schlüssel, Geräte-/Entitätsregister und Recorder-Historie gelöscht. Das Git-Repository, der geöffnete Python-Devcontainer und deine produktive Home-Assistant-Installation bleiben bestehen. Die Funktionen greifen **nicht** auf produktive `/config`-Pfade oder produktive Docker-Volumes zu.
+
+Wenn du nur neue Python-Sensorlogik, den Katalog oder Übersetzungen testest, zuerst `restart` verwenden. `reset` brauchst du, um Entitäts-IDs und Registry-Migrationen gegen eine vollständig neue Installation zu testen.
+
+## 4. Integration fehlt in „Integration hinzufügen“?
+
+Zunächst **in der Integrationsauswahl suchen**, nicht in der Kachelübersicht. Wenn EcoFlow dort wirklich nicht vorhanden ist:
+
+```bash
+bash scripts/dev-ha.sh doctor
+```
+
+Erwartet wird `OK: EcoFlow manifest is visible.` Das prüft diesen Pfad *im laufenden DEV-Container*:
+
+```text
+/config/custom_components/ecoflow_smart_home_panel_v1/manifest.json
+```
+
+Bei Fehlern `bash scripts/dev-ha.sh logs` ausführen, insbesondere nach `ecoflow_smart_home_panel_v1`, `custom_components`, `Setup failed` suchen. Wenn das Manifest vorhanden ist und keine Fehler auftreten, HA DEV mit `restart` neu laden und im Browser **Ctrl+F5** für einen Hard Refresh drücken. Home Assistant kann den Integrationsauswahldialog zwischenspeichern.
+
+**Direkter Konfigurationsdialog nach dem Login:** http://localhost:8124/config/integrations/add?domain=ecoflow_smart_home_panel_v1 (nach Erst-Login ggf. nochmals öffnen, da HA zur Übersicht zurückspringen kann).
+
+## 5. Python-Tests direkt in VS Code
+
+Im **Terminal des Python-Devcontainers** laufen die Offline-Tests ohne Zugriff auf echte Geräte:
 
 ```bash
 ruff check custom_components tests scripts
@@ -70,65 +83,25 @@ python scripts/sync_catalog.py --check
 pytest -q --timeout=30
 ```
 
-Alternativ bietet `bash scripts/dev-ha.sh test` denselben pytest-Lauf (in einer Python-Umgebung mit installierten Testanforderungen).
+Änderungen an `custom_components/ecoflow_smart_home_panel_v1/` landen durch die geteilte Quellcode-Einbindung direkt im HA DEV. Nach Python-Codeänderungen `restart` aus einem **zweiten WSL-Host-Terminal** ausführen; es wird kein HACS-Installationsprozess benötigt. Der Devcontainer selbst hat bewusst keinen Docker-Zugriff und kann nicht versehentlich andere Container verwalten.
 
-## Reset: frische Entitäten ohne Seiteneffekte
+## 6. Falls VS Code wieder „Starting Docker“ meldet
 
-Bei Änderungen an `unique_id`, Quota-Paths, Entity-Katalog, Registry-Migration oder Default-Enablement:
+Unter Windows **PowerShell**:
 
-```bash
-bash scripts/dev-ha.sh reset
+```powershell
+docker version
+docker context ls
 ```
 
-Ablauf:
-1. Löscht ausschließlich das Compose-Projekt `ecoflow-shp-v1-live-test` samt dessen benanntem **DEV-`ha_config`-Volume**.
-2. Entfernt **nur** dort gespeicherte DEV-Benutzer, Registry, Quota-Entitäten, Historie, Integrationsoptionen und EcoFlow-Credentials.
-3. Erstellt eine frische DEV-Konfiguration und `test/test`, öffnet wieder den Integrationsdialog.
-4. **EcoFlow Access/Secret/SN danach erneut eingeben**, weil diese zusammen mit dem DEV-Volume gelöscht wurden.
+Erst wenn `docker version` auch unter Windows einen **Server** zurückliefert, kann die VS-Code-Dev-Containers-Erweiterung dort Docker verwenden. `docker version` in WSL allein beweist nur, dass der WSL-Client funktioniert. Bei defektem Windows-Docker-Zugang kannst du bis zur Behebung trotzdem direkt aus WSL mit `bash scripts/dev-ha.sh start` weiter testen.
 
-**Kein Reset nötig** bei normalen Änderungen an Python-Sensor-/API-Code: `restart` reicht meistens. Auch nach einfachen Änderungen an Friendly Names/Translations zunächst `restart` testen; bei persistierten HA-Namen/Entitäten ggf. `reset` verwenden.
+Wenn Windows-Docker funktioniert, im WSL-Fenster von VS Code **Rebuild and Reopen in Container** aufrufen. Die aktualisierte Compose-Konfiguration ruft **kein zusätzliches `Docker Desktop.exe`** über einen Start-Hook mehr auf. Eventuell durch die VS-Code-Erweiterung selbst ausgelöste Docker-Desktop-Starts lassen sich dagegen nicht allein mit einer Projektdatei verhindern.
 
-**Was bleibt beim Reset unberührt?** Das Git-Repository, der VS Code Python-Devcontainer, dein produktives Home Assistant mit allen Entitäten/Datenbanken/Helfern/Automationen und das Smart Home Panel. Ein Reset setzt *keine physischen Geräte* zurück.
+## Bekannte Grenzen
 
-Das isolierte Compose-Projekt verwendet nur:
-- Port `127.0.0.1:8124` zum DEV-HA-Container, niemals deinen produktiven HA-Port.
-- Ein **eigenes Docker-Volume** für `/config` und Recorder.
-- Einen **Read-only**-Mount auf `custom_components/` aus diesem Git-Repository.
-- Keine produktiven Home-Assistant-Tokens, Configs, Datenbank-Volumes oder weitere Geräte-Mounts.
-
-Die Integration wird **direkt aus deinem Checkout** geladen, nicht über HACS. HACS-Paketinstallation kann separat getestet werden; unser lokaler Funktionstest benötigt HACS nicht.
-
-## Live-Checkliste
-
-- [ ] `http://localhost:8124` öffnet die DEV-Instanz, **test/test** funktioniert.
-- [ ] Unsere Integration erscheint unter **Einstellungen → Geräte & Dienste** und lässt sich per DEV-Zugangsdaten einrichten.
-- [ ] Gerät wird als **EcoFlow Smart Home Panel v1** erkannt.
-- [ ] Quota-Entitäten erscheinen mit korrekten freundlichen Namen und erklärenden Metadaten.
-- [ ] Bekannte Werte stimmen mit dem echten Panel überein; bei fehlenden API-Feldern keine erfundenen Nullen.
-- [ ] In DEV-Integrationsoptionen das Polling anfangs auf **180–300 Sekunden** stellen (Prod fragt das Gerät ebenfalls ab).
-- [ ] Einige unwichtige Diagnose-Entitäten bleiben deaktiviert. Nach manuellem Aktivieren erhalten nur diese und andere aktive Entitäten **neue** Recorder-Historie.
-- [ ] `restart` bewahrt die Entitäts-IDs; `reset` erzeugt einen komplett sauberen neuen Registry-Stand.
-- [ ] Keine PUT-Aufrufe, kein Schalten oder Laden; M3 ist noch nicht implementiert.
-
-## Fehlersuche
-
-**Docker nicht erreichbar:** Docker Desktop starten und in Einstellungen → Resources → WSL Integration das Ubuntu aktivieren. Im WSL-Host `docker compose version` und `docker info` prüfen.
-
-**Port 8124 belegt:** Keine fremde Instanz auf 8124 überschreiben. `bash scripts/dev-ha.sh status` kontrollieren und bei Bedarf fremden Dienst gezielt stoppen. Das Skript bindet absichtlich nur localhost.
-
-**Skript öffnet keinen Browser:** Angezeigte URL manuell öffnen. Unter WSL versucht das Skript `wslview`, dann `powershell.exe`, sonst `xdg-open`.
-
-**Login passt nicht:** `test/test` wird **nur auf einer brandneuen DEV-Datenbank** automatisch eingerichtet; existierende Benutzer werden nicht überschrieben. Wenn du die alten DEV-Daten nicht brauchst, `reset` ausführen.
-
-**Cloud/API Fehler oder unvollständige Quota-Antwort:** `logs` lesen, richtige EU/global-Region und Seriennummer prüfen. Die API antwortet teils mit unvollständigen Kanalsteuerfeldern; ggf. Integration erneut konfigurieren. Nicht einfach Polling hochdrehen – bei gleichzeitiger Prod-Abfrage eher 180–300 Sekunden nehmen.
-
-**Onboarding-Skriptfehler:** Nur die lokalen DEV-Onboarding-APIs werden verwendet, kein Editieren von `.storage` oder Prod-Konfiguration. Wenn der DEV-User zwar existiert, aber der Bootstrap nicht alle Schritte abschließen kann, `bash scripts/dev-ha.sh reset` bei wegwerfbaren DEV-Daten erneut versuchen; sonst manuell im Browser beenden.
-
-**Manueller Docker-Start (falls nötig):**
-
-```bash
-docker compose -f .devcontainer/ha.compose.yml up -d
-python3 scripts/dev_ha_bootstrap.py
-```
-
-Die Anleitung und die Automatisierung wurden gegen Home Assistants API-Quellcode 2026.10.3 erstellt. **Docker/Browser/echte EcoFlow-Credentials müssen auf deinem WSL-Rechner erstmals praktisch verifiziert werden.**
+- Diese lokale Umgebung ist **Home Assistant Container**, kein HA OS/Supervisor.
+- Für den funktionalen Test wird die Integration direkt aus Git eingebunden; HACS-Installation selbst ist ein separater M4-Test.
+- Nur aktivierte Entitäten erhalten neue Recorder-Historie, standardmäßig deaktivierte Diagnose-Entitäten nicht.
+- `test/test` ist kein sicheres Passwort. DEV niemals veröffentlichen.
+- Docker-/Browser-Start und reale EcoFlow-Anbindung können nur auf deinem Rechner praktisch geprüft werden; GitHub Actions prüfen die Syntax, Abhängigkeiten und simulierte Tests, nicht die reale Windows-Docker-Desktop-Instanz.
