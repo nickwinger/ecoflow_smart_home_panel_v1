@@ -47,9 +47,11 @@ async def test_complete_registry_and_defaults(hass, entry, mock_quota, quota):
     represented = {e.unique_id.removeprefix(entry.runtime_data.unique_prefix) for e in entities}
     assert represented == {identity(p) for p in independent_leaves(quota)}
     enabled = [e for e in entities if e.disabled_by is None]
-    assert len(enabled) == 16
-    assert all(e.entity_category is None for e in enabled)
-    assert len([e for e in entities if hass.states.get(e.entity_id)]) == 16
+    assert len(entities) == 245
+    assert len(enabled) == 44
+    assert sum(e.entity_category is None for e in enabled) == 16
+    assert sum(e.entity_category is not None for e in enabled) == 28
+    assert len([e for e in entities if hass.states.get(e.entity_id)]) == 44
     for e in entities:
         if e.disabled_by:
             assert e.disabled_by is er.RegistryEntryDisabler.INTEGRATION
@@ -61,7 +63,7 @@ async def test_complete_registry_and_defaults(hass, entry, mock_quota, quota):
             assert state.attributes["quota_access_path"]
             assert "SHP-TEST" not in state.attributes["friendly_name"]
     assert mock_quota.await_count == 1
-    assert len(entry.runtime_data._listeners) == 18  # two discovery + 16 enabled
+    assert len(entry.runtime_data._listeners) == 46  # two discovery + 44 enabled
 
 
 async def test_partial_unknowns_recovery_and_new_fields(hass, entry, mock_quota, quota):
@@ -112,19 +114,25 @@ async def test_enable_reload_missing_and_disable(hass, entry, mock_quota):
     )
 
 
-@pytest.mark.parametrize("language,expected", [("en", "Circuit 1"), ("de", "Stromkreis 1")])
+@pytest.mark.parametrize(
+    "language,expected",
+    [("en", "Test circuit 1 – Supply source"), ("de", "Test circuit 1 – Versorgungsquelle")],
+)
 async def test_translated_names_and_safe_rename(hass, entry, mock_quota, quota, language, expected):
     hass.config.language = language
     await setup(hass, entry)
     entity = entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta"))
     before = hass.states.get(entity.entity_id)
-    assert expected in before.name
-    assert "Test circuit 1" in before.name
+    assert before.name.endswith(expected)
+    assert "(" not in before.name
+    assert before.attributes["channel_label"] == "Test circuit 1"
     quota["loadChInfo"]["info"][0]["chName"] = "New\x00 name\u202e"
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     after = hass.states.get(entity.entity_id)
-    assert "New name" in after.name
+    assert "New name – " in after.name
+    assert "(" not in after.name
+    assert after.attributes["channel_label"] == "New name"
     assert "\u202e" not in after.name
     assert (
         entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta")).unique_id
@@ -262,7 +270,9 @@ async def test_byte_names_update_presentation_without_changing_circuit_identity(
     quota["loadChInfo"]["info"][0]["chName"] = [75, 195, 188, 99, 104, 101, 0]
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
-    assert "Küche" in hass.states.get(circuit.entity_id).name
+    assert "Küche – " in hass.states.get(circuit.entity_id).name
+    assert "(" not in hass.states.get(circuit.entity_id).name
+    assert hass.states.get(circuit.entity_id).attributes["channel_label"] == "Küche"
     assert (
         circuit.unique_id
         == entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta")).unique_id
@@ -296,3 +306,22 @@ async def test_community_metadata_and_units_in_native_ha_states(hass, entry, moc
         assert state.attributes["device_class"] == device_class
         assert "state_class" not in state.attributes
         assert "property-" in state.attributes["evidence_reference"]
+
+
+@pytest.mark.parametrize("language,prefix", [("de", "Stromkreis 1"), ("en", "Circuit 1")])
+@pytest.mark.parametrize("label", [None, "", " \x00 ", [255], [0, 0]])
+async def test_localized_circuit_fallback_only_when_name_missing_or_invalid(
+    hass, entry, mock_quota, quota, language, prefix, label
+):
+    hass.config.language = language
+    quota["loadChInfo"]["info"][0]["chName"] = label
+    await setup(hass, entry)
+    for path in (
+        ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta"),
+        ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlMode"),
+        ("channelPower.infoList", 0, "chWatt"),
+    ):
+        state = hass.states.get(entity_for(hass, entry, path).entity_id)
+        assert f"{prefix} – " in state.name
+        assert "(" not in state.name
+        assert ("Circuit" if language == "de" else "Stromkreis") not in state.name

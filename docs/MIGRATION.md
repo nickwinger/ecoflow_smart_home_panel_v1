@@ -10,7 +10,7 @@ There is currently a working external Python HTTP-to-Home-Assistant helper setup
 6. Preserve old history unless there is an explicit independent request to migrate or delete it. Disable old helpers only when no automations reference them.
 7. Keep a rollback path to prior Python integration (never run conflicting polling/command writers inadvertently).
 
-No automatic migration, automatic device switching, import of old JSON histories or deletion of helper data belongs in the initial installation.
+No automatic legacy-helper migration, automatic device switching, import of old JSON histories or deletion of helper data belongs in the initial installation.
 
 ## Manual acceptance checklist (not performed by development)
 
@@ -34,3 +34,22 @@ No automatic migration, automatic device switching, import of old JSON histories
 The scaffold had no persisted config-entry schema to migrate. This implementation
 starts at config-entry version 1. No legacy helper import or automatic cutover is
 performed; native entities start their own history when enabled.
+
+## Upgrade to 0.1.1: names and requested diagnostic defaults
+
+After updating the integration files, restart the isolated HA instance. The config
+entry moves from schema 1.1 to 1.2. Existing circuit channel power/control mode and
+storage battery level/input power/output power/temperature entities that were
+previously disabled by the integration become enabled once. User-disabled or
+device-disabled entities stay disabled; these may be enabled manually if desired.
+Existing entity IDs, custom HA names and Recorder history are preserved.
+
+Verify that each named circuit displays only its EcoFlow channel name plus the
+reading name. Unnamed circuits use `Stromkreis <number>` or `Circuit <number>`
+according to the HA system language. An explicit custom HA entity name still
+wins; clear that override manually if you want the generated name instead.
+
+The expanded synthetic fixture has 245 leaves, 44 enabled and 201 disabled.
+The extra 28 enabled readings remain under Diagnostics. Their state history starts
+when enabled (unless excluded by Recorder); their community evidence does not
+create new long-term statistics. This upgrade changes no physical device setting.

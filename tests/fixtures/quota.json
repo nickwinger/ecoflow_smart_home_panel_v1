@@ -104,7 +104,8 @@
           "isEnable": 1,
           "isGridCharge": 0,
           "isMpptCharge": 0
-        }
+        },
+        "lcdInputWatts": 175
       },
       {
         "batteryPercentage": 56,
@@ -116,7 +117,8 @@
           "isEnable": 1,
           "isGridCharge": 1,
           "isMpptCharge": 0
-        }
+        },
+        "lcdInputWatts": 200
       }
     ],
     "heartbeat.errorCodes": [

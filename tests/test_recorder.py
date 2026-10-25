@@ -1,6 +1,7 @@
 """Real HA Recorder SQL tests against an isolated in-memory database."""
 
 import json
+from pathlib import Path
 
 import pytest
 from homeassistant.components.recorder.db_schema import StateAttributes, States, StatesMeta
@@ -12,6 +13,11 @@ from pytest_homeassistant_custom_component.components.recorder.common import (
 from sqlalchemy import select
 
 from .test_entities import entity_for, registry_entries, setup
+
+
+@pytest.fixture
+def quota():
+    return json.loads(Path("tests/fixtures/quota.json").read_text())["data"]
 
 
 @pytest.fixture
@@ -54,6 +60,15 @@ async def test_only_enabled_entities_record_and_static_metadata_is_omitted(
     assert any(
         row[0] == battery.entity_id and row[2].get("state_class") == "measurement" for row in rows
     )
+    for path in (
+        ("channelPower.infoList", 0, "chWatt"),
+        ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlMode"),
+        ("heartbeat.energyInfos", 0, "lcdInputWatts"),
+    ):
+        diagnostic = entity_for(hass, entry, path)
+        assert diagnostic.entity_category.value == "diagnostic"
+        assert diagnostic.disabled_by is None
+        assert any(row[0] == diagnostic.entity_id and "state_class" not in row[2] for row in rows)
     diagnostic = entity_for(hass, entry, ("heartbeat.backupCmdChCtrlInfos", 0, "ctrlSta"))
     registry = er.async_get(hass)
     registry.async_update_entity(diagnostic.entity_id, disabled_by=None)

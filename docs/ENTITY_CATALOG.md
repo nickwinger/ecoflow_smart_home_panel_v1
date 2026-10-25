@@ -6,7 +6,7 @@ Source of initial evidence: `docs/quota-field-guide.json`, seeded from the exist
 
 For every represented quota property, provide:
 - Stable technical source path (example: `data.heartbeat.loadCmdChCtrlInfos[6].ctrlSta`) and stable entity unique ID.
-- Friendly name that says what it means, rather than simply showing `heartbeat.loadCmdChCtrlInfos...`. Include channel/battery number and, if useful, user-defined channel name.
+- Friendly name that says what it means, rather than simply showing `heartbeat.loadCmdChCtrlInfos...`. For circuits, use the valid user-defined channel name alone; otherwise use the localized circuit number. Do not concatenate both labels.
 - Short explanation / description in German and English when evidenced: e.g. 'Current power source of load circuit 7; 0=grid, 1=battery; other values unknown.'
 - State representation, units/scale, mapping of enums and confidence (`documented`, `community`, `inferred`, `unknown`), wherever appropriate.
 - Entity classification: default enabled vs default disabled, measurement vs diagnostic; expose all raw scalar leaves for opt-in.
@@ -57,11 +57,14 @@ No need for a separate feature that archives all JSON values; that would violate
 
 ## M2 implementation and tested defaults
 
-The fixture represents 243 safe scalar leaves as 243 registered entities, with
-16 enabled by default (grid availability, panel battery percentage, ten load
-source states, two nominal grid settings, two daily counters with community Wh units). The other 227
-are initially disabled diagnostics. This is a synthetic coverage count, not a
-claim about a particular panel's current payload.
+The fixture represents 245 safe scalar leaves as 245 registered entities, with
+44 enabled by default: the original 16 essential fields, ten circuit power
+readings, ten circuit control modes, and four readings for each of two storage
+entries (battery percentage, input power, output power, temperature). The added
+28 remain in the diagnostic category even though they are enabled. The other
+201 start disabled. Two synthetic input-power fields were added to exercise the
+complete requested set; real cloud response totals vary. Extra circuit/storage
+indices remain opt-in, including backup power entries 10/11.
 
 The metadata file retains all 81 seed patterns and adds 11 patterns (92 total), including two local-cache fields
 and container patterns. Containers are not JSON-dump entities: scalar descendants
@@ -74,7 +77,7 @@ The [28 property supplements](reference/ecoflow_shp_v1_property_ergaenzungen.htm
 provide attributed community units for channel power (W), storage input/output
 power (W), storage percentage (%), temperature (°C), configured current (A), and
 daily grid/backup energy (Wh). These are applied without scaling and without
-statistics; power/storage/current diagnostics remain disabled by default.
+statistics. Circuit power and the four selected storage readings now start enabled; configured-current diagnostics remain disabled.
 `heartbeat.workTime` uses the manufacturer's min unit without statistics or a
 claim about its reset point. Remaining-time fields stay raw: community minute
 interpretations do not establish valid sentinels, and values above 5000 are never
@@ -107,6 +110,11 @@ booleans remain scalar sensors to preserve platform identity if their type chang
 only documented binary paths use binary_sensor.
 
 User labels from `loadChInfo.info` support strings and contiguous, zero-padded UTF-8 byte arrays. Invalid UTF-8, non-byte values, gaps and ambiguous source structures do not produce a label. Each source byte remains a discoverable disabled scalar. Labels are sanitized, capped at 48 characters and
-used only for presentation. Index 0..9 is circuit 1..10. Storage/backup numbers
+used as the circuit prefix by themselves. If no valid name exists, use `Stromkreis 1` (German) or `Circuit 1` (English), with no second label in parentheses. The original safe label is also available in `channel_label`. Index 0..9 is circuit 1..10. Storage/backup numbers
 are array-entry numbers, not a verified physical-device association. Potential
 backup power entries 10/11 are labelled as entries 11/12 without asserting mapping.
+
+Config-entry schema 1.2 upgrades the six selected diagnostic field families once.
+Only registry entries disabled by INTEGRATION are enabled; USER, DEVICE and other
+explicit disable reasons remain untouched. Categories do not imply disabled status.
+No unit, enum, statistics eligibility or API polling behavior changes with these defaults.

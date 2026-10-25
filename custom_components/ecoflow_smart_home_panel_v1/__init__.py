@@ -1,8 +1,11 @@
 """EcoFlow Smart Home Panel v1 native, read-only cloud integration."""
 
+import json
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 
@@ -14,6 +17,37 @@ from .coordinator import EcoFlowCoordinator
 PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 type EcoFlowConfigEntry = ConfigEntry[EcoFlowCoordinator]
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> bool:
+    """Apply requested diagnostic defaults once, preserving explicit user choices."""
+    if entry.version > 1:
+        return False
+    if entry.minor_version < 2:
+        catalog = await hass.async_add_executor_job(load_catalog)
+        registry = er.async_get(hass)
+        prefix = f"{entry.data[CONF_SERIAL]}:quota:"
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+            if (
+                entity.platform != DOMAIN
+                or entity.domain != "sensor"
+                or entity.disabled_by is not er.RegistryEntryDisabler.INTEGRATION
+                or not entity.unique_id.startswith(prefix)
+            ):
+                continue
+            try:
+                path = json.loads(entity.unique_id[len(prefix) :])
+            except ValueError:
+                continue
+            if (
+                isinstance(path, list)
+                and path
+                and all(type(part) in (str, int) for part in path)
+                and catalog.resolve(tuple(path)).enabled_diagnostic
+            ):
+                registry.async_update_entity(entity.entity_id, disabled_by=None)
+        hass.config_entries.async_update_entry(entry, minor_version=2)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> bool:

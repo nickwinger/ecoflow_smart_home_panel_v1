@@ -51,7 +51,7 @@ Recommended initial coordinator interval: 60 seconds, optionally configurable wi
 
 **Only HA Recorder is allowed.**
 
-- Selected sensor/status entities are enabled by default; diagnostic and unknown raw entities are registered but start disabled through `entity_registry_enabled_default=False` or equivalent platform description settings.
+- Selected sensor/status entities and the explicitly requested circuit/storage diagnostics are enabled by default; remaining diagnostic and unknown raw entities are registered but start disabled through `entity_registry_enabled_default=False` or equivalent platform description settings.
 - Disabled entities do not emit states and must not generate history. No hidden archival of disabled values.
 - Numeric sensor history can produce long-term statistics if it has an accurate numeric state, suitable `state_class`, consistent units and is recorded by HA Recorder.
 - Text/boolean diagnostic states have HA Recorder state history when enabled but no automatic indefinite long-term numeric statistics.
@@ -128,6 +128,14 @@ Channel names may be strings or zero-padded UTF-8 bytes. Reconstruction uses onl
 the current safe scalar snapshot, requires one unambiguous contiguous byte array,
 and never mutates raw values or identities. Invalid bytes/gaps produce no label.
 Each byte remains an independently selectable diagnostic, with no new archive.
+A valid channel name replaces the generic circuit prefix. Only unnamed circuits
+use localized Stromkreis/Circuit numbering; both labels are never concatenated.
+
+Config-entry minor version 2 performs a one-time registry migration for the six
+newly enabled diagnostic patterns. It enables only INTEGRATION-disabled sensor
+entries of the configured panel, within ten circuit/two storage index bounds.
+Explicit user/device choices and existing IDs/names are preserved. Diagnostics
+category and default enablement are independent; no statistics are added.
 
 M3 correction from the working source: channel grid writes require BOTH
 `ctrlMode=0` and `sta=0`; battery requires BOTH to be 1. No such writes are

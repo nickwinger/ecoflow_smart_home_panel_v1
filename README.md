@@ -19,7 +19,7 @@ From a normal **WSL host terminal**, `bash scripts/dev-ha.sh start` starts only 
 - Native sensor/binary_sensor entities, stable device identity, dynamic discovery, clean unload/reload and safe aggregate diagnostics.
 - History exclusively through HA Recorder for enabled entities. No quota archive, extra database, snapshots or per-entity API requests.
 
-The independent synthetic fixture contains **243 scalar leaves → 243 registry entities**. **16 start enabled; 227 start disabled.** Real totals depend on the fields the cloud returns. The registry limit is 4,096 identities per entry, including previously discovered fields across reloads.
+The independent synthetic fixture contains **245 scalar leaves → 245 registry entities**. **44 start enabled; 201 start disabled.** Real totals depend on the fields the cloud returns. The registry limit is 4,096 identities per entry, including previously discovered fields across reloads.
 
 | Enabled by default | Count in fixture | Interpretation |
 | --- | ---: | --- |
@@ -28,8 +28,15 @@ The independent synthetic fixture contains **243 scalar leaves → 243 registry 
 | Circuit supply source | 10 | 0 grid, 1 battery, 2 off; other codes unknown |
 | Nominal grid voltage/frequency | 2 | Configuration values, not live measurements |
 | Daily grid/backup energy fields | 2 | Community unit Wh; no statistics until resets and scale are verified |
+| Circuit channel power | 10 | Enabled diagnostics for circuits 1–10, community W |
+| Circuit control mode | 10 | Enabled diagnostics: automatic/manual |
+| Per-storage battery level, input/output power, temperature | 8 | Four enabled diagnostics for each of the two storage entries |
 
-Channel power and per-storage percentages/power/temperature remain individually enableable diagnostics. The supplementary sources now support explicit **community units** (W, %, °C); they receive no automatic statistics. Configured channel currents use A and documented operating time uses min. Unresolved capacity scales, remaining-time sentinels and energy-interval timing remain raw. Backup `ctrlSta=2` conflicts between the manufacturer table and the existing charging helper, so it remains a raw code. The [entity catalog](docs/ENTITY_CATALOG.md) explains these decisions.
+Channel power, circuit control mode and per-storage battery level/input/output power/temperature start **enabled in Diagnostics**. The two additional backup power entries in `channelPower.infoList` remain disabled. The supplementary sources now support explicit **community units** (W, %, °C); they receive no automatic statistics. Configured channel currents use A and documented operating time uses min. Unresolved capacity scales, remaining-time sentinels and energy-interval timing remain raw. Backup `ctrlSta=2` conflicts between the manufacturer table and the existing charging helper, so it remains a raw code. The [entity catalog](docs/ENTITY_CATALOG.md) explains these decisions.
+
+Circuit entity names use the configured EcoFlow channel name when valid (for example, `Living room – Channel power`). Otherwise they use only `Stromkreis <number>` in German or `Circuit <number>` in English, followed by the translated reading name. No duplicate generic prefix or parenthesized channel name is added. Generic naming follows Home Assistant's system language; an owner-defined name is preserved as written.
+
+Version **0.1.1** applies these defaults to existing entries once: only the six requested field families disabled by the integration are enabled. Explicit user/device disables, custom HA names, entity IDs and history remain intact. Missing fields are still unavailable. See [upgrade details](docs/MIGRATION.md).
 
 ## Installation in an isolated test instance
 
@@ -64,7 +71,7 @@ python3.14 -m venv .venv
 .venv/bin/pytest -q --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing
 ```
 
-Latest local result: **221 tests passed, 99% line coverage**. Tests use invented data, mocked HTTP and an in-memory HA Recorder database. `pytest-socket` blocks Internet access. The current sandbox blocks asyncio's internal self-pipe, so local tests run outside that sandbox with the same network-blocking pytest configuration. CI runs Ruff, catalog consistency, compilation, pytest, official hassfest and HACS custom-repository checks. [Official hassfest and the offline CI suite](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236653) passed; [HACS](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236718) passed all 8 active checks. For this custom repository, HACS **brands** and **topics** checks are explicitly deferred to M4/default listing. The topics check previously caused repeated metadata-only failure emails; it is excluded at the owner's request. Technical HACS checks remain enabled. The optional manifest category is deferred because the currently published hassfest container rejects the newer `categories` key; HACS reports this only as a warning.
+Latest local result: **256 tests passed, 99% line coverage**. Tests use invented data, mocked HTTP and an in-memory HA Recorder database. `pytest-socket` blocks Internet access. The current sandbox blocks asyncio's internal self-pipe, so local tests run outside that sandbox with the same network-blocking pytest configuration. CI is manual-only (`workflow_dispatch`); pushing this change does not start Actions or failure emails. The optional manual workflows run Ruff, catalog consistency, compilation, pytest, official hassfest and HACS custom-repository checks. [Official hassfest and the offline CI suite](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236653) passed; [HACS](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236718) passed all 8 active checks. For this custom repository, HACS **brands** and **topics** checks are explicitly deferred to M4/default listing. The topics check previously caused repeated metadata-only failure emails; it is excluded at the owner's request. Technical HACS checks remain enabled. The optional manifest category is deferred because the currently published hassfest container rejects the newer `categories` key; HACS reports this only as a warning.
 
 `scripts/sync_catalog.py` packages the field guide and generates entity translations inside the HACS install directory. All runtime files are self-contained there. Changes to catalog text must regenerate those resources. See [milestones and validation results](docs/MILESTONES.md).
 

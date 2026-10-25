@@ -55,6 +55,7 @@ class EcoFlowConfigFlow(ConfigFlow, domain=DOMAIN):
     """Only explicitly confirmed SHP v1 panels may be configured."""
 
     VERSION = 1
+    MINOR_VERSION = 2
 
     @staticmethod
     @callback

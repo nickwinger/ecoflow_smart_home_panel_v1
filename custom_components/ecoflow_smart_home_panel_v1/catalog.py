@@ -37,6 +37,16 @@ _ENABLED = {
     "gridInfo.gridVol",
     "gridInfo.gridFreq",
 }
+# Requested defaults remain diagnostics; only the SHP v1's ten circuits and
+# two storage entries qualify. Extra/unknown entries stay opt-in.
+_ENABLED_DIAGNOSTICS = {
+    "channelPower.infoList[].chWatt": 10,
+    "heartbeat.loadCmdChCtrlInfos[].ctrlMode": 10,
+    "heartbeat.energyInfos[].batteryPercentage": 2,
+    "heartbeat.energyInfos[].lcdInputWatts": 2,
+    "heartbeat.energyInfos[].outputPower": 2,
+    "heartbeat.energyInfos[].emsBatTemp": 2,
+}
 _UNITS = {
     "heartbeat.backupBatPer": "%",
     "gridInfo.gridVol": "V",
@@ -95,7 +105,19 @@ class Field:
         if self.pattern == "heartbeat.loadCmdChCtrlInfos[].ctrlSta":
             indexes = _ARRAY_INDEX.findall(display_path(self.path))
             return bool(indexes) and int(indexes[0]) < 10
-        return self.pattern in _ENABLED
+        return self.pattern in _ENABLED or self.enabled_diagnostic
+
+    @property
+    def enabled_diagnostic(self) -> bool:
+        """The explicitly requested diagnostic defaults, including index bounds."""
+        if limit := _ENABLED_DIAGNOSTICS.get(self.pattern):
+            indexes = _ARRAY_INDEX.findall(display_path(self.path))
+            return bool(indexes) and int(indexes[0]) < limit
+        return False
+
+    @property
+    def diagnostic(self) -> bool:
+        return self.enabled_diagnostic or not self.enabled
 
     @property
     def unit(self) -> str | None:

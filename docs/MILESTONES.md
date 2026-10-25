@@ -27,13 +27,13 @@ Validation: `pytest -q --tb=short --show-capture=no --timeout=30` (40 tests), `r
 - [x] Generic raw quota leaf coverage incl. dotted keys, nested dicts and indexed lists.
 - [x] All 81 seed descriptions plus 11 supplementary patterns integrated (92 total), plus truthful fallback for unknown paths.
 - [x] Stable unique IDs, friendly de/en names, path, description, confidence, verified states/units.
-- [x] Essential sensors enabled, diagnostics disabled; no independent historical storage.
+- [x] Essential sensors and selected diagnostics enabled, remaining diagnostics disabled; no independent historical storage.
 - [x] Valid state classes/long-term statistics for supported numeric readings.
 - [x] Unit tests comparing fixture leaves to entity catalog, missing fields and enablement defaults.
 
-Acceptance verified in isolated HA: all 243 synthetic scalar leaves register, all can be enabled; 16 enabled and 227 disabled by default. A real in-memory Recorder test proves disabled entities have no rows, static metadata is omitted and prior history survives disabling. No shadow store. All 92 patterns have German/English metadata and truthful fallbacks.
+Acceptance verified in isolated HA: all 245 synthetic scalar leaves register, all can be enabled; 44 enabled and 201 disabled by default (0.1.1 fixture includes both storage input powers). A real in-memory Recorder test proves disabled entities have no rows, static metadata is omitted and prior history survives disabling. No shadow store. All 92 patterns have German/English metadata and truthful fallbacks.
 
-Default-enabled: grid availability (1), panel battery percentage (1), ten load supply states (10), nominal grid settings (2), daily energy counters with community Wh units (2). Power/storage/temperature readings have attributed community units but remain disabled diagnostics without statistics. Only the valid documented panel battery percentage has measurement statistics.
+Default-enabled: grid availability (1), panel battery percentage (1), ten load supply states (10), nominal grid settings (2), daily energy counters with community Wh units (2). Additionally, ten circuit powers, ten circuit control modes and four readings for each of two storage entries are enabled diagnostics. They retain their evidence and receive no new statistics. Only the valid documented panel battery percentage has measurement statistics.
 
 M2 commit: [`544287c`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/544287cf29a868aaf29b4ad0b645a7be080bca9e), `feat: expose complete bounded quota entities with selective history`. Current local checks: Ruff, formatter, catalog regeneration check, compileall, and the full offline pytest suite. See the verification record below for the final count and CI results.
 
@@ -79,3 +79,15 @@ Validated code commit: [`9dcf39d`](https://github.com/nickwinger/ecoflow_smart_h
 - [Offline validation and official hassfest](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236653): **SUCCESS**, both jobs. Ruff/format, generated catalog and compilation passed; **221 tests passed in 7.04 seconds, 99% coverage** (609 statements, 8 uncovered).
 - Working Python reference and the three supplied HTML originals remain unchanged. No live device commands, running-HA installation or release was performed.
 - This final results update changes documentation only; `[skip ci]` avoids repeating identical technical checks for the recorded outcome.
+
+## M2 follow-up — requested names and defaults (0.1.1)
+
+- Named circuits use the configured channel name alone; unnamed circuits use localized `Stromkreis <number>` / `Circuit <number>`, followed by the reading name.
+- Channel power/control mode for circuits 1–10 and battery level/input power/output power/temperature for both storage entries start enabled in Diagnostics.
+- One-time config-entry 1.1 → 1.2 migration enables only former integration defaults; explicit disables, custom names, IDs and history remain intact.
+- Offline tests cover both languages, missing/invalid/string/UTF-8 names, index bounds, registry migration, scope, idempotence and actual Recorder history for the selected diagnostics.
+- `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **256 passed**, **99% coverage** (637 statements, 7 uncovered), 15.11 seconds.
+- `ruff check custom_components tests scripts`, `ruff format --check custom_components tests scripts` (26 Python files), `python scripts/sync_catalog.py --check`, `python -m compileall -q custom_components`, and `git diff --check`: **passed**.
+- No hardware commands or production installation. Update/restart the isolated instance and verify names plus the selected Diagnostics; explicit user disables remain manual choices.
+
+- Merged the parallel DEV-environment updates before the final test run. `docker compose -f .devcontainer/ha.compose.yml config -q` and `bash -n scripts/dev-ha.sh`: **passed**. GitHub workflows remain manual-only; no workflow was dispatched for this update.

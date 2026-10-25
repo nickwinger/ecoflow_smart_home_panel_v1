@@ -50,7 +50,7 @@ def test_every_catalog_pattern(source):
         assert not field.enabled
     if source["confidence"] == "community":
         assert not field.measurement
-        assert not field.enabled
+        assert field.diagnostic
 
 
 @pytest.mark.parametrize(
@@ -129,7 +129,7 @@ def test_community_units_without_scaling_or_statistics(pattern, unit, raw, expec
     assert field.unit == unit
     assert field.value(raw) == expected
     assert not field.measurement
-    assert not field.enabled
+    assert field.diagnostic
     assert field.source["evidence"]["sources"]
     assert field.source["unit_confidence"] == "community"
 
@@ -156,3 +156,24 @@ def test_all_28_supplementary_sections_have_catalog_evidence():
     refs = {f["evidence"]["review"].split("#")[-1] for f in GUIDE["fields"] if "evidence" in f}
     assert refs == {f"property-{i:02d}" for i in range(1, 29)}
     assert GUIDE["field_count"] == len(GUIDE["fields"]) == 92
+
+
+@pytest.mark.parametrize(
+    "pattern,limit",
+    [
+        ("channelPower.infoList[].chWatt", 10),
+        ("heartbeat.loadCmdChCtrlInfos[].ctrlMode", 10),
+        ("heartbeat.energyInfos[].batteryPercentage", 2),
+        ("heartbeat.energyInfos[].lcdInputWatts", 2),
+        ("heartbeat.energyInfos[].outputPower", 2),
+        ("heartbeat.energyInfos[].emsBatTemp", 2),
+    ],
+)
+def test_requested_diagnostics_enabled_only_for_supported_indices(pattern, limit):
+    parent, child = pattern.split("[].")
+    for index in range(limit + 2):
+        for path in ((parent, index, child), (*parent.split("."), index, child)):
+            field = CATALOG.resolve(path)
+            assert field.enabled == (index < limit)
+            assert field.diagnostic
+            assert not field.measurement

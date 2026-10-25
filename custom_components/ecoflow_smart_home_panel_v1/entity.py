@@ -106,7 +106,7 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
         self._attr_unique_id = coordinator.unique_id(field.path)
         self._attr_translation_key = field.key
         self._attr_entity_registry_enabled_default = field.enabled
-        self._attr_entity_category = None if field.enabled else EntityCategory.DIAGNOSTIC
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC if field.diagnostic else None
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, coordinator.serial)},
             manufacturer="EcoFlow",
@@ -166,10 +166,7 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
                 label = "Stromkreis" if self.language == "de" else "Circuit"
             else:
                 label = "Eintrag" if self.language == "de" else "Entry"
-            context = f"{label} {index + 1}"
-            if channel_label := self._channel_label():
-                context += f" ({channel_label})"
-            context += " – "
+            context = f"{self._channel_label() or f'{label} {index + 1}'} – "
         detail = ""
         if not self.field.exact or len(indexes) > 1:
             # Source suffix disambiguates unnamed array scalars/unknown children.
