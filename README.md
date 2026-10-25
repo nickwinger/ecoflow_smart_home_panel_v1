@@ -5,12 +5,12 @@
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
-![Version 0.3.1](https://img.shields.io/badge/version-0.3.1-blue)
+![Version 0.3.2](https://img.shields.io/badge/version-0.3.2-blue)
 ![Opt-in controls](https://img.shields.io/badge/controls-opt--in-orange)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > [!IMPORTANT]
-> **Early preview (v0.3.1) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
+> **Early preview (v0.3.2) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
 
 ## ✨ Features
 
@@ -19,6 +19,7 @@
 - 🏷️ **Understandable entities** — English/German names, descriptions and original quota paths.
 - 🕘 **Selective history** — Home Assistant Recorder stores enabled entities; most advanced diagnostics start disabled to save space.
 - 🎛️ **Optional controls** — ten grid/battery selects, ten automatic/manual selects, two charging switches and three separately enabled batch buttons.
+- 🔁 **Automation action** — switch all circuits and wait for every confirmation before continuing; failures stop the calling sequence and appear in Home Assistant logs.
 - ☁️ **Cloud connection** — authenticated EcoFlow API polling, configurable update interval and error handling.
 
 ## 📦 Installation
@@ -64,7 +65,9 @@ That's it! Your panel and available entities will appear under **Devices & servi
 
 In **Options**, independently enable circuit controls (source and automatic/manual mode) or charging controls. The controls appear on the panel’s device page. No Home Assistant helpers are required. Enabling them sends no commands; only an explicit action changes the panel. Each write is followed by fresh status verification, with bounded retries and serialization. Startup and polling never switch anything.
 
-Enabling batch controls adds **All circuits to grid**, **All circuits to battery** and **Cancel switching** buttons to the device page. A button press starts the chosen sequence; enabling the option alone does nothing. Batches follow the proven script’s order, retries and pauses, continue after individual failures, and report all unconfirmed circuits at the end. The existing confirmed action remains available for automations. See [control behavior and checks](docs/CONTROLS.md).
+Enabling batch controls permits the automation action and adds **All circuits to grid**, **All circuits to battery** and **Cancel switching** buttons to the device page. A button press starts the chosen sequence; enabling the option alone does nothing. Batches follow the proven script’s order, retries and pauses, continue after individual failures, and report all unconfirmed circuits at the end. See [control behavior and checks](docs/CONTROLS.md).
+
+**For automations, call `ecoflow_smart_home_panel_v1.set_all_sources` directly.** The next action waits until all ten circuits are confirmed and the final pause ends. A failed or cancelled sequence does not continue to the next action; leave `continue_on_error` off. Use `mode: single` to prevent overlapping runs. Unlike a button entity that HA may skip when unavailable, the direct action reports an error if it cannot run. [Automation setup and YAML example](docs/AUTOMATIONS.md).
 
 Automatic mode returns supply control to the panel. Manual mode holds the currently reported supply source. The diagnostic “Control mode” sensor remains a separate status display.
 
@@ -99,6 +102,7 @@ For full field descriptions and technical details, see the [entity catalog](docs
 | --- | --- |
 | Integration not found | Restart Home Assistant and refresh your browser after installation |
 | Setup fails | Verify the keys, serial number and EU/Global region; retry if EcoFlow returns an incomplete response |
+| Switching fails or live power stops | Open **Settings → System → Logs**. Messages identify the circuit, target, step, attempt and cause; batch failures list all unconfirmed circuits. Repeated connection failures are logged once per outage. [Logging details](docs/CONTROLS.md#fehler-im-home-assistant-protokoll) |
 | A value is unavailable or unknown | The API may have omitted it or returned an unrecognized code; the integration deliberately avoids guessing |
 | Channel power says “seconds ago” despite 5-second polling | Check both quota polling and `power_telemetry_connected` / `power_telemetry_age_seconds` in diagnostics. Successful HTTP polling alone can return frozen cloud values; the read-only MQTT connection keeps updates flowing |
 | Too many entities | Most raw diagnostic entities are disabled by default; enable only what you need |

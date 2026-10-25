@@ -286,3 +286,28 @@ Offline differential tests run the actual pinned reference functions with fake
 GET/PUT/sleep against the same synthetic scenarios as the async controller.
 Complete call traces and per-channel results must match. The test-only reference
 copy has a verified Git blob hash; none of its imports or real I/O is executed.
+
+## Automation completion and standard HA logging (0.3.2)
+
+The entry-scoped `set_all_sources` action directly awaits the complete controller
+transaction. It does not start a detached task. HA Script calls the action with
+blocking semantics, so the next sequential step waits through all confirmations
+and the final channel pause. A batch error propagates after all ten channels;
+explicit cancellation propagates immediately. The default Script error policy
+stops subsequent actions. Optional response data is returned only on success.
+Real HA Script tests exercise success, partial failure, cancellation, invalid
+targets, and the difference from an unavailable button entity that HA may skip.
+See [automation usage](AUTOMATIONS.md); no extra helper or delay is needed.
+
+`logging_utils.failure_reason` maps exception types to fixed safe explanations.
+No arbitrary exception text, traceback, API body, serial or credentials enter
+these messages. Coordinator polling uses HA's existing outage/recovery logging;
+MQTT emits one outage warning until fresh non-retained power reports resume.
+Controls log bounded circuit/target/step/attempt details and aggregate batch
+failures to standard HA logging. The in-memory `control_operation.stage` remains
+inside the existing unrecorded progress attribute. No custom log archive or
+entity history is introduced. Tests attach the real HA `system_log` component
+and assert both useful user-visible failure context and redaction.
+
+GET/PUT payloads, source decoder, order, retries, pauses and shared command lock
+are unchanged; the complete reference trace comparisons remain part of CI.

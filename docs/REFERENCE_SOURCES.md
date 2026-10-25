@@ -137,3 +137,17 @@ with synthetic in-memory GET/PUT/cache/sleep substitutes in differential tests.
 No imports, CLI entry point, reference repository files or real device commands
 are executed/changed. The integration keeps native async scheduling, shared
 transport limits, permission gates, cancellation and unrecorded progress.
+
+## Automation completion and logs (0.3.2)
+
+- [HA sequential actions and error handling](https://www.home-assistant.io/docs/automation/building-blocks/): default stop on error, explicit `continue_on_error` override and skipping unavailable entity targets.
+- [HA automation modes](https://www.home-assistant.io/docs/automation/modes/): single, queued, restart and parallel behavior.
+- [HA buttons](https://www.home-assistant.io/integrations/button/): timestamp denotes last press, not successful device confirmation.
+- [HA integration actions and responses](https://contributors.home-assistant.io/core/integrations/actions/): optional response data.
+
+Installed HA 2026.10.3 `ServiceRegistry.async_call`, `helpers/script.py` and the
+button entity implementation were inspected. The direct awaited action path,
+default error/cancellation propagation and unavailable-button behavior are also
+exercised by real HA Script tests with synthetic device responses. Standard
+warning/error visibility is tested through HA's `system_log` component, not just
+a mocked logger. No real action was sent to a panel during these checks.

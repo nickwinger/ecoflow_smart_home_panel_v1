@@ -344,3 +344,67 @@ Implementation commit: [`e0e9beb`](https://github.com/nickwinger/ecoflow_smart_h
 Manual check without switching: after the normal update/reload, inspect the
 revised batch-action description and the three device-page buttons. An actual
 batch run remains an owner action; no button press is needed for the UI check.
+
+## M1/M3 follow-up — awaited automations and useful HA logs (0.3.2)
+
+Implementation commit: [`a6fe221`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/a6fe2215bbcf64ad3f27d5b4a7ea780bf141197f),
+`fix: verify automation completion and report actionable HA errors`.
+
+- The owner needs all-circuit switching from an automation that waits for full
+  completion. The existing `set_all_sources` handler directly awaits the shared
+  controller; no detached task, helper, extra timer or new switching algorithm
+  was added. The next sequential automation action runs only after all ten fresh
+  confirmations and the final pause. Partial failure is reported after all ten
+  channels and stops the automation; explicit cancellation also stops it.
+- Added real HA Script tests for success, partial failure, cancellation, invalid
+  integration-entry targets and unavailable-button behavior. The tests hold the
+  first and final pauses open and assert that no following action starts early.
+  HA may skip an unavailable button entity, so the documented automation example
+  uses the direct entry-scoped action and the default stop-on-error behavior.
+- `controls.py`, `coordinator.py`, `telemetry.py`, `config_flow.py` and the new
+  `logging_utils.py` report classified failures through standard HA logging.
+  Control errors include circuit, target, step, attempt and bounded result lists;
+  arbitrary exception text, response bodies, credentials and serials are excluded.
+  Repeated polling/telemetry outages are deduplicated. Info-level events cover
+  command start/success and recovery. Progress adds an unrecorded `stage` field.
+- New logging tests attach the actual HA `system_log` component, check useful
+  user-visible error details, prevent repeated outage warnings and verify that
+  deliberately sensitive synthetic exception contents never reach logs.
+  `services.py` documents its awaited contract; DE/EN action/option descriptions
+  explain automation use. README, architecture, controls, source references and
+  the new [automation guide](AUTOMATIONS.md) document completion and error handling.
+- Focused development run:
+  `.venv/bin/pytest -q tests/test_automation_wait.py tests/test_logging.py tests/test_batch_reference.py tests/test_telemetry.py --tb=short --show-capture=no --timeout=30`:
+  **109 passed, 1 failed in 17.35 seconds**. The sole failure expected the wrong
+  wording for HA's built-in recovery message; the assertion was corrected to the
+  actual `recovered` message before the complete successful run below.
+- Complete final run:
+  `.venv/bin/pytest -q --disable-socket --allow-unix-socket --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`:
+  **533 passed in 49.40 seconds**, **99% coverage** (1,258 statements, 8 uncovered).
+  Controls, service handlers, telemetry and the failure classifier have **100%
+  line coverage**. All device I/O is mocked; internet sockets are blocked.
+  This includes the existing 36 exact reference trace comparisons and all
+  quota, Recorder, configuration, lifecycle, reauth and opt-in regressions.
+- `.venv/bin/ruff check custom_components tests scripts`,
+  `.venv/bin/ruff format --check custom_components tests scripts` (**43 files**),
+  `.venv/bin/python scripts/sync_catalog.py --check`,
+  `.venv/bin/python -m compileall -q custom_components`, `git diff --check`: **passed**.
+- `docker run --rm --network none -v /home/nick/dev/ecoflow_smart_home_panel_v1:/github/workspace:ro ghcr.io/home-assistant/hassfest:latest`:
+  **1 integration, 0 invalid**, using the previously recorded cached image.
+  No GitHub workflow, HACS validation run or release was triggered.
+- Quota coverage remains **245/245 synthetic scalar leaves**, **44 enabled /
+  201 disabled**. Defaults: grid availability, panel battery percentage, ten
+  source states, nominal grid voltage/frequency, two daily counters, ten circuit
+  powers, ten control modes and eight storage readings (battery/input/output/
+  temperature for each of two entries). Up to 25 separately opted-in controls.
+  No field metadata, polling interval, command payload or reference timing changed.
+- Remaining: owner hardware acceptance of native batch/mode controls and M4/HACS
+  installation/upgrade acceptance. A failed device/cloud confirmation remains a
+  failure, never a guarantee of successful switching. No live commands, DEV
+  restart, production installation or reference-repository changes occurred.
+
+Manual verification without switching: after the normal update, inspect the
+revised integration options and the `set_all_sources` action in the automation
+editor. Choose the panel entry, check the target/confirmation fields and place
+the next action after it, with “continue on error” disabled. Save/inspect the
+automation without executing it. No hardware action is required for this check.

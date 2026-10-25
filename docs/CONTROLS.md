@@ -1,4 +1,4 @@
-# M3: Stromkreise und Laden steuern (0.3.1)
+# M3: Stromkreise und Laden steuern (0.3.2)
 
 Die Installation und jedes Upgrade bleiben standardmäßig lesend. Es gibt keine
 Schaltbefehle beim Start, Neustart, Wiederherstellen, Polling oder bei API-Fehlern.
@@ -15,7 +15,7 @@ Unter **Einstellungen → Geräte & Dienste → EcoFlow Smart Home Panel v1 → 
 | --- | --- |
 | Stromkreise steuern (Quelle und Betriebsart) | Zehn Quellen-Auswahlen: Netzstrom/Batterie; zehn Betriebsart-Auswahlen: Automatisch/Manuell |
 | Laden steuern | Zwei Ladeschalter für die Backup-Einträge |
-| Sammelschaltung | Zusätzlich zur Stromkreis-Freigabe: drei Tasten „Alle auf Netzstrom“, „Alle auf Batterie“, „Schaltung abbrechen“ |
+| Sammelschaltung freigeben (Automationen und Tasten) | Zusätzlich zur Stromkreis-Freigabe: Sammelaktion für Automationen und drei Tasten „Alle auf Netzstrom“, „Alle auf Batterie“, „Schaltung abbrechen“ |
 
 Die bis zu **25 Bedienelemente** erscheinen auf der Geräteseite. Die diagnostische
 Anzeige „Control mode“ ist weiterhin ein eigener Sensor; geändert wird die
@@ -118,6 +118,12 @@ Für Automationen bleibt die bisherige Aktion verfügbar:
 `config_entry_id`, `source: grid` oder `source: battery`, **`confirm: true`** und
 beide Quellen-/Sammelfreigaben. Kein automatisches Ziel „alle Panels“.
 
+**Die Automation wartet auf das Ende dieser Aktion**, einschließlich aller
+Bestätigungen und Pausen. Bei unbestätigten Stromkreisen stoppt sie mit einem
+Fehler, sofern `continue_on_error` nicht ausdrücklich aktiviert wurde. Verwende
+für diese Anforderung den direkten Dienstaufruf. Anleitung und YAML-Beispiel:
+[Alle Stromkreise in einer Automation umschalten](AUTOMATIONS.md).
+
 Reihenfolge für Netz und Batterie: **7, 6, 3, 1, 2, 4, 5, 8, 9, 10**. Jeder Kanal
 wird bis zur Bestätigung, bis zu acht erfolglosen Versuchen oder bis zu einer
 Exception bearbeitet. Danach folgen **immer 10 Sekunden Pause**, auch nach
@@ -139,7 +145,7 @@ Alle Quellen-, Betriebsart-, Lade- und Sammelaufträge eines Panels teilen eine 
 gesamten Ablauf. Andere Panel-Einträge arbeiten unabhängig. Regelmäßiges
 lesendes Polling bleibt möglich. Fortschritt steht im Attribut
 `control_operation` der Steuerentitäten und im Diagnose-Download: Zustand,
-Auftragsart, Ziel, aktueller Stromkreis/Backup-Eintrag, Versuch und bei Sammelaktionen
+Auftragsart, Ziel, aktueller Stromkreis/Backup-Eintrag, Schritt (`stage`), Versuch und bei Sammelaktionen
 bereits bestätigte (`completed`) und fehlgeschlagene (`failed`) Stromkreise.
 Keine Seriennummern oder Kanalnamen im Fortschritt. Bei vollständigem Erfolg kann
 die Aktion ihre Ergebnisstruktur zurückgeben; bei Teilerfolg meldet sie am Ende
@@ -165,7 +171,52 @@ bleiben bestehen; Abbrechen/Entladen beendet laufende Aufträge weiterhin.
 
 Fortschritt und statische Beschreibungen werden als unrecorded attributes nicht
 in Recorder kopiert. Nur aktivierte Entitäten erzeugen normale Zustandshistorie.
-Es gibt kein zusätzliches Befehlsprotokoll, keine Quota-Datei und kein Archiv.
+Es gibt keine eigene Befehlsdatei, keine Quota-Datei und kein Archiv.
+Fehler erscheinen im normalen Home-Assistant-Protokoll wie nachfolgend beschrieben.
+
+## Fehler im Home-Assistant-Protokoll
+
+Unter **Einstellungen → System → Protokolle** erscheinen Warnungen und Fehler
+der Integration. Das ist das Systemprotokoll, nicht der Entitätsverlauf oder das
+Logbuch. Meldungen enthalten eine kurze interne Integrationseintrags-ID zur
+Unterscheidung mehrerer Panels, niemals Seriennummer, Zugangsdaten oder rohe
+Geräteantworten. Die Protokolltexte folgen der üblichen englischen HA-Konvention.
+
+- **Schaltfehler:** Stromkreis bzw. Backup-Eintrag, Ziel, Schritt (Abfrage,
+  Schreiben, Warten oder Bestätigung), Versuch und eingegrenzte Fehlerursache.
+  Bei einer Sammelschaltung wird jeder fehlgeschlagene Stromkreis gemeldet;
+  die Abschlussmeldung nennt bestätigte und unbestätigte Stromkreise.
+- **Noch nicht bestätigt:** Eine Warnung beim ersten erfolglosen
+  Bestätigungsversuch; weitere Versuche nur auf Debug-Stufe. Ein endgültiger
+  Fehlschlag erscheint als Fehler. Der ursprüngliche Wiederholungsablauf bleibt
+  unverändert.
+- **Abbruch:** Eine Warnung mit dem zuletzt bearbeiteten Kanal und bisherigen
+  Ergebnissen. Bereits übertragene Befehle können trotzdem noch wirken.
+- **Quota-Verbindung:** HA meldet den Beginn eines Abfrageausfalls einmal; die
+  Meldung enthält die Fehlerart und den nächsten Abfrageabstand. Die Diagnose
+  zeigt den aktuell wirksamen Abstand einschließlich späterer Rücksetzungen.
+- **Live-Leistung:** Eine Warnung pro Ausfall der MQTT-Leistungsberichte.
+  Erst frische Berichte beenden diesen Ausfall; bloßes Wiederverbinden erzeugt
+  keine wiederholte Warnung. Authentifizierungsfehler fordern Reauth an.
+- **Einrichtung:** Fehlgeschlagene Verbindungs-/Gerätevalidierung erscheint
+  zusätzlich zur Meldung im Konfigurationsdialog als Warnung.
+
+Start, vollständiger Erfolg und wiederhergestellte Verbindung werden auf
+Info-Stufe protokolliert. Bei Bedarf lässt sich diese für die Integration
+aktivieren:
+
+```yaml
+logger:
+  logs:
+    custom_components.ecoflow_smart_home_panel_v1: info
+```
+
+Diese Info-Meldungen stehen im vollständigen HA-Protokoll; die zusammengefasste
+Fehleransicht zeigt weiterhin nur Warnungen und Fehler. Die Integration verwendet
+die normale HA-Protokollierung und deren Aufbewahrung, keinen eigenen Recorder
+oder zusätzlichen Rohdaten-Speicher. Fehlertexte werden anhand ihres Typs in
+feste Beschreibungen übersetzt; beliebige Antworttexte, URLs und Exception-Inhalte
+werden nicht in diese Meldungen übernommen.
 
 ## Oberfläche und Daten prüfen
 
