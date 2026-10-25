@@ -222,12 +222,16 @@ def bootstrap(client: Client, timeout: int = 300) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Bootstrap localhost EcoFlow DEV HA only")
     parser.add_argument("--timeout", type=int, default=300, help="Maximum readiness wait seconds")
-    parser.add_argument("--compose-service", action="store_true", help="Use fixed DEV Compose hostname")
+    parser.add_argument(
+        "--compose-service", action="store_true", help="Use fixed DEV Compose hostname"
+    )
     args = parser.parse_args()
     if not 1 <= args.timeout <= 900:
         parser.error("--timeout must be between 1 and 900")
     try:
-        bootstrap(Client(COMPOSE_SERVICE_URL if args.compose_service else BASE_URL), timeout=args.timeout)
+        bootstrap(
+            Client(COMPOSE_SERVICE_URL if args.compose_service else BASE_URL), timeout=args.timeout
+        )
     except BootstrapError as exc:
         parser.exit(1, f"DEV bootstrap error: {exc}\n")
     return 0
