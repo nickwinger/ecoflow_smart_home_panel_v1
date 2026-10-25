@@ -29,5 +29,10 @@ async def async_get_config_entry_diagnostics(
         "controls_implemented": True,
         "source_controls_enabled": coordinator.controls.enabled("source"),
         "charge_controls_enabled": coordinator.controls.enabled("charge"),
+        "batch_controls_enabled": coordinator.controls.batch_enabled(),
+        "power_telemetry_connected": coordinator.telemetry.connected,
+        "power_telemetry_reports": coordinator.telemetry.reports,
+        "power_telemetry_age_seconds": coordinator.telemetry.power_age(),
+        "power_telemetry_error": coordinator.telemetry.error,
         "control_operation": dict(coordinator.controls.status),
     }

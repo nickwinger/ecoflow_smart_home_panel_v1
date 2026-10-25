@@ -72,7 +72,9 @@ def signed_headers(
     timestamp = timestamp or str(int(time.time() * 1000))
     flat = flatten_parameters(parameters)
     message = "&".join(f"{key}={flat[key]}" for key in sorted(flat))
-    message += f"&accessKey={access_key}&nonce={nonce}&timestamp={timestamp}"
+    message = (
+        message + "&" if message else ""
+    ) + f"accessKey={access_key}&nonce={nonce}&timestamp={timestamp}"
     return {
         "accessKey": access_key,
         "nonce": nonce,
@@ -144,17 +146,34 @@ class EcoFlowClient:
         """Send a signed command. An acknowledgment does not confirm device state."""
         await self._request("PUT", {"sn": self._serial, "params": params})
 
-    async def _request(self, method: str, parameters: dict[str, Any]) -> dict[str, Any]:
+    async def request_heartbeat(self) -> None:
+        """Query heartbeat.time using the documented read-only GetCmdRequest.
+
+        General HTTP documentation specifies POST for this query. This is not
+        PUT, does not set RTC and contains no actuator command or desired state.
+        """
+        await self._request("POST", {"sn": self._serial, "params": {"quotas": ["heartbeat.time"]}})
+
+    async def get_mqtt_certification(self) -> dict[str, Any]:
+        """Obtain read-telemetry connection credentials through the shared transport."""
+        payload = await self._request("GET", {}, endpoint="/iot-open/sign/certification")
+        if not isinstance(payload.get("data"), dict):
+            raise InvalidResponseError("Missing cloud MQTT certification")
+        return payload["data"]
+
+    async def _request(
+        self, method: str, parameters: dict[str, Any], *, endpoint: str | None = None
+    ) -> dict[str, Any]:
         async with self._lock:
             if time.monotonic() < self._retry_at:
                 raise RateLimitError(max(1, int(self._retry_at - time.monotonic()) + 1))
             headers = signed_headers(parameters, self._access_key, self._secret_key)
             if method == "GET":
                 request = self._session.get
-                endpoint = "/iot-open/sign/device/quota/all"
+                endpoint = endpoint or "/iot-open/sign/device/quota/all"
                 arguments = {"params": parameters}
             else:
-                request = self._session.put
+                request = self._session.post if method == "POST" else self._session.put
                 endpoint = "/iot-open/sign/device/quota"
                 headers["Content-Type"] = "application/json;charset=UTF-8"
                 arguments = {"json": parameters}

@@ -116,7 +116,7 @@ async def test_enable_reload_missing_and_disable(hass, entry, mock_quota):
 
 @pytest.mark.parametrize(
     "language,expected",
-    [("en", "Test circuit 1 – Supply source"), ("de", "Test circuit 1 – Versorgungsquelle")],
+    [("en", "Circuit 1 – Supply source"), ("de", "Stromkreis 1 – Versorgungsquelle")],
 )
 async def test_translated_names_and_safe_rename(hass, entry, mock_quota, quota, language, expected):
     hass.config.language = language
@@ -130,7 +130,7 @@ async def test_translated_names_and_safe_rename(hass, entry, mock_quota, quota, 
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     after = hass.states.get(entity.entity_id)
-    assert "New name – " in after.name
+    assert after.name == before.name
     assert "(" not in after.name
     assert after.attributes["channel_label"] == "New name"
     assert "\u202e" not in after.name
@@ -272,7 +272,7 @@ async def test_byte_names_update_presentation_without_changing_circuit_identity(
     quota["loadChInfo"]["info"][0]["chName"] = [75, 195, 188, 99, 104, 101, 0]
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
-    assert "Küche – " in hass.states.get(circuit.entity_id).name
+    assert "Circuit 1 – " in hass.states.get(circuit.entity_id).name
     assert "(" not in hass.states.get(circuit.entity_id).name
     assert hass.states.get(circuit.entity_id).attributes["channel_label"] == "Küche"
     assert (
@@ -311,8 +311,10 @@ async def test_community_metadata_and_units_in_native_ha_states(hass, entry, moc
 
 
 @pytest.mark.parametrize("language,prefix", [("de", "Stromkreis 1"), ("en", "Circuit 1")])
-@pytest.mark.parametrize("label", [None, "", " \x00 ", [255], [0, 0]])
-async def test_localized_circuit_fallback_only_when_name_missing_or_invalid(
+@pytest.mark.parametrize(
+    "label", [None, "", " \x00 ", [255], [0, 0], "Kitchen", [75, 195, 188, 99, 104, 101, 0]]
+)
+async def test_fixed_localized_circuit_names_ignore_cloud_names(
     hass, entry, mock_quota, quota, language, prefix, label
 ):
     hass.config.language = language

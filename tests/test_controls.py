@@ -100,7 +100,7 @@ async def test_no_writes_on_setup_poll_reload_even_opted_in(hass, entry, control
     await entry.runtime_data.async_refresh()
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids("select")) == 10
+    assert len(hass.states.async_entity_ids("select")) == 20
     assert len(hass.states.async_entity_ids("switch")) == 2
     put.assert_not_awaited()
     assert controls._closed

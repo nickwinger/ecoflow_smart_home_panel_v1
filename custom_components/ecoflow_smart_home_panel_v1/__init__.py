@@ -16,7 +16,13 @@ from .const import CONF_ACCESS_KEY, CONF_REGION, CONF_SECRET_KEY, CONF_SERIAL, D
 from .coordinator import EcoFlowCoordinator
 from .services import async_register_services
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.SWITCH]
+PLATFORMS = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.SELECT,
+    Platform.SWITCH,
+    Platform.BUTTON,
+]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 type EcoFlowConfigEntry = ConfigEntry[EcoFlowCoordinator]
@@ -81,12 +87,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> b
     )
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    coordinator.telemetry.start()
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> bool:
     """Stop polling; the HTTP session is owned by Home Assistant."""
     await entry.runtime_data.controls.async_cancel(shutdown=True)
+    await entry.runtime_data.telemetry.async_stop()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

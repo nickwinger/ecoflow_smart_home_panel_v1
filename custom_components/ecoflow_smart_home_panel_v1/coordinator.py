@@ -20,8 +20,7 @@ from .const import (
     CONF_SERIAL,
     DEFAULT_POLL_INTERVAL_SECONDS,
     DOMAIN,
-    MAX_POLL_INTERVAL_SECONDS,
-    MIN_POLL_INTERVAL_SECONDS,
+    poll_interval,
 )
 from .controls import PanelControls, read_control_states
 from .quota import (
@@ -33,6 +32,7 @@ from .quota import (
     identity,
     safe_key,
 )
+from .telemetry import PowerTelemetry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,11 +65,7 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
                 except ValueError, TypeError:
                     continue
         interval = entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL_SECONDS)
-        self.poll_interval = (
-            min(MAX_POLL_INTERVAL_SECONDS, max(MIN_POLL_INTERVAL_SECONDS, interval))
-            if type(interval) is int
-            else DEFAULT_POLL_INTERVAL_SECONDS
-        )
+        self.poll_interval = poll_interval(interval)
         self.failures = 0
         self.successful_quota_refreshes = 0
         self.last_successful_quota_refresh: datetime | None = None
@@ -82,10 +78,12 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
             always_update=True,  # Report unchanged quota too; HA retains last_changed.
         )
         self.controls = PanelControls(self)
+        self.telemetry = PowerTelemetry(self)
 
     async def async_shutdown(self) -> None:
         """Cancel commands before unloading or shutting down; never restore targets."""
         await self.controls.async_cancel(shutdown=True)
+        await self.telemetry.async_stop()
         await super().async_shutdown()
 
     def async_control_error(self, error: Exception) -> None:
@@ -133,7 +131,9 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
                 break
             self.known_paths.add(path)
         return Snapshot(
-            {path: value for path, value in snapshot.leaves.items() if path in self.known_paths},
+            self.telemetry.apply(
+                {path: value for path, value in snapshot.leaves.items() if path in self.known_paths}
+            ),
             snapshot.excluded,
             read_control_states(data),
         )

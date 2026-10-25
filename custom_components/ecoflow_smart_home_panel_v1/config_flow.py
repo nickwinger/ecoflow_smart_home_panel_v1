@@ -33,6 +33,7 @@ from .const import (
     MAX_POLL_INTERVAL_SECONDS,
     MIN_POLL_INTERVAL_SECONDS,
     NAME,
+    poll_interval,
 )
 
 
@@ -176,8 +177,10 @@ class EcoFlowOptionsFlow(OptionsFlow):
                 {
                     vol.Required(
                         CONF_POLL_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL_SECONDS
+                        default=poll_interval(
+                            self.config_entry.options.get(
+                                CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL_SECONDS
+                            )
                         ),
                     ): vol.All(
                         int,

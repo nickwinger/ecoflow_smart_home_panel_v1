@@ -166,7 +166,7 @@ class QuotaEntity(CoordinatorEntity[EcoFlowCoordinator]):
                 label = "Stromkreis" if self.language == "de" else "Circuit"
             else:
                 label = "Eintrag" if self.language == "de" else "Entry"
-            context = f"{self._channel_label() or f'{label} {index + 1}'} – "
+            context = f"{label} {index + 1} – "
         detail = ""
         if not self.field.exact or len(indexes) > 1:
             # Source suffix disambiguates unnamed array scalars/unknown children.

@@ -17,7 +17,11 @@ DATA = {
 
 @pytest.fixture(autouse=True)
 def custom_integrations(enable_custom_integrations):
-    yield
+    # Separate tests exercise the MQTT transport with synthetic callbacks.
+    with patch(
+        "custom_components.ecoflow_smart_home_panel_v1.telemetry.PowerTelemetry.start"
+    ) as start:
+        yield start
 
 
 @pytest.fixture

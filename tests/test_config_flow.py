@@ -102,7 +102,7 @@ async def test_credentials_replaced(hass, entry, mock_quota, source, legacy_conf
         reload.assert_awaited_once()
 
 
-@pytest.mark.parametrize("interval", [5, 120, 900])
+@pytest.mark.parametrize("interval", [1, 5, 120, 600])
 async def test_options(hass, entry, interval):
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(
@@ -117,13 +117,22 @@ async def test_options(hass, entry, interval):
     }
 
 
-@pytest.mark.parametrize("interval", [0, 4, 901, True, 5.5, "5", None])
+@pytest.mark.parametrize("interval", [0, -1, 601, 5.5, "5", None])
 async def test_options_reject_invalid_intervals(hass, entry, interval):
     result = await hass.config_entries.options.async_init(entry.entry_id)
     with pytest.raises(InvalidData):
         await hass.config_entries.options.async_configure(
             result["flow_id"], {"poll_interval": interval}
         )
+    assert entry.options == {}
+
+
+async def test_options_reject_boolean_interval(hass, entry):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"poll_interval": True}
+    )
+    assert result["errors"] == {"base": "invalid_poll_interval"}
     assert entry.options == {}
 
 

@@ -104,7 +104,7 @@ async def test_opt_in_controls_record_states_without_progress_payloads(
     await async_wait_recording_done(hass)
     rows = await hass.async_add_executor_job(recorded_rows, hass)
     controls = [row for row in rows if row[0].startswith(("select.", "switch."))]
-    assert len({row[0] for row in controls}) == 12
+    assert len({row[0] for row in controls}) == 22
     assert all(
         "control_operation" not in row[2]
         and "description" not in row[2]

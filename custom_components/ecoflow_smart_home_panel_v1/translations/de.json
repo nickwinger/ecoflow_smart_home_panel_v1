@@ -44,16 +44,16 @@
     "step": {
       "init": {
         "data": {
-          "poll_interval": "Abfrageintervall (5–900 Sekunden)",
-          "enable_source_controls": "Stromkreis-Quellensteuerung freigeben",
-          "enable_charge_controls": "Lade-Steuerung nach Helper-Semantik freigeben",
-          "enable_batch_controls": "Sammelschaltung aller zehn Stromkreise freigeben"
+          "poll_interval": "Abfrageintervall (1–600 Sekunden)",
+          "enable_source_controls": "Stromkreise steuern (Quelle und Betriebsart)",
+          "enable_charge_controls": "Laden steuern",
+          "enable_batch_controls": "Tasten zum Umschalten aller Stromkreise anzeigen"
         },
-        "description": "Steuerung verändert die reale Stromversorgung. Freigabe allein schaltet nichts. Ladezustand folgt dem funktionierenden Helper (2=ein, 0/1=aus), abweichend von der Herstellertabelle; Zuordnung vor Ort prüfen. Sammelschaltung benötigt zusätzlich die Quellensteuerung."
+        "description": "Nach der Freigabe erscheinen die Bedienelemente auf der Geräteseite. Die Freigabe allein schaltet nichts. Für die Tasten „Alle auf Netzstrom“, „Alle auf Batterie“ und „Schaltung abbrechen“ zusätzlich die Stromkreissteuerung aktivieren. Standard-Abfrageintervall: 5 Sekunden."
       }
     },
     "error": {
-      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 5 und 900 eingeben.",
+      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 1 und 600 eingeben.",
       "invalid_controls": "Freigaben müssen wahr oder falsch sein.",
       "batch_requires_source": "Für Sammelschaltungen zuerst die Quellensteuerung freigeben."
     }
@@ -621,11 +621,29 @@
           "grid": "Netzstrom",
           "battery": "Batteriespeicher"
         }
+      },
+      "mode": {
+        "name": "{channel} – Betriebsart",
+        "state": {
+          "automatic": "Automatisch",
+          "manual": "Manuell"
+        }
       }
     },
     "switch": {
       "charge": {
-        "name": "{channel} – Lademodus"
+        "name": "{channel} – Laden"
+      }
+    },
+    "button": {
+      "batch_grid": {
+        "name": "Alle auf Netzstrom"
+      },
+      "batch_battery": {
+        "name": "Alle auf Batterie"
+      },
+      "batch_cancel": {
+        "name": "Schaltung abbrechen"
       }
     }
   },

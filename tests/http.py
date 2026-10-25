@@ -18,15 +18,20 @@ class MockHTTP(AbstractContextManager):
         self.requests = defaultdict(list)
         self.patcher = patch.object(aiohttp.ClientSession, "get", side_effect=self.request)
         self.put_patcher = patch.object(aiohttp.ClientSession, "put", side_effect=self.put_request)
+        self.post_patcher = patch.object(
+            aiohttp.ClientSession, "post", side_effect=self.post_request
+        )
 
     def __enter__(self):
         self.patcher.start()
         self.put_patcher.start()
+        self.post_patcher.start()
         return self
 
     def __exit__(self, *args):
         self.patcher.stop()
         self.put_patcher.stop()
+        self.post_patcher.stop()
 
     def get(self, url, *, payload=None, body=None, status=200, headers=None, exception=None):
         self.responses.append((url, payload, body, status, headers, exception))
@@ -41,6 +46,10 @@ class MockHTTP(AbstractContextManager):
 
     def put_request(self, url, **kwargs):
         self.requests[("PUT", url)].append(SimpleNamespace(kwargs=kwargs))
+        return self._response(url)
+
+    def post_request(self, url, **kwargs):
+        self.requests[("POST", url)].append(SimpleNamespace(kwargs=kwargs))
         return self._response(url)
 
     def _response(self, full_url):

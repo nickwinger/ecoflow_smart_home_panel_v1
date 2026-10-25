@@ -44,16 +44,16 @@
     "step": {
       "init": {
         "data": {
-          "poll_interval": "Polling interval (5–900 seconds)",
-          "enable_source_controls": "Enable circuit source controls",
-          "enable_charge_controls": "Enable charging controls using helper semantics",
-          "enable_batch_controls": "Allow all-circuit batch switching"
+          "poll_interval": "Polling interval (1–600 seconds)",
+          "enable_source_controls": "Control circuits (source and control mode)",
+          "enable_charge_controls": "Control charging",
+          "enable_batch_controls": "Show buttons to switch all circuits"
         },
-        "description": "Controls change real power routing. Enabling alone sends no commands. Charging follows the working helper (2=on, 0/1=off), conflicting with the vendor table; validate physical mapping. Batch actions also require source controls."
+        "description": "After enabling controls, they appear on the device page. Enabling alone sends no commands. The “All circuits to grid”, “All circuits to battery” and “Cancel switching” buttons also require circuit controls. Default polling interval: 5 seconds."
       }
     },
     "error": {
-      "invalid_poll_interval": "Enter a whole number from 5 to 900.",
+      "invalid_poll_interval": "Enter a whole number between 1 and 600.",
       "invalid_controls": "Control options must be true or false.",
       "batch_requires_source": "Enable source controls before allowing batch switching."
     }
@@ -621,11 +621,29 @@
           "grid": "Grid",
           "battery": "Battery"
         }
+      },
+      "mode": {
+        "name": "{channel} – Control mode",
+        "state": {
+          "automatic": "Automatic",
+          "manual": "Manual"
+        }
       }
     },
     "switch": {
       "charge": {
-        "name": "{channel} – Charging mode"
+        "name": "{channel} – Charging"
+      }
+    },
+    "button": {
+      "batch_grid": {
+        "name": "All circuits to grid"
+      },
+      "batch_battery": {
+        "name": "All circuits to battery"
+      },
+      "batch_cancel": {
+        "name": "Cancel switching"
       }
     }
   },

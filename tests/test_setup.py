@@ -178,3 +178,28 @@ async def test_poll_diagnostics_distinguish_success_and_backoff(hass, entry, moc
     assert recovered["consecutive_poll_failures"] == 0
     assert recovered["effective_poll_interval_seconds"] == 5
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+@pytest.mark.parametrize("interval", [1, 600])
+async def test_scheduled_poll_at_supported_bounds(hass, entry, mock_quota, interval):
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    hass.config_entries.async_update_entry(entry, options={"poll_interval": interval})
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    now = dt_util.utcnow()
+    async_fire_time_changed(hass, now + timedelta(seconds=interval + 1))
+    await hass.async_block_till_done()
+    assert mock_quota.await_count == 2
+    assert entry.runtime_data.update_interval == timedelta(seconds=interval)
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+@pytest.mark.parametrize("saved,expected", [(900, 600), (0, 1), (True, 5), ("5", 5)])
+async def test_legacy_interval_normalization(hass, entry, mock_quota, saved, expected):
+    hass.config_entries.async_update_entry(entry, options={"poll_interval": saved})
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.runtime_data.poll_interval == expected
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["data_schema"]({})["poll_interval"] == expected

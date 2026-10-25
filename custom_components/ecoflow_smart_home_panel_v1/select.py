@@ -17,6 +17,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     if coordinator.controls.enabled("source"):
         async_add_entities(SourceSelect(coordinator, "source", i) for i in range(10))
+        async_add_entities(ControlModeSelect(coordinator, "mode", i) for i in range(10))
 
 
 class SourceSelect(ControlEntity, SelectEntity):
@@ -28,3 +29,14 @@ class SourceSelect(ControlEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.controls.async_set_source(self.index, option)
+
+
+class ControlModeSelect(ControlEntity, SelectEntity):
+    _attr_options = ["automatic", "manual"]
+
+    @property
+    def current_option(self) -> str | None:
+        return control_state(self.coordinator.data, "mode", self.index)
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.controls.async_set_mode(self.index, option)

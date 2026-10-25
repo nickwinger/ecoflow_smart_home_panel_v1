@@ -236,3 +236,30 @@ async def test_get_and_put_share_rate_limit_cooldown(first):
             with pytest.raises(RateLimitError):
                 await client.put_quota({"id": 16})
             assert sum(map(len, mocked.requests.values())) == 1
+
+
+async def test_certification_and_read_only_heartbeat_signed_transport():
+    endpoint = "https://api-e.ecoflow.com/iot-open/sign"
+    async with aiohttp.ClientSession() as session:
+        client = EcoFlowClient(session, "test-access", "test-secret", "SHP-TEST-0001")
+        with MockHTTP() as mocked:
+            mocked.get(
+                endpoint + "/certification",
+                payload={"code": "0", "data": {"certificateAccount": "fake"}},
+            )
+            assert await client.get_mqtt_certification() == {"certificateAccount": "fake"}
+            request = mocked.requests[("GET", endpoint + "/certification")][0]
+            h = request.kwargs["headers"]
+            msg = f"accessKey=test-access&nonce={h['nonce']}&timestamp={h['timestamp']}"
+            assert h["sign"] == hmac.new(b"test-secret", msg.encode(), hashlib.sha256).hexdigest()
+            mocked.get(endpoint + "/device/quota", payload={"code": "0", "data": {}})
+            await client.request_heartbeat()
+            request = mocked.requests[("POST", endpoint + "/device/quota")][0]
+            assert request.kwargs["json"] == {
+                "sn": "SHP-TEST-0001",
+                "params": {"quotas": ["heartbeat.time"]},
+            }
+            h = request.kwargs["headers"]
+            msg = f"params.quotas[0]=heartbeat.time&sn=SHP-TEST-0001&accessKey=test-access&nonce={h['nonce']}&timestamp={h['timestamp']}"
+            assert h["sign"] == hmac.new(b"test-secret", msg.encode(), hashlib.sha256).hexdigest()
+            assert not any(k[0] == "PUT" for k in mocked.requests)

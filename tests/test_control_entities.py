@@ -16,7 +16,7 @@ from .test_controls import ALL_OPTIONS
 
 def entity_id(hass, entry, kind, index=0):
     return er.async_get(hass).async_get_entity_id(
-        "select" if kind == "source" else "switch",
+        "select" if kind in ("source", "mode") else "switch",
         DOMAIN,
         f"{entry.data['serial']}:control:{kind}:{index}",
     )
@@ -26,7 +26,7 @@ def entity_id(hass, entry, kind, index=0):
     "options,selects,switches",
     [
         ({}, 0, 0),
-        ({"enable_source_controls": True}, 10, 0),
+        ({"enable_source_controls": True}, 20, 0),
         ({"enable_charge_controls": True}, 0, 2),
         ({"enable_source_controls": "true", "enable_charge_controls": 1}, 0, 0),
     ],
@@ -64,8 +64,8 @@ async def test_names_and_rename_keep_ids(hass, entry, mock_quota, quota, languag
     data["loadChInfo.info"] = [{"chName": "Test Kitchen"}]
     mock_quota.return_value = data
     await entry.runtime_data.async_refresh()
-    assert "Test Kitchen" in hass.states.get(eid).name
-    assert prefix + " 1" not in hass.states.get(eid).name
+    assert "Test Kitchen" not in hass.states.get(eid).name
+    assert prefix + " 1" in hass.states.get(eid).name
     assert entity_id(hass, entry, "source") == eid
     mock_quota.return_value = quota
     await entry.runtime_data.async_refresh()

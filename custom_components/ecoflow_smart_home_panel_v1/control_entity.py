@@ -6,7 +6,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, NAME
 from .coordinator import EcoFlowCoordinator
-from .entity import channel_label
 
 
 class ControlEntity(CoordinatorEntity[EcoFlowCoordinator]):
@@ -24,13 +23,11 @@ class ControlEntity(CoordinatorEntity[EcoFlowCoordinator]):
         self._attr_translation_placeholders = self._placeholders()
 
     def _placeholders(self) -> dict[str, str]:
-        if self.kind == "source":
-            label = channel_label(self.coordinator.data.leaves, self.index)
+        if self.kind in ("source", "mode"):
             generic = "Stromkreis" if self.language == "de" else "Circuit"
         else:
-            label = ""
             generic = "Backup-Eintrag" if self.language == "de" else "Backup entry"
-        return {"channel": label or f"{generic} {self.index + 1}"}
+        return {"channel": f"{generic} {self.index + 1}"}
 
     @property
     def available(self) -> bool:
@@ -38,23 +35,32 @@ class ControlEntity(CoordinatorEntity[EcoFlowCoordinator]):
 
     @property
     def extra_state_attributes(self) -> dict:
-        if self.kind == "source":
+        field = "ctrlSta"
+        if self.kind == "mode":
+            array = "loadCmdChCtrlInfos"
+            field = "ctrlMode"
+            description = (
+                "Automatisch: Das Panel steuert die Versorgung. Manuell: Die aktuelle Versorgungsquelle wird zur manuellen Vorgabe."
+                if self.language == "de"
+                else "Automatic: the panel controls the supply. Manual: the current supply source becomes the manual setting."
+            )
+        elif self.kind == "source":
             array = "loadCmdChCtrlInfos"
             description = (
-                "Versorgungsquelle gezielt umschalten; Erfolg erst nach frischer Quota-Bestätigung."
+                "Zwischen Netzstrom und Batterie umschalten. Der angezeigte Zustand wird vom Panel bestätigt."
                 if self.language == "de"
-                else "Intentionally change supply source; success requires fresh quota confirmation."
+                else "Switch between grid and battery. The displayed state is confirmed by the panel."
             )
         else:
             array = "backupCmdChCtrlInfos"
             description = (
-                "Lademodus laut funktionierendem Helper: 2=ein, 0/1=aus; Herstellerangabe widersprüchlich. Kein Nachweis tatsächlicher Ladeleistung oder physischer Speicherzuordnung."
+                "Laden für diesen Backup-Anschluss ein- oder ausschalten. Die tatsächliche Ladeleistung zeigen die Leistungssensoren."
                 if self.language == "de"
-                else "Charge mode per working helper: 2=on, 0/1=off; vendor table conflicts. Does not prove actual charging power or physical storage assignment."
+                else "Turn charging for this backup connection on or off. Power sensors show the actual charging power."
             )
         return {
             "description": description,
-            "quota_path": f"data.heartbeat.{array}[{self.index}].ctrlSta",
+            "quota_path": f"data.heartbeat.{array}[{self.index}].{field}",
             "control_operation": dict(self.coordinator.controls.status),
         }
 

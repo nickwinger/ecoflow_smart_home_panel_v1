@@ -37,6 +37,8 @@ def read_control_states(data: dict[str, Any]) -> dict[str, tuple[str | bool | No
     result = {}
     for kind, array, size in (
         ("source", "loadCmdChCtrlInfos", 10),
+        ("mode", "loadCmdChCtrlInfos", 10),
+        ("load_state", "loadCmdChCtrlInfos", 10),
         ("charge", "backupCmdChCtrlInfos", 2),
     ):
         unknown = (None,) * size
@@ -49,7 +51,9 @@ def read_control_states(data: dict[str, Any]) -> dict[str, tuple[str | bool | No
             not isinstance(items, list)
             or len(items) != size
             or not all(
-                isinstance(item, dict) and ("ctrlSta" in item or "sta" in item) for item in items
+                isinstance(item, dict)
+                and ("ctrlMode" in item if kind == "mode" else "ctrlSta" in item or "sta" in item)
+                for item in items
             )
         ):
             result[kind] = unknown
@@ -61,8 +65,16 @@ def read_control_states(data: dict[str, Any]) -> dict[str, tuple[str | bool | No
         ):
             result[kind] = unknown
             continue
-        mapping = {0: "grid", 1: "battery"} if kind == "source" else {0: False, 1: False, 2: True}
-        values = [item.get("ctrlSta", item.get("sta")) for item in items]
+        mapping = {
+            "source": {0: "grid", 1: "battery"},
+            "mode": {0: "automatic", 1: "manual"},
+            "load_state": {0: "grid", 1: "battery", 2: "off"},
+            "charge": {0: False, 1: False, 2: True},
+        }[kind]
+        values = [
+            item.get("ctrlMode") if kind == "mode" else item.get("ctrlSta", item.get("sta"))
+            for item in items
+        ]
         result[kind] = tuple(mapping.get(value) if type(value) is int else None for value in values)
     return result
 
@@ -85,8 +97,14 @@ class PanelControls:
 
     def enabled(self, kind: str) -> bool:
         options = self.coordinator.config_entry.options
-        key = CONF_SOURCE_CONTROLS if kind == "source" else CONF_CHARGE_CONTROLS
+        key = CONF_SOURCE_CONTROLS if kind in ("source", "mode") else CONF_CHARGE_CONTROLS
         return not self._closed and options.get(key) is True
+
+    def batch_enabled(self) -> bool:
+        return (
+            self.enabled("source")
+            and self.coordinator.config_entry.options.get(CONF_BATCH_CONTROLS) is True
+        )
 
     def _require_enabled(self, kind: str, batch: bool = False) -> None:
         if not self.enabled(kind) or (
@@ -174,6 +192,45 @@ class PanelControls:
             raise ServiceValidationError("Invalid backup entry or charging target")
         async with self._operation("charge", target):
             await self._set("charge", index, target)
+
+    async def async_set_mode(self, index: int, target: str) -> None:
+        """Select automatic routing or hold the freshly observed supply manually.
+
+        Automatic uses the reference's ctrlMode=0, sta=0 command. It hands
+        routing back to the panel; the source can legitimately change afterwards.
+        Never fill a missing supply state with a guessed default.
+        """
+        if type(index) is not int or not 0 <= index < 10 or target not in ("automatic", "manual"):
+            raise ServiceValidationError("Invalid circuit or control mode")
+        async with self._operation("mode", target):
+            for attempt in range(1, MAX_ATTEMPTS + 1):
+                self._require_enabled("mode")
+                self._status(channel=index + 1, attempt=attempt)
+                snapshot = await self.coordinator.async_control_refresh()
+                if control_state(snapshot, "mode", index) == target:
+                    return
+                source = control_state(snapshot, "load_state", index)
+                if target == "manual" and source not in ("grid", "battery", "off"):
+                    raise HomeAssistantError("Current circuit supply state is unknown")
+                self._require_enabled("mode")
+                await self.coordinator.client.put_quota(
+                    {
+                        "cmdSet": 11,
+                        "id": 16,
+                        "ch": index,
+                        "ctrlMode": int(target == "manual"),
+                        "sta": 0
+                        if target == "automatic"
+                        else {"grid": 0, "battery": 1, "off": 2}[source],
+                    }
+                )
+                await sleep(SETTLE_SECONDS)
+                snapshot = await self.coordinator.async_control_refresh()
+                if control_state(snapshot, "mode", index) == target:
+                    return
+                if attempt < MAX_ATTEMPTS:
+                    await sleep(RETRY_SECONDS)
+            raise HomeAssistantError("EcoFlow control mode not confirmed after eight attempts")
 
     async def async_set_all_sources(self, target: str) -> dict[str, Any]:
         """Explicit all-circuit action. Stop on first failure; never roll back."""
