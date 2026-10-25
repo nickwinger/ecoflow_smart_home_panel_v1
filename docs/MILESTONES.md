@@ -70,3 +70,12 @@ Each completed milestone must include commit link, test commands/outcomes and re
 - Remaining: user hardware read validation, actual HACS installation/upgrade acceptance, authoritative model/error metadata, inferred units/scales and daily counter reset semantics. M3 controls and M4 release approval remain open.
 
 Supplementary sources commit: [`7acb057`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/7acb05745451b483094caec62f22ae1331e8b32f). HACS workflow correction: [`87d3474`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/87d3474043ac2a0b2c26ce32e36cdf92778206e7).
+
+## Final CI acceptance
+
+Validated code commit: [`9dcf39d`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/9dcf39daf45a7dccf499bd630ed3e1837517f40e).
+
+- [HACS custom repository validation](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236718): **SUCCESS**, all 8 active checks passed. Only default-listing `brands` and `topics` checks are deferred. Missing categories is a non-failing warning because the published hassfest container does not yet accept that optional key.
+- [Offline validation and official hassfest](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/actions/runs/40178236653): **SUCCESS**, both jobs. Ruff/format, generated catalog and compilation passed; **221 tests passed in 7.04 seconds, 99% coverage** (609 statements, 8 uncovered).
+- Working Python reference and the three supplied HTML originals remain unchanged. No live device commands, running-HA installation or release was performed.
+- This final results update changes documentation only; `[skip ci]` avoids repeating identical technical checks for the recorded outcome.
