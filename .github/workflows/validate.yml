@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # The HACS upgrade test installs the exact 0.3.2 baseline.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -27,7 +29,16 @@ jobs:
       - run: ruff format --check custom_components tests scripts
       - run: python scripts/sync_catalog.py --check
       - run: python -m compileall -q custom_components
+      - name: Prepare pinned official HACS distribution checks
+        run: |
+          git init /tmp/ecoflow-hacs-validation
+          git -C /tmp/ecoflow-hacs-validation fetch --depth=1 https://github.com/hacs/integration.git a15e87ec0d1c82e58f1ddbaf17669d3eaa261eb8
+          git -C /tmp/ecoflow-hacs-validation checkout --detach FETCH_HEAD
+          curl --fail --silent --show-error https://api.github.com/repos/nickwinger/ecoflow_smart_home_panel_v1 --output /tmp/ecoflow-hacs-metadata.json
       - name: Offline HA and Recorder tests (network blocked)
+        env:
+          ECOFLOW_HACS_SOURCE: /tmp/ecoflow-hacs-validation
+          ECOFLOW_HACS_METADATA: /tmp/ecoflow-hacs-metadata.json
         run: pytest -q --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing
   hassfest:
     runs-on: ubuntu-latest

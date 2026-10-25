@@ -13,11 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate custom repository (listing metadata deferred to M4)
+      - name: Validate custom repository including local brand assets
         uses: hacs/action@main
         with:
           category: integration
-          # Custom installation does not need default-listing metadata. Keep
-          # technical checks active without repeated topics-only failure mail.
-          ignore: brands topics
+          # Topics are optional default-catalog metadata. Local brand assets
+          # are checked; all installation-related validations remain active.
+          ignore: topics
           comment: false

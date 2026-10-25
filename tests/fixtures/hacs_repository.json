@@ -1,0 +1,15 @@
+{
+  "full_name": "nickwinger/ecoflow_smart_home_panel_v1",
+  "description": "HACS Home Assistant Integration for the Ecoflow Smart Home Panel V1",
+  "has_issues": true,
+  "archived": false,
+  "topics": [],
+  "license": {
+    "key": "mit",
+    "name": "MIT License",
+    "spdx_id": "MIT",
+    "url": "https://api.github.com/licenses/mit",
+    "node_id": "MDc6TGljZW5zZTEz"
+  },
+  "default_branch": "main"
+}
