@@ -119,6 +119,10 @@ def test_bash_entrypoint_is_valid_and_help_uses_no_docker():
     assert help_result.returncode == 0, help_result.stderr
     assert "reset" in help_result.stdout
     assert "test / test" in help_result.stdout
+    # A global COMPOSE_PROJECT_NAME must never redirect reset to another stack.
+    shell_source = script.read_text()
+    assert 'docker compose -p "$PROJECT" -f "$COMPOSE_FILE" "$@"' in shell_source
+    assert 'compose down --volumes --remove-orphans' in shell_source
 
 
 def test_completed_installation_without_onboarding_view(monkeypatch):
