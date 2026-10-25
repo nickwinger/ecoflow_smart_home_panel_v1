@@ -1,8 +1,8 @@
 name: HACS custom repository validation
 
+# Run only when explicitly started from GitHub Actions.
+# No automatic push/PR notifications or repeated failure emails.
 on:
-  push:
-  pull_request:
   workflow_dispatch:
 
 permissions:
