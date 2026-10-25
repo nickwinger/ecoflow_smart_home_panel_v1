@@ -98,8 +98,10 @@ raw percentage remains inspectable while its state is unknown.
 
 Load `ctrlSta` codes 0/1/2 are rendered as grid/battery/off, following the supplied
 manufacturer table. Backup `ctrlSta` remains a raw code because the table's
-2=off contradicts the existing helper's 2=charging. The latter must be resolved
-before M3 verification, not papered over by an optimistic switch.
+2=off contradicts the existing helper's 2=charging. M3 retains that raw sensor and offers separately opted-in charging-mode switches
+explicitly following the working helper (2 on, 0/1 off, other codes unknown).
+This is not a resolution of the generic vendor enum and does not prove actual
+charging power; see [control semantics](CONTROLS.md).
 
 Attributes: `description`, `quota_path` (readable), `quota_access_path` (exact
 string/integer token list), `confidence`, seed `documented_unit` and localized
@@ -118,3 +120,9 @@ Config-entry schema 1.2 upgrades the six selected diagnostic field families once
 Only registry entries disabled by INTEGRATION are enabled; USER, DEVICE and other
 explicit disable reasons remain untouched. Categories do not imply disabled status.
 No unit, enum, statistics eligibility or API polling behavior changes with these defaults.
+
+M3 adds up to ten source selects and two charge-mode switches only after their
+respective option is enabled. These are separate from the 245 quota leaves. Their
+names follow the same channel-label rules; descriptions explain confirmation and
+the charging-code conflict. `description`, `quota_path` and `control_operation`
+are excluded from Recorder attributes. No new statistics or raw history store.

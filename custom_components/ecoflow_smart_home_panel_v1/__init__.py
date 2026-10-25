@@ -1,10 +1,11 @@
-"""EcoFlow Smart Home Panel v1 native, read-only cloud integration."""
+"""EcoFlow Smart Home Panel v1 with read-only defaults and opt-in controls."""
 
 import json
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
@@ -13,10 +14,18 @@ from .api import EcoFlowClient
 from .catalog import load_catalog
 from .const import CONF_ACCESS_KEY, CONF_REGION, CONF_SECRET_KEY, CONF_SERIAL, DOMAIN, NAME
 from .coordinator import EcoFlowCoordinator
+from .services import async_register_services
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.SWITCH]
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 type EcoFlowConfigEntry = ConfigEntry[EcoFlowCoordinator]
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Register explicit actions without creating or executing commands."""
+    async_register_services(hass)
+    return True
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> bool:
@@ -77,9 +86,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> bool:
     """Stop polling; the HTTP session is owned by Home Assistant."""
+    await entry.runtime_data.controls.async_cancel(shutdown=True)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> None:
-    """Apply changed polling options."""
+    """Apply changed polling/control options without restoring previous targets."""
     await hass.config_entries.async_reload(entry.entry_id)

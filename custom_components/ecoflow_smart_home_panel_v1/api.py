@@ -1,8 +1,7 @@
-"""Async read-only EcoFlow transport; signing follows the working reference.
+"""Async EcoFlow transport; signing follows the working reference.
 
 Never log response messages, request URLs, credentials or quota values.
-The pure signing helper supports nested parameters for future M3 tests;
-this client exposes no write method.
+GET and PUT share authentication, request serialization and rate-limit cooldown.
 """
 
 from __future__ import annotations
@@ -136,15 +135,34 @@ class EcoFlowClient:
 
     async def get_quota_all(self) -> dict[str, Any]:
         """Fetch only current data. Never merge with an older response."""
+        payload = await self._request("GET", {"sn": self._serial})
+        if not isinstance(payload.get("data"), dict):
+            raise InvalidResponseError("Missing cloud quota data")
+        return payload["data"]
+
+    async def put_quota(self, params: dict[str, int]) -> None:
+        """Send a signed command. An acknowledgment does not confirm device state."""
+        await self._request("PUT", {"sn": self._serial, "params": params})
+
+    async def _request(self, method: str, parameters: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             if time.monotonic() < self._retry_at:
                 raise RateLimitError(max(1, int(self._retry_at - time.monotonic()) + 1))
-            parameters = {"sn": self._serial}
+            headers = signed_headers(parameters, self._access_key, self._secret_key)
+            if method == "GET":
+                request = self._session.get
+                endpoint = "/iot-open/sign/device/quota/all"
+                arguments = {"params": parameters}
+            else:
+                request = self._session.put
+                endpoint = "/iot-open/sign/device/quota"
+                headers["Content-Type"] = "application/json;charset=UTF-8"
+                arguments = {"json": parameters}
             try:
-                async with self._session.get(
-                    f"{self._host}/iot-open/sign/device/quota/all",
-                    params=parameters,
-                    headers=signed_headers(parameters, self._access_key, self._secret_key),
+                async with request(
+                    f"{self._host}{endpoint}",
+                    **arguments,
+                    headers=headers,
                     timeout=aiohttp.ClientTimeout(total=20),
                     allow_redirects=False,
                 ) as response:
@@ -171,6 +189,4 @@ class EcoFlowClient:
                 # No authoritative HTTP application error table is supplied.
                 # An arbitrary nonzero code is not proof of invalid credentials.
                 raise InvalidResponseError("Cloud rejected quota request")
-            if not isinstance(payload.get("data"), dict):
-                raise InvalidResponseError("Missing cloud quota data")
-            return payload["data"]
+            return payload

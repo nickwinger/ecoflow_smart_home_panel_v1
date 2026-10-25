@@ -158,3 +158,81 @@ def test_layout(quota):
     quota["heartbeat.loadCmdChCtrlInfos"].pop()
     with pytest.raises(UnsupportedDeviceError):
         validate_shp_v1(quota)
+
+
+PUT_URL = "https://api-e.ecoflow.com/iot-open/sign/device/quota"
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"cmdSet": 11, "id": 16, "ch": 0, "ctrlMode": 0, "sta": 0},
+        {"cmdSet": 11, "id": 16, "ch": 9, "ctrlMode": 1, "sta": 1},
+        {"cmdSet": 11, "id": 17, "ch": 10, "ctrlMode": 1, "sta": 2},
+        {"cmdSet": 11, "id": 17, "ch": 11, "ctrlMode": 0, "sta": 0},
+    ],
+)
+async def test_put_signed_body_and_acknowledgment(params):
+    with MockHTTP() as mocked:
+        async with aiohttp.ClientSession() as session:
+            mocked.put(PUT_URL, payload={"code": "0", "message": "ack"})
+            client = EcoFlowClient(session, "test-access", "test-secret", "SHP-TEST-0001")
+            assert await client.put_quota(params) is None
+            request = mocked.requests[("PUT", PUT_URL)][0].kwargs
+            assert request["json"] == {"sn": "SHP-TEST-0001", "params": params}
+            assert request["allow_redirects"] is False
+            assert request["headers"]["Content-Type"] == "application/json;charset=UTF-8"
+            headers = request["headers"]
+            # Independent known wire format, not production flattening logic.
+            message = "&".join(f"params.{key}={params[key]}" for key in sorted(params))
+            message += f"&sn=SHP-TEST-0001&accessKey=test-access&nonce={headers['nonce']}&timestamp={headers['timestamp']}"
+            assert (
+                headers["sign"]
+                == hmac.new(b"test-secret", message.encode(), hashlib.sha256).hexdigest()
+            )
+
+
+@pytest.mark.parametrize(
+    "response,error",
+    [
+        ({"payload": {"code": 0}}, InvalidResponseError),
+        ({"payload": {"code": "123", "message": "test-secret"}}, InvalidResponseError),
+        ({"payload": []}, InvalidResponseError),
+        ({"status": 401}, AuthenticationError),
+        ({"status": 403}, AuthenticationError),
+        ({"status": 429}, RateLimitError),
+        ({"status": 500}, EcoFlowError),
+        ({"status": 302}, EcoFlowError),
+        ({"body": "not json"}, InvalidResponseError),
+        ({"body": "x" * (MAX_RESPONSE_BYTES + 1)}, InvalidResponseError),
+        ({"exception": TimeoutError("test-secret")}, EcoFlowError),
+        ({"exception": aiohttp.ClientError("test-secret")}, EcoFlowError),
+    ],
+)
+async def test_put_failures_are_sanitized(response, error, caplog):
+    with MockHTTP() as mocked:
+        async with aiohttp.ClientSession() as session:
+            mocked.put(PUT_URL, **response)
+            with pytest.raises(error) as caught:
+                await EcoFlowClient(
+                    session, "test-access", "test-secret", "SHP-TEST-0001"
+                ).put_quota({"id": 16})
+            assert "test-secret" not in str(caught.value) + caplog.text
+            assert "SHP-TEST" not in str(caught.value) + caplog.text
+
+
+@pytest.mark.parametrize("first", ["GET", "PUT"])
+async def test_get_and_put_share_rate_limit_cooldown(first):
+    with MockHTTP() as mocked:
+        async with aiohttp.ClientSession() as session:
+            client = EcoFlowClient(session, "a", "b", "SHP-TEST-0001")
+            mocked.get(
+                URL if first == "GET" else PUT_URL, status=429, headers={"Retry-After": "180"}
+            )
+            with pytest.raises(RateLimitError):
+                await (client.get_quota_all() if first == "GET" else client.put_quota({"id": 16}))
+            with pytest.raises(RateLimitError):
+                await client.get_quota_all()
+            with pytest.raises(RateLimitError):
+                await client.put_quota({"id": 16})
+            assert sum(map(len, mocked.requests.values())) == 1

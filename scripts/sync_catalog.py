@@ -59,6 +59,7 @@ def generated():
             else "Unknown quota field {path}"
         }
         content["entity"] = {
+            **content.get("entity", {}),
             "sensor": entities,
             "binary_sensor": {k: {"name": v["name"]} for k, v in entities.items()},
         }

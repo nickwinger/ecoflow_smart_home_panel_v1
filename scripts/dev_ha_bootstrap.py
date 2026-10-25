@@ -241,7 +241,8 @@ def main() -> int:
         parser.error("--timeout must be between 1 and 900")
     try:
         bootstrap(
-            Client(COMPOSE_LOOPBACK_URL if args.compose_loopback else BASE_URL), timeout=args.timeout
+            Client(COMPOSE_LOOPBACK_URL if args.compose_loopback else BASE_URL),
+            timeout=args.timeout,
         )
     except BootstrapError as exc:
         parser.exit(1, f"DEV bootstrap error: {exc}\n")

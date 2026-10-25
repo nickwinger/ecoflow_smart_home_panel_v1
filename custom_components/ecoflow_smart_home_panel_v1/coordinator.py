@@ -22,6 +22,7 @@ from .const import (
     MAX_POLL_INTERVAL_SECONDS,
     MIN_POLL_INTERVAL_SECONDS,
 )
+from .controls import PanelControls, read_control_states
 from .quota import (
     MAX_ENTITIES,
     QuotaLimitError,
@@ -76,6 +77,28 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
             name=DOMAIN,
             update_interval=timedelta(seconds=self.poll_interval),
         )
+        self.controls = PanelControls(self)
+
+    async def async_shutdown(self) -> None:
+        """Cancel commands before unloading or shutting down; never restore targets."""
+        await self.controls.async_cancel(shutdown=True)
+        await super().async_shutdown()
+
+    def async_control_error(self, error: Exception) -> None:
+        """Invalidate telemetry after an unconfirmed write without leaking payloads."""
+        if isinstance(error, RateLimitError):
+            self.update_interval = timedelta(seconds=error.retry_after)
+        self.async_set_update_error(UpdateFailed("EcoFlow control outcome unconfirmed"))
+
+    async def async_control_refresh(self) -> Snapshot:
+        """Bypass the refresh debouncer/cache for every pre/post-command read."""
+        try:
+            snapshot = await self._async_update_data()
+        except ConfigEntryAuthFailed:
+            self.config_entry.async_start_reauth(self.hass)
+            raise
+        self.async_set_updated_data(snapshot)
+        return snapshot
 
     def unique_id(self, path: RawPath) -> str:
         return self.unique_prefix + identity(path)
@@ -106,4 +129,5 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
         return Snapshot(
             {path: value for path, value in snapshot.leaves.items() if path in self.known_paths},
             snapshot.excluded,
+            read_control_states(data),
         )

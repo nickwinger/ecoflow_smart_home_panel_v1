@@ -80,3 +80,17 @@ cache `bf2b9ff9dbf90842b5fe4bf1ccd5808137ced001`, channel/charge writes
 `5b409c05f51ae15c3fe5f8c32826bf877894eadb`, values
 `b037d9c459e0ffe4c0eccc053a523f21d9b9227f`. No blocking reference HTTP or disk-cache
 implementation was copied into HA.
+
+## M3 control evidence
+
+The API, setter, batch, cache and value helpers above were read again for M3.
+The configuration file's timing assignments alone were inspected without
+printing or copying credentials: blob `3d1136e59a7cc0c68faab66178f2daf44be128f3`,
+`SETTLE_AFTER_SET_SECONDS = 2`. Source verification follows shp_mode's 10-second
+settle / 15-second retry / eight attempts; charging preserves the setter's
+2-second settle and adds fresh verification. No reference files were changed.
+
+Current official HA conventions were checked against [select entities](https://contributors.home-assistant.io/core/entities/select/),
+[switch entities](https://contributors.home-assistant.io/core/entities/switch/) and
+[integration actions](https://contributors.home-assistant.io/core/integrations/actions/),
+plus the installed HA 2026.10.3 coordinator, registry and service implementation.

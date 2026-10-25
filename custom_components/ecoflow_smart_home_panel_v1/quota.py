@@ -53,6 +53,7 @@ class Snapshot:
 
     leaves: dict[RawPath, Scalar]
     excluded: int = 0
+    control_states: dict[str, tuple[str | bool | None, ...]] | None = None
 
 
 def extract_leaves(data: dict[str, Any], sensitive_values: tuple[str, ...] = ()) -> Snapshot:

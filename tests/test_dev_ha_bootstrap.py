@@ -172,5 +172,9 @@ def test_bootstrap_refuses_cross_host_http_redirect():
     with pytest.raises(BootstrapError, match="refuses HTTP redirects"):
         handler.redirect_request(
             request.Request("http://127.0.0.1:8123/api/onboarding"),
-            None, 302, "Found", {}, "http://127.0.0.1:8124/api/onboarding"
+            None,
+            302,
+            "Found",
+            {},
+            "http://127.0.0.1:8124/api/onboarding",
         )

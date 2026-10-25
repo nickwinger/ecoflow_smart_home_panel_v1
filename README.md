@@ -5,12 +5,12 @@
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
-![Version 0.1.2](https://img.shields.io/badge/version-0.1.2-blue)
-![Read only](https://img.shields.io/badge/mode-read--only-orange)
+![Version 0.2.0](https://img.shields.io/badge/version-0.2.0-blue)
+![Opt-in controls](https://img.shields.io/badge/controls-opt--in-orange)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > [!IMPORTANT]
-> **Early preview (v0.1.2) · Read-only.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. This version **cannot switch circuits, charge batteries or change device settings**. Test it before using it in your main Home Assistant installation.
+> **Early preview (v0.2.0) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. M3 is offline-tested; hardware acceptance is still pending. Test in an isolated Home Assistant instance before production use.
 
 ## ✨ Features
 
@@ -18,6 +18,7 @@
 - 📊 **Detailed diagnostics** — discover individual values exposed by EcoFlow's Quota API, including per-circuit and per-battery data.
 - 🏷️ **Understandable entities** — English/German names, descriptions and original quota paths.
 - 🕘 **Selective history** — Home Assistant Recorder stores enabled entities; most advanced diagnostics start disabled to save space.
+- 🎛️ **Optional controls** — ten grid/battery selects, two charging-mode switches, verified commands and separately gated ordered batch actions.
 - ☁️ **Cloud connection** — authenticated EcoFlow API polling, configurable update interval and error handling.
 
 ## 📦 Installation
@@ -59,6 +60,12 @@ That's it! Your panel and available entities will appear under **Devices & servi
 
 > The integration uses the EcoFlow Developer API over the internet; it does not connect directly to the panel on your local network.
 
+## 🎛️ Optional control
+
+In **Options**, independently enable circuit source controls or backup charging controls. Enabling them sends no commands; only an explicit action changes the panel. Each write is followed by fresh status verification, with bounded retries and serialization. Startup and polling never switch anything.
+
+Charging uses the working helper’s interpretation of backup code 2, which conflicts with the generic vendor table. The charging option explains this limitation. Batch switching needs another opt-in and explicit confirmation; it stops on the first failure and can be cancelled. See [control behavior, actions and manual checks](docs/CONTROLS.md) before enabling controls.
+
 ## 📈 Entities & history
 
 | Example | What it tells you |
@@ -68,7 +75,11 @@ That's it! Your panel and available entities will appear under **Devices & servi
 | Circuit 1–10 power source | Grid, battery or off/unknown |
 | Grid voltage & frequency | Reported nominal grid settings |
 | Daily grid/backup energy | Raw daily readings (not yet Energy Dashboard totals) |
-| Advanced diagnostics | Additional available quota fields, disabled by default |
+| Circuit diagnostics | Power and control mode for all ten circuits, enabled by default |
+| Storage diagnostics | Battery level, input/output power and temperature for both entries, enabled by default |
+| Other diagnostics | Additional available quota fields, mostly disabled by default |
+
+The synthetic test fixture covers **245/245 scalar leaves: 44 enabled, 201 disabled**. Opt-in controls add up to 12 entities. Named circuits use their configured name; unnamed circuits use localized **Circuit N** / **Stromkreis N**.
 
 **Want more data?** Open the panel's **Entities** list, show disabled entities and enable only the diagnostics you need. The complete list depends on your device's responses.
 
@@ -97,7 +108,8 @@ Develop and test against a **separate, disposable Home Assistant instance** — 
 - [Developer scripts and complete HA DEV reinstall](scripts.md)
 - [Technical architecture](docs/ARCHITECTURE.md)
 - [Migration from existing helper scripts](docs/MIGRATION.md)
-- [API references and data provenance](docs/REFERENCE_SOURCES.md)
+- [API references and data provenance](docs/REFERENCE_SOURCES.md), including all three supplied HTML references
+- [Official EcoFlow SHP v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098)
 
 ## 📄 License & disclaimer
 

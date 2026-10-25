@@ -195,7 +195,9 @@ async def test_diagnostics_privacy_and_no_legacy_mutation(hass, entry, mock_quot
     ):
         assert private not in text
     assert diagnostics["excluded_subtrees_or_values"] == 3
-    assert diagnostics["controls_implemented"] is False
+    assert diagnostics["controls_implemented"] is True
+    assert diagnostics["source_controls_enabled"] is False
+    assert diagnostics["charge_controls_enabled"] is False
     assert hass.states.get("input_number.legacy_test").state == "42"
     assert not hass.services.has_service(DOMAIN, "set_source")
     assert not hass.services.has_service(DOMAIN, "set_charge")

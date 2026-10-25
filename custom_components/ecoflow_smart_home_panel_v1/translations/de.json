@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "EcoFlow Smart Home Panel v1",
-        "description": "Nur lesender Zugriff. Zugangsdaten werden in Home Assistant gespeichert.",
+        "description": "Standardmäßig nur lesend. Steuerung später separat in den Optionen freigeben. Zugangsdaten werden in Home Assistant gespeichert.",
         "data": {
           "access_key": "Access Key",
           "secret_key": "Secret Key",
@@ -46,12 +46,18 @@
     "step": {
       "init": {
         "data": {
-          "poll_interval": "Abfrageintervall (5–900 Sekunden)"
-        }
+          "poll_interval": "Abfrageintervall (5–900 Sekunden)",
+          "enable_source_controls": "Stromkreis-Quellensteuerung freigeben",
+          "enable_charge_controls": "Lade-Steuerung nach Helper-Semantik freigeben",
+          "enable_batch_controls": "Sammelschaltung aller zehn Stromkreise freigeben"
+        },
+        "description": "Steuerung verändert die reale Stromversorgung. Freigabe allein schaltet nichts. Ladezustand folgt dem funktionierenden Helper (2=ein, 0/1=aus), abweichend von der Herstellertabelle; Zuordnung vor Ort prüfen. Sammelschaltung benötigt zusätzlich die Quellensteuerung."
       }
     },
     "error": {
-      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 5 und 900 eingeben."
+      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 5 und 900 eingeben.",
+      "invalid_controls": "Freigaben müssen wahr oder falsch sein.",
+      "batch_requires_source": "Für Sammelschaltungen zuerst die Quellensteuerung freigeben."
     }
   },
   "entity": {
@@ -608,6 +614,46 @@
       },
       "unknown_quota": {
         "name": "Unbekanntes Quota-Feld {path}"
+      }
+    },
+    "select": {
+      "source": {
+        "name": "{channel} – Quelle wählen",
+        "state": {
+          "grid": "Netzstrom",
+          "battery": "Batteriespeicher"
+        }
+      }
+    },
+    "switch": {
+      "charge": {
+        "name": "{channel} – Lademodus"
+      }
+    }
+  },
+  "services": {
+    "set_all_sources": {
+      "name": "Alle Stromkreise umschalten",
+      "description": "Explizite Sammelschaltung in der Reihenfolge 7,6,3,1,2,4,5,8,9,10. Stoppt beim ersten Fehler. Kann mehrere Minuten dauern; Abbruch über cancel_commands. Benötigt beide Freigaben und Bestätigung.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Integrationseintrag"
+        },
+        "source": {
+          "name": "Zielquelle"
+        },
+        "confirm": {
+          "name": "Alle zehn Stromkreise jetzt umschalten"
+        }
+      }
+    },
+    "cancel_commands": {
+      "name": "Laufende und wartende Befehle abbrechen",
+      "description": "Verhindert weitere Befehle. Bereits gesendete Befehle können noch wirken; keine Rückschaltung. Den Zustand anschließend prüfen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Integrationseintrag"
+        }
       }
     }
   }

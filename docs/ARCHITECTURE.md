@@ -82,9 +82,10 @@ No invented unit conversion or enum labels. The field guide distinguishes `docum
 
 ## Implemented M1/M2 decisions
 
-Runtime modules: `api.py` (GET only, pure signing helper), `config_flow.py`,
+Runtime modules: `api.py` (shared GET/PUT transport, pure signing helper), `config_flow.py`,
 `coordinator.py`, `quota.py`, `catalog.py`, `entity.py`, `sensor.py`,
-`binary_sensor.py`, `diagnostics.py`. The catalog is installed with the component;
+`binary_sensor.py`, `diagnostics.py`. M3 adds `controls.py`, `control_entity.py`,
+`select.py`, `switch.py`, `services.py` and `services.yaml`. The catalog is installed with the component;
 it never reads repository docs at runtime. Resource loading uses HA's executor.
 The HA-managed HTTP session is shared; the client serializes requests and does
 not follow redirects. HTTP 429 applies a 30–3600 second cooldown; other failures
@@ -141,3 +142,37 @@ M3 correction from the working source: channel grid writes require BOTH
 `ctrlMode=0` and `sta=0`; battery requires BOTH to be 1. No such writes are
 implemented in M1/M2. Backup `ctrlSta=2` has conflicting documented/runtime
 meaning, so no binary charge state is inferred from it.
+
+## Implemented M3 decisions (0.2.0)
+
+Three options, all false by default, independently gate source, charge and batch
+controls. Entry schema remains 1.2; no migration enables controls. Fixed control
+IDs are `<serial>:control:source:<zero-based-index>` and
+`<serial>:control:charge:<zero-based-index>`, independent of quota raw-path IDs.
+The existing 245-leaf fixture and 44 enabled defaults are unchanged.
+
+The current Snapshot also contains bounded derived control states (ten sources,
+two charging modes) from the same GET. They are calculated before the lifetime
+entity-registry cap and never stored separately. Complete actual arrays and
+unambiguous dotted/nested structures are required; fabricated bracketed keys or
+partial lists do not confirm a command. No older states are merged.
+
+A per-panel command lock spans preflight GET, PUT, settle, fresh GET verification,
+retries and intentional batch operations. HTTP requests share the existing client
+lock/cooldown. Control refreshes bypass coordinator debouncing; regular polling
+can continue, but cannot substitute for the fresh confirmation request.
+Unloading cancels active and queued tasks, with no restoring or rollback writes.
+
+Source control uses the verified shp_mode loop (10 s settle, 15 s retry, eight
+attempts); charging retains the single-command reference's 2 s settle and adds
+bounded verification. HTTP/API failures abort rather than retry blindly. All
+circuits run only via a separately gated and confirmed action, preserving order
+7,6,3,1,2,4,5,8,9,10. Unlike the script, the action stops at the first failure.
+
+Backup charging controls explicitly use the working helper's 2=on / 0,1=off
+interpretation; other codes remain unknown. This separately acknowledged opt-in
+does not resolve the manufacturer's contradictory generic enum or change raw
+sensor metadata. It describes charge mode, not measured charging power.
+Progress is bounded in memory and exposed as unrecorded control attributes plus
+aggregate diagnostics. See [CONTROLS.md](CONTROLS.md) for exact commands, limitations
+and manual acceptance; no real commands were sent during development.

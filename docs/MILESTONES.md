@@ -37,14 +37,14 @@ Default-enabled: grid availability (1), panel battery percentage (1), ten load s
 
 M2 commit: [`544287c`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/544287cf29a868aaf29b4ad0b645a7be080bca9e), `feat: expose complete bounded quota entities with selective history`. Current local checks: Ruff, formatter, catalog regeneration check, compileall, and the full offline pytest suite. See the verification record below for the final count and CI results.
 
-## M3 — verified, explicit source/charge control [TODO]
+## M3 — verified, explicit source/charge control [IMPLEMENTED / OFFLINE VERIFIED]
 
-- [ ] Native select/switch or appropriate controls, opt-in and no startup switching.
-- [ ] Exact proven write payloads, retries, post-write fresh confirmation, unknown-safe handling.
-- [ ] Optional ordered batch services, serialized access and no optimistic success.
-- [ ] Offline command/state/error tests and documented manual hardware QA.
+- [x] Ten native source selects and two charging-mode switches with independent opt-ins; no startup switching.
+- [x] Exact signed PUT payloads, source/charge settle timings, bounded retries, fresh pre/post reads and unknown-safe confirmation.
+- [x] Separately gated/confirmed ordered batch action, stop on first failure, progress, cancellation and serialized transactions.
+- [x] Offline transport, command/state/error, concurrency, HA services, options, lifecycle and Recorder tests; documented manual hardware QA.
 
-Acceptance: side-effect-free CI; controlled real-device verification happens only with user approval.
+Acceptance: 364 offline tests pass, including 101 added for M3; 99% overall coverage and 100% of the command controller. Official local hassfest passes. No actual device command or production deployment occurred. Real-device verification remains pending and requires separate owner approval. [Control contract and acceptance checklist](CONTROLS.md).
 
 ## M4 — HACS and release readiness [TODO]
 
@@ -101,3 +101,54 @@ Validated code commit: [`9dcf39d`](https://github.com/nickwinger/ecoflow_smart_h
 - `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **260 passed**, **99% coverage** (637 statements, 7 uncovered), 16.07 seconds.
 - `ruff check custom_components tests scripts`, `ruff format --check custom_components tests scripts`, `python scripts/sync_catalog.py --check`, `python -m compileall -q custom_components`, and `git diff --check`: **passed**.
 - Entity coverage/defaults remain 245/245 leaves, 44 enabled and 201 disabled. No live device commands or deployment; GitHub Actions remain manual-only.
+
+## M3 verification record (2026-10-25, 0.2.0)
+
+- [Issue #1](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/issues/1)
+  closed as completed at the owner's request; all M1/M2 checklist items checked.
+- Default remains read-only; source, charging and batch options each default to
+  false. Existing entries/IDs/history/polling choices remain intact; no automatic
+  option migration. Default polling remains 5 seconds.
+- `api.py`, `controls.py`, `coordinator.py`, `control_entity.py`, `select.py`,
+  `switch.py`, `services.py`, options and de/en translations implement M3.
+  `scripts/sync_catalog.py` now preserves control translations while generating
+  the complete quota catalog. README, architecture, entity catalog, migration,
+  source references and DEV instructions describe the final behavior.
+- `.venv/bin/pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`:
+  **361 passed**, **99% coverage** (909 statements, 8 uncovered), 25.30 seconds.
+  All tests run with internet sockets blocked; API writes are mocks only.
+- `.venv/bin/ruff check custom_components tests scripts`,
+  `.venv/bin/ruff format --check custom_components tests scripts` (33 Python files),
+  `.venv/bin/python scripts/sync_catalog.py --check`,
+  `.venv/bin/python -m compileall -q custom_components`, `git diff --check`: **passed**.
+- `docker compose -f .devcontainer/ha.compose.yml config -q` and
+  `bash -n scripts/dev-ha.sh`: **passed**; no HA service was started or changed.
+- Official local validation:
+  `docker run --rm --network none -v /home/nick/dev/ecoflow_smart_home_panel_v1:/github/workspace:ro ghcr.io/home-assistant/hassfest:latest`:
+  **1 integration, 0 invalid**. Image digest
+  `sha256:e5828f7e305518506d8b4e8346411357d68358531b761bd118fe6a1631feff44`.
+  Network disabled, repository mounted read-only.
+- Quota coverage remains **245/245 scalar leaves**, **44 enabled / 201 disabled**:
+  16 essential fields plus 20 circuit and 8 storage diagnostics. Opt-in controls
+  add at most 12 entities. Recorder tests verify control metadata/progress is not
+  recorded and disabled raw leaves remain without history. No shadow archive.
+- Proven source sequence/timings retained. Intentional differences: stop a batch
+  at its first failure, reject ambiguous/invalid/partial confirmation data, and
+  add bounded fresh verification to charging. No inferred automatic interlocks.
+- Remaining: actual hardware and HACS install/upgrade acceptance, backup code-2
+  conflict and physical mapping, authoritative model/error metadata, daily
+  counter/statistics uncertainties. M4 and release approval remain open.
+- GitHub workflows remain manual-only; none were dispatched. HACS workflow was
+  not rerun, so prior HACS results above are not a claim for this new version.
+- Reference repository, supplied HTML originals and production HA untouched.
+  Manual next step: isolated read-only update and the checks in CONTROLS.md;
+  no real switching performed by development.
+
+Final merged validation: the concurrent icon, DEV loopback-security and scripts
+documentation commits through `4ec3579` are preserved. Two formatting-only issues
+in the merged bootstrap/test files were corrected. The same full pytest command
+then reported **364 passed in 23.59 seconds**, **99% coverage** (909 statements,
+8 uncovered). Ruff check/format now pass for **34 Python files**; catalog,
+compileall, diff and Compose checks also pass, as does
+`bash -n scripts/dev-ha.sh scripts/recreate.sh`. Official hassfest was also rerun
+after including the brand icon: **1 integration, 0 invalid**.

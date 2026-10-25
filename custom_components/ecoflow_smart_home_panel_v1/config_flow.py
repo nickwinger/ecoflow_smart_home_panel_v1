@@ -20,11 +20,14 @@ from .api import (
 )
 from .const import (
     CONF_ACCESS_KEY,
+    CONF_BATCH_CONTROLS,
+    CONF_CHARGE_CONTROLS,
     CONF_CONFIRM_V1,
     CONF_POLL_INTERVAL,
     CONF_REGION,
     CONF_SECRET_KEY,
     CONF_SERIAL,
+    CONF_SOURCE_CONTROLS,
     DEFAULT_POLL_INTERVAL_SECONDS,
     DOMAIN,
     HOSTS,
@@ -148,7 +151,7 @@ class EcoFlowConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class EcoFlowOptionsFlow(OptionsFlow):
-    """One bounded polling interval for the whole panel."""
+    """Bounded polling and independently opted-in source, charge and batch writes."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
@@ -158,8 +161,18 @@ class EcoFlowOptionsFlow(OptionsFlow):
                 type(interval) is int
                 and MIN_POLL_INTERVAL_SECONDS <= interval <= MAX_POLL_INTERVAL_SECONDS
             ):
-                return self.async_create_entry(title="", data={CONF_POLL_INTERVAL: interval})
-            errors["base"] = "invalid_poll_interval"
+                options = {CONF_POLL_INTERVAL: interval}
+                for key in (CONF_SOURCE_CONTROLS, CONF_CHARGE_CONTROLS, CONF_BATCH_CONTROLS):
+                    value = user_input.get(key, self.config_entry.options.get(key, False))
+                    if type(value) is not bool:
+                        errors["base"] = "invalid_controls"
+                    options[key] = value
+                if options[CONF_BATCH_CONTROLS] and not options[CONF_SOURCE_CONTROLS]:
+                    errors["base"] = "batch_requires_source"
+                if not errors:
+                    return self.async_create_entry(title="", data=options)
+            else:
+                errors["base"] = "invalid_poll_interval"
         return self.async_show_form(
             step_id="init",
             errors=errors,
@@ -174,6 +187,10 @@ class EcoFlowOptionsFlow(OptionsFlow):
                         int,
                         vol.Range(min=MIN_POLL_INTERVAL_SECONDS, max=MAX_POLL_INTERVAL_SECONDS),
                     ),
+                    **{
+                        vol.Optional(key, default=self.config_entry.options.get(key, False)): bool
+                        for key in (CONF_SOURCE_CONTROLS, CONF_CHARGE_CONTROLS, CONF_BATCH_CONTROLS)
+                    },
                 }
             ),
         )

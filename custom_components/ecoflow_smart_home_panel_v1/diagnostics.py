@@ -17,5 +17,8 @@ async def async_get_config_entry_diagnostics(
         "excluded_subtrees_or_values": coordinator.data.excluded,
         "registry_limit_reached": coordinator.registry_limit_reached,
         "catalog_patterns": len(coordinator.catalog.fields),
-        "controls_implemented": False,
+        "controls_implemented": True,
+        "source_controls_enabled": coordinator.controls.enabled("source"),
+        "charge_controls_enabled": coordinator.controls.enabled("charge"),
+        "control_operation": dict(coordinator.controls.status),
     }

@@ -1,0 +1,26 @@
+set_all_sources:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: ecoflow_smart_home_panel_v1
+    source:
+      required: true
+      selector:
+        select:
+          options:
+            - grid
+            - battery
+    confirm:
+      required: true
+      default: false
+      selector:
+        boolean:
+cancel_commands:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: ecoflow_smart_home_panel_v1

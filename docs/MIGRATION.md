@@ -16,7 +16,7 @@ No automatic legacy-helper migration, automatic device switching, import of old 
 
 1. Install via a HACS custom repository in an isolated HA 2026.10+ instance and
    configure the confirmed first-generation panel. Retry if initial topology is
-   incomplete. This version offers no write-capable entities/services.
+   incomplete. Leave the source, charge and batch control options off; M3 defaults to read-only.
 2. Compare grid status, battery percentage and circuit numbering with the existing
    display over several shared polls. Treat inferred/raw values accordingly.
 3. Inspect disabled entities, enable one diagnostic and confirm it gains state
@@ -29,7 +29,7 @@ No automatic legacy-helper migration, automatic device switching, import of old 
 6. Check HA's statistics diagnostics: only the validated panel battery percentage
    is a measurement statistic. Daily counters are not Energy Dashboard totals.
 7. Leave existing helper jobs and automations operational. Do not migrate histories,
-   delete helpers, or enable future M3 controls during this read-only acceptance.
+   delete helpers, or enable M3 controls during this read-only acceptance.
 
 The scaffold had no persisted config-entry schema to migrate. This implementation
 starts at config-entry version 1. No legacy helper import or automatic cutover is
@@ -53,3 +53,18 @@ The expanded synthetic fixture has 245 leaves, 44 enabled and 201 disabled.
 The extra 28 enabled readings remain under Diagnostics. Their state history starts
 when enabled (unless excluded by Recorder); their community evidence does not
 create new long-term statistics. This upgrade changes no physical device setting.
+
+## Upgrade to 0.2.0: controls remain opt-in
+
+Config-entry schema remains 1.2. Existing polling intervals, entity IDs, names,
+disable choices and history are preserved. The three new control options default
+to false on both new and upgraded entries; no migration turns them on. Controls
+are never restored as commands. An explicit option opt-in adds ten source selects
+and/or two charging-mode switches. Batch switching needs a separate option.
+
+Follow [the M3 read-only acceptance checklist](CONTROLS.md#manuelle-abnahme-ohne-schalten).
+Removing an option cancels commands during reload and removes its live control
+entities, while HA retains registry entries/history (possibly unavailable
+placeholders). Re-enabling preserves explicit user entity disables. Do not connect
+existing write automations to these entities or run competing writers until the
+owner has approved a separate supervised hardware validation and cutover.

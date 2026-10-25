@@ -46,3 +46,28 @@ def mock_quota(quota):
         return_value=quota,
     ) as mock:
         yield mock
+
+
+@pytest.fixture
+async def control_env(hass, entry, mock_quota):
+    hass.config_entries.async_update_entry(
+        entry,
+        options={
+            "enable_source_controls": True,
+            "enable_charge_controls": True,
+            "enable_batch_controls": True,
+        },
+    )
+    with (
+        patch(
+            "custom_components.ecoflow_smart_home_panel_v1.api.EcoFlowClient.put_quota",
+            new_callable=AsyncMock,
+        ) as put,
+        patch(
+            "custom_components.ecoflow_smart_home_panel_v1.controls.sleep", new_callable=AsyncMock
+        ) as sleep,
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        mock_quota.reset_mock()
+        yield entry.runtime_data.controls, put, sleep

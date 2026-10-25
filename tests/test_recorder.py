@@ -91,3 +91,26 @@ async def test_only_enabled_entities_record_and_static_metadata_is_omitted(
     assert any(r[0] == diagnostic.entity_id and r[1] == "0" for r in after)  # old history remains
     assert any(r[0] == battery.entity_id and r[1] == "63" for r in after)
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_opt_in_controls_record_states_without_progress_payloads(
+    recorder_mock, hass, entry, mock_quota
+):
+    await hass.async_start()
+    hass.config_entries.async_update_entry(
+        entry, options={"enable_source_controls": True, "enable_charge_controls": True}
+    )
+    await setup(hass, entry)
+    await async_wait_recording_done(hass)
+    rows = await hass.async_add_executor_job(recorded_rows, hass)
+    controls = [row for row in rows if row[0].startswith(("select.", "switch."))]
+    assert len({row[0] for row in controls}) == 12
+    assert all(
+        "control_operation" not in row[2]
+        and "description" not in row[2]
+        and "quota_path" not in row[2]
+        for row in controls
+    )
+    disabled = [e.entity_id for e in registry_entries(hass, entry) if e.disabled_by]
+    assert not any(row[0] in disabled for row in rows)
+    await hass.config_entries.async_unload(entry.entry_id)

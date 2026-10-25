@@ -97,7 +97,12 @@ async def test_options(hass, entry, interval):
         result["flow_id"], {"poll_interval": interval}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options == {"poll_interval": interval}
+    assert entry.options == {
+        "poll_interval": interval,
+        "enable_source_controls": False,
+        "enable_charge_controls": False,
+        "enable_batch_controls": False,
+    }
 
 
 @pytest.mark.parametrize("interval", [0, 4, 901, True, 5.5, "5", None])
@@ -115,7 +120,12 @@ async def test_options_default_and_existing_selection(hass, entry, configured):
     if configured is not None:
         hass.config_entries.async_update_entry(entry, options={"poll_interval": configured})
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["data_schema"]({}) == {"poll_interval": 5 if configured is None else configured}
+    assert result["data_schema"]({}) == {
+        "poll_interval": 5 if configured is None else configured,
+        "enable_source_controls": False,
+        "enable_charge_controls": False,
+        "enable_batch_controls": False,
+    }
 
 
 @pytest.mark.parametrize(
@@ -127,3 +137,40 @@ async def test_invalid_credentials_do_not_call_cloud(hass, mock_quota, change):
     )
     assert result["errors"] == {"base": "invalid_input"}
     mock_quota.assert_not_called()
+
+
+async def test_control_options_independent_and_batch_dependency(hass, entry):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "poll_interval": 5,
+            "enable_batch_controls": True,
+        },
+    )
+    assert result["errors"] == {"base": "batch_requires_source"}
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "poll_interval": 5,
+            "enable_source_controls": True,
+            "enable_batch_controls": True,
+            "enable_charge_controls": False,
+        },
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options["enable_source_controls"] is True
+    assert entry.options["enable_batch_controls"] is True
+    assert entry.options["enable_charge_controls"] is False
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["data_schema"]({}) == dict(entry.options)
+
+
+@pytest.mark.parametrize("value", ["true", 1, None])
+async def test_controls_require_boolean_options(hass, entry, value):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    with pytest.raises(InvalidData):
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], {"poll_interval": 5, "enable_source_controls": value}
+        )
+    assert entry.options == {}

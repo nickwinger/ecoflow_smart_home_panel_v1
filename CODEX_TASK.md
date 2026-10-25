@@ -26,7 +26,7 @@ We already have working HTTP read, cache, channel grid/battery switching and bat
 
 **M2 – exhaustive quota entity coverage, with precise names/descriptions**:
 - Handle flattened EcoFlow dotted-key format and nested arrays/objects; produce a stable path for each scalar leaf. Explicitly test unknown/new fields, empty containers and reordered payload keys.
-- Known paths resolve via `docs/quota-field-guide.json` (81 metadata patterns, including array wildcards); for each one provide localized German/English friendly name, explanatory text, units/enums only where verified, underlying raw path and confidence.
+- Known paths resolve via `docs/quota-field-guide.json` (81 seed patterns; 92 including supplied supplements and array wildcards); for each one provide localized German/English friendly name, explanatory text, units/enums only where verified, underlying raw path and confidence.
 - Provide per-channel labels (1..10 for load channels, indexes for backup/batteries), surface user-configured channel labels safely without destabilizing IDs.
 - Important sensors enabled; numerous raw/constant/diagnostic readings disabled by default. Expose all encountered scalar leaves for manual enablement; **NO** other history storage.
 - Recorder controls normal history; `SensorStateClass.MEASUREMENT` only on legitimate numeric measurements and verified units. Energy counters: research semantics (daily reset vs cumulative), document before choosing `TOTAL`/`TOTAL_INCREASING`, avoid bogus statistics/energy totals.
