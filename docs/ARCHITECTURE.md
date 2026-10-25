@@ -34,7 +34,7 @@ EcoFlow Cloud GET quota/all ──► async EcoFlow client (per config entry)
 
 The integration does not need an external job, helper updates or a second storage engine. A single quota/all poll can populate every enabled entity. Don't produce one HTTP request per sensor. Cache is in-memory for coordination/confirmation; avoid saving full JSON snapshots to disk. No full quota history archive.
 
-Default coordinator interval: 5 seconds, configurable from 5 to 900 seconds. Explicitly saved intervals are preserved; entries without an override use the default. API errors should mark affected entities unavailable and use sensible retry/backoff. All I/O must be async or executor-wrapped: never block the HA event loop.
+Default coordinator interval: 5 seconds, configurable from 1 to 600 seconds. Valid saved intervals are preserved; old out-of-range settings are clamped to 1–600. Entries without an override use the default. API errors should mark affected entities unavailable and use sensible retry/backoff. All I/O must be async or executor-wrapped: never block the HA event loop.
 
 ## Representation and ID rules
 
@@ -85,7 +85,7 @@ No invented unit conversion or enum labels. The field guide distinguishes `docum
 Runtime modules: `api.py` (shared GET/PUT transport, pure signing helper), `config_flow.py`,
 `coordinator.py`, `quota.py`, `catalog.py`, `entity.py`, `sensor.py`,
 `binary_sensor.py`, `diagnostics.py`. M3 adds `controls.py`, `control_entity.py`,
-`select.py`, `switch.py`, `services.py` and `services.yaml`. The catalog is installed with the component;
+`select.py`, `switch.py`, `button.py`, `telemetry.py`, `services.py` and `services.yaml`. The catalog is installed with the component;
 it never reads repository docs at runtime. Resource loading uses HA's executor.
 The HA-managed HTTP session is shared; the client serializes requests and does
 not follow redirects. HTTP 429 applies a 30–3600 second cooldown; other failures
@@ -129,8 +129,7 @@ Channel names may be strings or zero-padded UTF-8 bytes. Reconstruction uses onl
 the current safe scalar snapshot, requires one unambiguous contiguous byte array,
 and never mutates raw values or identities. Invalid bytes/gaps produce no label.
 Each byte remains an independently selectable diagnostic, with no new archive.
-A valid channel name replaces the generic circuit prefix. Only unnamed circuits
-use localized Stromkreis/Circuit numbering; both labels are never concatenated.
+Names always use localized Stromkreis/Circuit numbering. Cloud labels are diagnostic metadata only, because the owner observed mismatches with the app.
 
 Config-entry minor version 2 performs a one-time registry migration for the six
 newly enabled diagnostic patterns. It enables only INTEGRATION-disabled sensor
@@ -166,11 +165,11 @@ Unloading cancels active and queued tasks, with no restoring or rollback writes.
 Source control uses the verified shp_mode loop (10 s settle, 15 s retry, eight
 attempts); charging retains the single-command reference's 2 s settle and adds
 bounded verification. HTTP/API failures abort rather than retry blindly. All
-circuits run only via a separately gated and confirmed action, preserving order
+circuits run through separately gated explicit buttons or a confirmed action, preserving order
 7,6,3,1,2,4,5,8,9,10. Unlike the script, the action stops at the first failure.
 
-Backup charging controls explicitly use the working helper's 2=on / 0,1=off
-interpretation; other codes remain unknown. This separately acknowledged opt-in
+Backup charging controls use the reference code’s 2=on / 0,1=off
+interpretation; other codes remain unknown. This separate opt-in
 does not resolve the manufacturer's contradictory generic enum or change raw
 sensor metadata. It describes charge mode, not measured charging power.
 Progress is bounded in memory and exposed as unrecorded control attributes plus
@@ -221,3 +220,36 @@ layout and rejects incomplete/unsupported topology. The cloud API does not suppl
 an authoritative model identifier. Existing entries' legacy `confirm_v1` field
 is ignored, including during reauth/reconfigure; no ID or control-option migration
 is required. No controls are enabled by removing the checkbox.
+
+## Live power connection and controls (0.3.0)
+
+A shared-client GET to `/iot-open/sign/certification` supplies in-memory MQTT
+credentials. A stable client ID and verified TLS connect to the allowlisted
+EcoFlow public broker on 8883; one `/open/{account}/{sn}/quota` subscription stays
+open with a 30-second MQTT protocol keepalive. No MQTT PUBLISH is implemented.
+Paho connection/TLS/thread teardown run outside HA’s event loop; callbacks hand
+off bounded receipt information to the loop. Disconnects retry after 30 seconds,
+HTTP 429 keeps its longer shared cooldown, auth failures request reauth. A silent
+connection is checked every 60 seconds and reconnected if no recent power frame
+arrived. Entry unload cancels the worker and stops the network thread.
+
+Only the count and monotonic receipt time of non-retained SHP power frames are
+kept. No MQTT readings or extra entities are stored. HTTP `get_quota_all` remains
+the source of every entity value and fresh command verification. A current
+10/12-entry `infoList` power frame establishes stream activity; absent/disconnected
+or older-than-30-second activity makes `channelPower.infoList` leaves unavailable
+on the next configured poll. HTTP identities stay registered, and missing HTTP
+fields remain missing. MQTT cannot confirm source/mode/charge writes.
+
+Diagnostics add `power_telemetry_connected`, `power_telemetry_reports`,
+`power_telemetry_age_seconds`, `power_telemetry_error`, and `batch_controls_enabled`.
+These are aggregate connection information, not a guaranteed physical sample age.
+See [LIVE_DATA.md](LIVE_DATA.md) for the controlled HTTP/heartbeat/cache/MQTT probes.
+
+Ten mode selects share the source-control option and serialized command lock.
+Automatic uses the proven `ctrlMode=0, sta=0` command; manual uses `ctrlMode=1`
+with a strictly valid source from the fresh preflight response (including off).
+Only the fresh `ctrlMode` confirms success. Three batch buttons use the existing
+sequence/controller, with cancellation available even when telemetry fails.
+There are no setup/reload/restore actuator writes. Normal interval is 1–600 s,
+default 5; failure backoff and EcoFlow rate limits may extend the effective delay.

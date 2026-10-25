@@ -5,12 +5,12 @@
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
-![Version 0.2.1](https://img.shields.io/badge/version-0.2.1-blue)
+![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-blue)
 ![Opt-in controls](https://img.shields.io/badge/controls-opt--in-orange)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > [!IMPORTANT]
-> **Early preview (v0.2.1) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. M3 is offline-tested; hardware acceptance is still pending. Test in an isolated Home Assistant instance before production use.
+> **Early preview (v0.3.0) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
 
 ## ✨ Features
 
@@ -18,7 +18,7 @@
 - 📊 **Detailed diagnostics** — discover individual values exposed by EcoFlow's Quota API, including per-circuit and per-battery data.
 - 🏷️ **Understandable entities** — English/German names, descriptions and original quota paths.
 - 🕘 **Selective history** — Home Assistant Recorder stores enabled entities; most advanced diagnostics start disabled to save space.
-- 🎛️ **Optional controls** — ten grid/battery selects, two charging-mode switches, verified commands and separately gated ordered batch actions.
+- 🎛️ **Optional controls** — ten grid/battery selects, ten automatic/manual selects, two charging switches and three separately enabled batch buttons.
 - ☁️ **Cloud connection** — authenticated EcoFlow API polling, configurable update interval and error handling.
 
 ## 📦 Installation
@@ -56,15 +56,19 @@ Your resulting path should be:
 3. Enter your **Access Key**, **Secret Key** and **panel serial number**.
 4. Select the correct API region (**EU** or **Global**). The integration checks the supported v1 quota layout automatically.
 
-That's it! Your panel and available entities will appear under **Devices & services**. You can adjust polling in the integration **Options** (default: **5 seconds**, configurable from **5–900 seconds**). Entries without a saved interval adopt this default after restart; explicitly saved custom intervals are preserved.
+That's it! Your panel and available entities will appear under **Devices & services**. You can adjust polling in the integration **Options** (default: **5 seconds**, configurable from **1–600 seconds**). Entries without a saved interval adopt this default after restart; valid saved custom intervals are preserved; older values outside the range are clamped.
 
 > The integration uses the EcoFlow Developer API over the internet; it does not connect directly to the panel on your local network.
 
 ## 🎛️ Optional control
 
-In **Options**, independently enable circuit source controls or backup charging controls. Enabling them sends no commands; only an explicit action changes the panel. Each write is followed by fresh status verification, with bounded retries and serialization. Startup and polling never switch anything.
+In **Options**, independently enable circuit controls (source and automatic/manual mode) or charging controls. The controls appear on the panel’s device page. No Home Assistant helpers are required. Enabling them sends no commands; only an explicit action changes the panel. Each write is followed by fresh status verification, with bounded retries and serialization. Startup and polling never switch anything.
 
-Charging uses the working helper’s interpretation of backup code 2, which conflicts with the generic vendor table. The charging option explains this limitation. Batch switching needs another opt-in and explicit confirmation; it stops on the first failure and can be cancelled. See [control behavior, actions and manual checks](docs/CONTROLS.md) before enabling controls.
+Enabling batch controls adds **All circuits to grid**, **All circuits to battery** and **Cancel switching** buttons to the device page. A button press starts the chosen sequence; enabling the option alone does nothing. Batches stop on the first failure. The existing confirmed action remains available for automations. See [control behavior and checks](docs/CONTROLS.md).
+
+Automatic mode returns supply control to the panel. Manual mode holds the currently reported supply source. The diagnostic “Control mode” sensor remains a separate status display.
+
+The integration keeps a read-only connection to EcoFlow open so circuit power continues updating with the phone app closed. No extra login, MQTT broker or helper is needed. If that connection loses fresh power reports, circuit power becomes unavailable until reports resume. See [live-data diagnosis](docs/LIVE_DATA.md).
 
 ## 📈 Entities & history
 
@@ -79,7 +83,7 @@ Charging uses the working helper’s interpretation of backup code 2, which conf
 | Storage diagnostics | Battery level, input/output power and temperature for both entries, enabled by default |
 | Other diagnostics | Additional available quota fields, mostly disabled by default |
 
-The synthetic test fixture covers **245/245 scalar leaves: 44 enabled, 201 disabled**. Opt-in controls add up to 12 entities. Named circuits use their configured name; unnamed circuits use localized **Circuit N** / **Stromkreis N**.
+The synthetic test fixture covers **245/245 scalar leaves: 44 enabled, 201 disabled**. Opt-in controls add up to 25 entities. Circuits always use **Circuit N** / **Stromkreis N**, according to Home Assistant’s system language; EcoFlow app names do not replace them. Explicit names you set in HA are preserved.
 
 **Want more data?** Open the panel's **Entities** list, show disabled entities and enable only the diagnostics you need. The complete list depends on your device's responses.
 
@@ -96,7 +100,7 @@ For full field descriptions and technical details, see the [entity catalog](docs
 | Integration not found | Restart Home Assistant and refresh your browser after installation |
 | Setup fails | Verify the keys, serial number and EU/Global region; retry if EcoFlow returns an incomplete response |
 | A value is unavailable or unknown | The API may have omitted it or returned an unrecognized code; the integration deliberately avoids guessing |
-| Channel power says “seconds ago” despite 5-second polling | HA keeps the time of the last value change when EcoFlow returns the same reading. Check the last successful quota refresh in integration diagnostics; polling does not guarantee a new cloud measurement |
+| Channel power says “seconds ago” despite 5-second polling | Check both quota polling and `power_telemetry_connected` / `power_telemetry_age_seconds` in diagnostics. Successful HTTP polling alone can return frozen cloud values; the read-only MQTT connection keeps updates flowing |
 | Too many entities | Most raw diagnostic entities are disabled by default; enable only what you need |
 
 [Report an issue](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/issues)

@@ -94,3 +94,31 @@ Current official HA conventions were checked against [select entities](https://c
 [switch entities](https://contributors.home-assistant.io/core/entities/switch/) and
 [integration actions](https://contributors.home-assistant.io/core/integrations/actions/),
 plus the installed HA 2026.10.3 coordinator, registry and service implementation.
+
+## Live power and mode follow-up (0.3.0)
+
+The supplied [General HTTP API](reference/ecoflow_general_http.html) documents
+millisecond `timestamp`/nonce/HMAC headers, POST GetCmdRequest, GET
+`/iot-open/sign/certification`, broker credentials and the public
+`/open/{account}/{sn}/quota` subscription. The supplied SHP document labels its
+specific-quota read as GET instead; the read-only POST probe was accepted.
+Reading `heartbeat.time` did not restore power freshness. Cache-control and a
+correctly signed extra timestamp query also had no observed effect.
+
+Pinned primary implementation sources inspected for this follow-up:
+
+- [MichelFR SHP implementation](https://github.com/MichelFR/ha-ecoflow-iot/blob/0805a1ea8d4ead69c698172eea78eecac51fdda3/custom_components/ecoflow_iot/devices/whole_home_backup/smart_home_panel.py): public push power uses bare `infoList`, whereas HTTP uses `channelPower.infoList`.
+- [tolwi SHP implementation](https://github.com/tolwi/hassio-ecoflow-cloud/blob/de02d680cdfe1adcec60c43047ff3ed3da15e0ee/custom_components/ecoflow_cloud/devices/public/smart_home_panel.py): automatic mode uses `ctrlMode=0, sta=0`; manual holds the current source.
+- [foxthefox SHP implementation](https://github.com/foxthefox/ioBroker.ecoflow-mqtt/blob/9df54323e17a90e5c553ba5f10771667bd9ac4fb/lib/dict_data/ef_panel_data.js): distinguishes app commands and SHP data shapes. Guessed heartbeat commands in community code were not adopted.
+
+The owner's read-only reference at `3fa58b227ea5bd9e1a605ebb7177ab002a2a6e10`
+was searched across EcoFlow modules and related HA configuration; its current
+code has no active MQTT/heartbeat keepalive. No reference files were modified.
+
+An explicitly authorized read-only DEV probe found power reports and HTTP values
+both changing with just a passive public MQTT subscription; no MQTT PUBLISH was
+needed. This installation-specific evidence underlies the connection added in
+0.3.0, not a claim that a documented heartbeat property forces hardware updates.
+See [probe results and limitations](LIVE_DATA.md). Installed Paho 2.1 and HA
+2026.10.3 code informed thread lifecycle, TLS and entity lifecycle handling;
+offline mocks verify no publish, writes on startup or retained-frame freshness.

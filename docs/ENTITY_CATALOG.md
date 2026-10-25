@@ -6,7 +6,7 @@ Source of initial evidence: `docs/quota-field-guide.json`, seeded from the exist
 
 For every represented quota property, provide:
 - Stable technical source path (example: `data.heartbeat.loadCmdChCtrlInfos[6].ctrlSta`) and stable entity unique ID.
-- Friendly name that says what it means, rather than simply showing `heartbeat.loadCmdChCtrlInfos...`. For circuits, use the valid user-defined channel name alone; otherwise use the localized circuit number. Do not concatenate both labels.
+- Friendly name that says what it means, rather than simply showing `heartbeat.loadCmdChCtrlInfos...`. For circuits, always use the localized circuit number: Stromkreis N / Circuit N.
 - Short explanation / description in German and English when evidenced: e.g. 'Current power source of load circuit 7; 0=grid, 1=battery; other values unknown.'
 - State representation, units/scale, mapping of enums and confidence (`documented`, `community`, `inferred`, `unknown`), wherever appropriate.
 - Entity classification: default enabled vs default disabled, measurement vs diagnostic; expose all raw scalar leaves for opt-in.
@@ -112,7 +112,7 @@ booleans remain scalar sensors to preserve platform identity if their type chang
 only documented binary paths use binary_sensor.
 
 User labels from `loadChInfo.info` support strings and contiguous, zero-padded UTF-8 byte arrays. Invalid UTF-8, non-byte values, gaps and ambiguous source structures do not produce a label. Each source byte remains a discoverable disabled scalar. Labels are sanitized, capped at 48 characters and
-used as the circuit prefix by themselves. If no valid name exists, use `Stromkreis 1` (German) or `Circuit 1` (English), with no second label in parentheses. The original safe label is also available in `channel_label`. Index 0..9 is circuit 1..10. Storage/backup numbers
+kept only as metadata. Always use `Stromkreis 1` (German) or `Circuit 1` (English), with no second label in parentheses. The original safe label is also available in `channel_label`. Index 0..9 is circuit 1..10. Storage/backup numbers
 are array-entry numbers, not a verified physical-device association. Potential
 backup power entries 10/11 are labelled as entries 11/12 without asserting mapping.
 
@@ -121,8 +121,8 @@ Only registry entries disabled by INTEGRATION are enabled; USER, DEVICE and othe
 explicit disable reasons remain untouched. Categories do not imply disabled status.
 No unit, enum, statistics eligibility or API polling behavior changes with these defaults.
 
-M3 adds up to ten source selects and two charge-mode switches only after their
-respective option is enabled. These are separate from the 245 quota leaves. Their
-names follow the same channel-label rules; descriptions explain confirmation and
-the charging-code conflict. `description`, `quota_path` and `control_operation`
+M3 adds ten source selects, ten automatic/manual mode selects, two charging
+switches and three batch buttons after the respective options are enabled. These are separate from the 245 quota leaves. Their
+names follow the same fixed circuit-number rules. Descriptions explain operation
+in plain language; protocol conflicts are documented in CONTROLS.md. `description`, `quota_path` and `control_operation`
 are excluded from Recorder attributes. No new statistics or raw history store.

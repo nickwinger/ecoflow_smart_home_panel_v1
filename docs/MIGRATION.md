@@ -44,10 +44,9 @@ previously disabled by the integration become enabled once. User-disabled or
 device-disabled entities stay disabled; these may be enabled manually if desired.
 Existing entity IDs, custom HA names and Recorder history are preserved.
 
-Verify that each named circuit displays only its EcoFlow channel name plus the
-reading name. Unnamed circuits use `Stromkreis <number>` or `Circuit <number>`
-according to the HA system language. An explicit custom HA entity name still
-wins; clear that override manually if you want the generated name instead.
+Circuits now always show **Stromkreis N** / **Circuit N** according to HA’s system
+language, regardless of EcoFlow app labels. HA custom names, unique IDs and history
+are preserved. The optional cloud label remains diagnostic metadata.
 
 The expanded synthetic fixture has 245 leaves, 44 enabled and 201 disabled.
 The extra 28 enabled readings remain under Diagnostics. Their state history starts
@@ -78,3 +77,9 @@ New aggregate diagnostics distinguish the last successful retrieval from a
 changed power value. See [update timestamps](ARCHITECTURE.md#polling-and-value-change-timestamps).
 In HA DEV, restart the existing service and reopen the configuration dialog;
 no volume reset or recreation of the integration is necessary.
+
+For 0.3.0, existing source-control opt-ins also expose ten mode selects. An existing
+batch opt-in exposes three buttons; none runs automatically. Allow outbound TLS
+8883 to EcoFlow for continuous power updates with the app closed. Credentials are
+obtained from the existing shared API client; no local MQTT broker or new login.
+Polling defaults to 5 seconds with 1–600 allowed; old larger intervals become 600.

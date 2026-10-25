@@ -20,14 +20,14 @@ We already have working HTTP read, cache, channel grid/battery switching and bat
 **M1 – functioning read-only core**:
 - Set up HA UI config flow with access key, secret key, panel SN; no YAML or shell scripts.
 - Proper asynchronous EcoFlow API wrapper; GET/PUT signing equivalent to the reference; meaningful error classification and redacted logs.
-- Shared DataUpdateCoordinator, configurable/limited polling (owner-required default: 5 seconds; configurable 5–900 seconds), refresh semantics and device registry.
+- Shared DataUpdateCoordinator, configurable/limited polling (owner-required default: 5 seconds; configurable 1–600 seconds), refresh semantics and device registry.
 - Compatibility only with SHP v1. Verify device identification or fail clearly; no false SHP2 claim.
 - Offline mocked API tests.
 
 **M2 – exhaustive quota entity coverage, with precise names/descriptions**:
 - Handle flattened EcoFlow dotted-key format and nested arrays/objects; produce a stable path for each scalar leaf. Explicitly test unknown/new fields, empty containers and reordered payload keys.
 - Known paths resolve via `docs/quota-field-guide.json` (81 seed patterns; 92 including supplied supplements and array wildcards); for each one provide localized German/English friendly name, explanatory text, units/enums only where verified, underlying raw path and confidence.
-- Provide per-channel labels (1..10 for load channels, indexes for backup/batteries), surface user-configured channel labels safely without destabilizing IDs.
+- Provide per-channel labels (1..10 for load channels, indexes for backup/batteries), use fixed localized Stromkreis N / Circuit N display names; preserve optional raw channel-label metadata without destabilizing IDs.
 - Important sensors enabled; numerous raw/constant/diagnostic readings disabled by default. Expose all encountered scalar leaves for manual enablement; **NO** other history storage.
 - Recorder controls normal history; `SensorStateClass.MEASUREMENT` only on legitimate numeric measurements and verified units. Energy counters: research semantics (daily reset vs cumulative), document before choosing `TOTAL`/`TOTAL_INCREASING`, avoid bogus statistics/energy totals.
 - HA translation `strings.json` + `translations/de.json` and `translations/en.json`; accessible explanations via safe diagnostic metadata attributes with static ones unrecorded where HA supports it, and catalog documentation. Avoid a made-up `description` field on Home Assistant's frozen EntityDescription.

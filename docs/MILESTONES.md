@@ -18,7 +18,7 @@ Acceptance: files present in GitHub. **No claim of a working integration at this
 - [x] One DataUpdateCoordinator with shared timed fetch and appropriate rate/error handling.
 - [x] Test config setup/unload/reload and cloud responses offline.
 
-Acceptance: read-only HA integration loads in isolated HA 2026.10.3 tests and fetches synthetic SHP v1 quota. Device identity is checked conservatively by user confirmation plus topology; the manufacturer list API has no model field. No hardware claim.
+Acceptance: read-only HA integration loads in isolated HA 2026.10.3 tests and fetches synthetic SHP v1 quota. Current setup checks the v1 topology without a redundant confirmation checkbox; the manufacturer list API has no model field. Read-only DEV checks now also cover continuous power reporting with a passive MQTT connection (0.3.0 record below).
 
 Validation: `pytest -q --tb=short --show-capture=no --timeout=30` (40 tests), `ruff check custom_components tests`, `ruff format --check custom_components tests`. Commit: [`223d1f7`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/223d1f7d24d4fa5fcff6bf4d9ac65607b7f7d67b) (`feat: implement M1 signed read-only cloud core`). M2 entities are still pending at this commit.
 
@@ -37,16 +37,16 @@ Default-enabled: grid availability (1), panel battery percentage (1), ten load s
 
 M2 commit: [`544287c`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/544287cf29a868aaf29b4ad0b645a7be080bca9e), `feat: expose complete bounded quota entities with selective history`. Current local checks: Ruff, formatter, catalog regeneration check, compileall, and the full offline pytest suite. See the verification record below for the final count and CI results.
 
-## M3 — verified, explicit source/charge control [IMPLEMENTED / OFFLINE VERIFIED]
+## M3 — explicit source, mode and charge control [IMPLEMENTED / PARTLY OWNER VERIFIED]
 
 Implementation commit: [`888fd96`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/888fd96da2e44756839abee0292615b79a14b862), `feat: implement M3 verified opt-in source and charging controls` (0.2.0), published to main.
 
-- [x] Ten native source selects and two charging-mode switches with independent opt-ins; no startup switching.
+- [x] Ten source selects, ten mode selects and two charging switches; opt-in and no startup switching.
 - [x] Exact signed PUT payloads, source/charge settle timings, bounded retries, fresh pre/post reads and unknown-safe confirmation.
-- [x] Separately gated/confirmed ordered batch action, stop on first failure, progress, cancellation and serialized transactions.
+- [x] Separately gated batch buttons plus confirmed automation action, stop on first failure, progress, cancellation and serialized transactions.
 - [x] Offline transport, command/state/error, concurrency, HA services, options, lifecycle and Recorder tests; documented manual hardware QA.
 
-Acceptance: 364 offline tests pass, including 101 added for M3; 99% overall coverage and 100% of the command controller. Official local hassfest passes. No actual device command or production deployment occurred. Real-device verification remains pending and requires separate owner approval. [Control contract and acceptance checklist](CONTROLS.md).
+Acceptance: the current full suite has 456 offline tests, 99% overall coverage and 100% command-controller/telemetry coverage. Official local hassfest passes. The owner confirmed source switching and charging work. New mode and batch controls still need hardware acceptance; the development agent sent no actuator commands and changed no production installation. [Control contract and acceptance checklist](CONTROLS.md).
 
 ## M4 — HACS and release readiness [TODO]
 
@@ -214,3 +214,70 @@ subsequent observation confirmed seven successful quota retrievals during a
 counter/timestamp and five-second effective interval were present. The temporary
 empty setup flow was closed and verification tokens revoked. No device write,
 raw measurement log or payload archive was created.
+
+## M1/M2/M3 follow-up — live power and visible controls (0.3.0)
+
+Implementation commit: [`3dfee82`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/3dfee82e0b4841df8967f0917c663cf0f167db22),
+`fix: keep SHP power live and expose mode and batch controls`.
+
+- Resolved the reproduced app-dependent freshness problem with one passive
+  public MQTT subscription per entry, authenticated through the shared HTTP
+  client, verified TLS and 30-second protocol keepalive. No MQTT PUBLISH or
+  startup actuator command. Connection/thread cleanup, reconnection, silent
+  stream detection, rate limits and reauth are covered offline.
+- HTTP remains the sole source of entity readings and command verification.
+  After missing/stale MQTT power reports, power-array entities become unavailable
+  on the next poll. No MQTT value cache, new raw identities or history archive.
+  See [controlled heartbeat/cache/MQTT comparisons](LIVE_DATA.md).
+- Every request already had the timestamp header in milliseconds and a fresh
+  nonce/signature. Reading `heartbeat.time`, `no-cache` and a signed `ts` query
+  were accepted but did not restore changes. They are not added to normal polling.
+- Normal interval **1–600 seconds**, default **5**; old out-of-range values are
+  normalized. Source opt-in also exposes ten automatic/manual mode selects.
+  Batch opt-in adds three visible device-page buttons using the existing ordered
+  controller. Plain de/en labels replace the confusing helper terminology.
+- Circuits always use localized **Stromkreis N / Circuit N**. Cloud labels remain
+  metadata only; explicit HA names, identities and existing history are retained.
+- Runtime changes: `api.py`, `telemetry.py`, `coordinator.py`, `const.py`,
+  `config_flow.py`, `controls.py`, `control_entity.py`, `select.py`, `button.py`,
+  `entity.py`, setup, diagnostics, manifest/dependencies and translations.
+  README, control guide, migration, architecture, catalog, task and reference
+  documentation describe the resulting behavior.
+- `.venv/bin/pytest -q --disable-socket --allow-unix-socket --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`:
+  **456 passed in 33.49 seconds**, **99% coverage** (1,147 statements, 8 uncovered).
+  Telemetry and command-controller line coverage are **100%**. All actuator calls
+  are mocked and internet sockets are blocked. Added checks include broker
+  rejection, subscription failure, disconnect, silent/stale streams, unload,
+  retained/ambiguous frames, TLS, no publish, interval bounds, modes and buttons.
+- `.venv/bin/ruff check custom_components tests scripts`,
+  `.venv/bin/ruff format --check custom_components tests scripts` (**38 files**),
+  `.venv/bin/python scripts/sync_catalog.py --check`,
+  `.venv/bin/python -m compileall -q custom_components`, `git diff --check`: **passed**.
+- Official local hassfest, with the network-disabled command and image digest
+  recorded above: **1 integration, 0 invalid**. Paho uses the validator-required
+  minimum dependency syntax. GitHub workflows remain manual-only; none dispatched.
+  HACS was not rerun, so earlier CI results do not claim validation of 0.3.0.
+- Read-only acceptance on the existing DEV instance after restart: **36 successful
+  HTTP refreshes and 36 power-value changes in 180 seconds**; 37 observed state
+  reports at **4.95–5.06-second** intervals. MQTT stayed connected, report count
+  increased from 132 to 168, and the power entity remained available. The system
+  language is now German; the fixed German circuit prefix, **20 selects and three
+  buttons** were verified without operating them. Verification tokens revoked.
+- Quota coverage unchanged: **245/245 synthetic scalar leaves**, **44 enabled**
+  (16 essential, ten circuit powers, ten control modes, eight storage readings),
+  **201 disabled**. Up to **25 additional opt-in control entities**. Recorder
+  history remains selective; the live probes saved only aggregate results here.
+- Follow-up request confirmed: `heartbeat.gridSta` is already default-enabled
+  as the grid-status binary sensor. Existing offline state/lifecycle tests cover
+  it; a read-only DEV registry/state check also confirmed one enabled, available
+  grid-status entity. No control opt-in or migration is required for that default.
+- Remaining: longer owner observation with the app closed, new mode/batch hardware
+  acceptance, physical storage mapping/vendor enum conflicts and actual HACS
+  install/upgrade acceptance. EcoFlow controls physical measurement cadence;
+  neither a recent HTTP fetch nor MQTT receipt proves the measurement's age.
+  M4 and GitHub release approval remain open. Reference repository and production
+  HA were not changed; no actual switching or charging commands were sent.
+
+Manual next step: refresh the DEV device page, inspect the new controls and fixed
+names, and observe live power with the phone app closed. No control action is
+needed for this verification.
