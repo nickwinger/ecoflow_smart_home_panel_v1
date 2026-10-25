@@ -39,11 +39,11 @@ preflight() {
     docker info >/dev/null 2>&1 || die "Docker daemon is unavailable. Start Docker Desktop first."
     grep -qx "name: $PROJECT" "$COMPOSE_FILE" || die "Unexpected Docker Compose project name; refusing operation."
     grep -q '127.0.0.1:8124:8123' "$COMPOSE_FILE" || die "DEV port is not loopback-bound; refusing operation."
-    docker compose -f "$COMPOSE_FILE" config -q || die "Invalid Docker Compose file."
+    docker compose -p "$PROJECT" -f "$COMPOSE_FILE" config -q || die "Invalid Docker Compose file."
 }
 
 compose() {
-    docker compose -f "$COMPOSE_FILE" "$@"
+    docker compose -p "$PROJECT" -f "$COMPOSE_FILE" "$@"
 }
 
 open_browser() {
