@@ -313,8 +313,8 @@ async def test_ordered_batch_updates_progress(control_env, mock_quota, quota):
     assert sleep.await_count == 20
 
 
-async def test_batch_stops_at_first_failure_no_rollback(control_env, mock_quota, quota):
-    controls, put, _ = control_env
+async def test_batch_continues_after_failure_no_rollback(control_env, mock_quota, quota):
+    controls, put, sleep = control_env
     current = deepcopy(quota)
     for item in current["heartbeat.loadCmdChCtrlInfos"]:
         item["ctrlSta"] = 0
@@ -328,8 +328,10 @@ async def test_batch_stops_at_first_failure_no_rollback(control_env, mock_quota,
     put.side_effect = write
     with pytest.raises(HomeAssistantError):
         await controls.async_set_all_sources("battery")
-    assert [c.args[0]["ch"] + 1 for c in put.await_args_list] == [7, 6]
-    assert controls.status["completed"] == [7]
+    assert [c.args[0]["ch"] + 1 for c in put.await_args_list] == list(CIRCUIT_ORDER)
+    assert controls.status["completed"] == [7, 3, 1, 2, 4, 5, 8, 9, 10]
+    assert controls.status["failed"] == [6]
+    assert [call.args[0] for call in sleep.await_args_list] == [10] * 19
     assert controls.status["state"] == "failed"
 
 

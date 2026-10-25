@@ -650,7 +650,7 @@
   "services": {
     "set_all_sources": {
       "name": "Set all circuit sources",
-      "description": "Explicit sequence 7,6,3,1,2,4,5,8,9,10. Stops on the first failure. May take several minutes; cancel with cancel_commands. Requires both opt-ins and confirmation.",
+      "description": "Switch all circuits in order 7,6,3,1,2,4,5,8,9,10 with pauses and verification. Continue after individual failures and report them together at the end. May take several minutes; cancel with cancel_commands. Requires both opt-ins and confirmation.",
       "fields": {
         "config_entry_id": {
           "name": "Config entry"
@@ -671,6 +671,11 @@
           "name": "Config entry"
         }
       }
+    }
+  },
+  "exceptions": {
+    "batch_failed": {
+      "message": "Could not confirm switching for circuits: {channels}. All circuits were processed."
     }
   }
 }

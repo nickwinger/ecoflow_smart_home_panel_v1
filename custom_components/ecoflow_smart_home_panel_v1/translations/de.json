@@ -650,7 +650,7 @@
   "services": {
     "set_all_sources": {
       "name": "Alle Stromkreise umschalten",
-      "description": "Explizite Sammelschaltung in der Reihenfolge 7,6,3,1,2,4,5,8,9,10. Stoppt beim ersten Fehler. Kann mehrere Minuten dauern; Abbruch über cancel_commands. Benötigt beide Freigaben und Bestätigung.",
+      "description": "Alle Stromkreise in der Reihenfolge 7,6,3,1,2,4,5,8,9,10 mit Pausen und Bestätigung umschalten. Nach einzelnen Fehlern fortfahren und diese am Ende gesammelt melden. Kann mehrere Minuten dauern; Abbruch über cancel_commands. Benötigt beide Freigaben und Bestätigung.",
       "fields": {
         "config_entry_id": {
           "name": "Integrationseintrag"
@@ -671,6 +671,11 @@
           "name": "Integrationseintrag"
         }
       }
+    }
+  },
+  "exceptions": {
+    "batch_failed": {
+      "message": "Umschaltung nicht bestätigt für Stromkreise: {channels}. Alle Stromkreise wurden bearbeitet."
     }
   }
 }

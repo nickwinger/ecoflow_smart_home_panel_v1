@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from .api import AuthenticationError, EcoFlowError, quota_member
-from .const import CONF_BATCH_CONTROLS, CONF_CHARGE_CONTROLS, CONF_SOURCE_CONTROLS
+from .const import CONF_BATCH_CONTROLS, CONF_CHARGE_CONTROLS, CONF_SOURCE_CONTROLS, DOMAIN
 from .quota import Snapshot
 
 if TYPE_CHECKING:
@@ -28,8 +28,46 @@ RETRY_SECONDS = 15
 MAX_ATTEMPTS = 8
 
 
+class BatchSwitchError(HomeAssistantError):
+    """All circuits were processed, but some targets remain unconfirmed."""
+
+
+def read_batch_sources(data: dict[str, Any]) -> tuple[str | None, ...]:
+    """Match shp_mode.py's per-channel lookup and int conversion exactly.
+
+    The owner requires the working batch semantics: dotted list first, positional
+    item first, ch fallback only if that item is absent, ctrlSta before sta.
+    This decoder is only for batch confirmation, not raw entities or other controls.
+    """
+    items = data.get("heartbeat.loadCmdChCtrlInfos")
+    if not isinstance(items, list):
+        heartbeat = data.get("heartbeat")
+        items = heartbeat.get("loadCmdChCtrlInfos") if isinstance(heartbeat, dict) else None
+    if not isinstance(items, list):
+        return (None,) * 10
+    states = []
+    for index in range(10):
+        item = items[index] if index < len(items) and isinstance(items[index], dict) else None
+        if item is None:
+            for candidate in items:
+                if not isinstance(candidate, dict):
+                    continue
+                try:
+                    if int(candidate.get("ch")) == index:
+                        item = candidate
+                        break
+                except TypeError, ValueError, OverflowError:
+                    continue
+        try:
+            value = int(item.get("ctrlSta", item.get("sta"))) if item is not None else None
+        except TypeError, ValueError, OverflowError:
+            value = None
+        states.append({0: "grid", 1: "battery"}.get(value))
+    return tuple(states)
+
+
 def read_control_states(data: dict[str, Any]) -> dict[str, tuple[str | bool | None, ...]]:
-    """Derive state only from complete, unambiguous actual control arrays.
+    """Derive strict individual states and reference-compatible batch states.
 
     ctrlSta wins; sta is the reference fallback only when ctrlSta is absent.
     Never coerce invalid types or invent channel mapping from powCh.
@@ -76,6 +114,7 @@ def read_control_states(data: dict[str, Any]) -> dict[str, tuple[str | bool | No
             for item in items
         ]
         result[kind] = tuple(mapping.get(value) if type(value) is int else None for value in values)
+    result["batch_source"] = read_batch_sources(data)
     return result
 
 
@@ -133,6 +172,7 @@ class PanelControls:
                     "target": target,
                     "batch": batch,
                     "completed": [],
+                    "failed": [],
                 }
                 self._status()
                 try:
@@ -148,6 +188,8 @@ class PanelControls:
                     self.coordinator.async_control_error(error)
                     if isinstance(error, AuthenticationError):
                         self.coordinator.config_entry.async_start_reauth(self.coordinator.hass)
+                    if isinstance(error, BatchSwitchError):
+                        raise
                     raise HomeAssistantError(
                         "EcoFlow command failed; target was not confirmed"
                     ) from None
@@ -157,6 +199,7 @@ class PanelControls:
             self._tasks.discard(task)
 
     async def _set(self, kind: str, index: int, target: str | bool, *, batch: bool = False) -> None:
+        state_kind = "batch_source" if batch else kind
         value = (0 if target == "grid" else 1) if kind == "source" else (2 if target else 0)
         params = {
             "cmdSet": 11,
@@ -169,15 +212,15 @@ class PanelControls:
             self._require_enabled(kind, batch)
             self._status(channel=index + 1, attempt=attempt)
             snapshot = await self.coordinator.async_control_refresh()
-            if control_state(snapshot, kind, index) == target:
+            if control_state(snapshot, state_kind, index) == target:
                 return
             self._require_enabled(kind, batch)
             await self.coordinator.client.put_quota(params)
             await sleep(SETTLE_SECONDS if kind == "source" else CHARGE_SETTLE_SECONDS)
             snapshot = await self.coordinator.async_control_refresh()
-            if control_state(snapshot, kind, index) == target:
+            if control_state(snapshot, state_kind, index) == target:
                 return
-            if attempt < MAX_ATTEMPTS:
+            if batch or attempt < MAX_ATTEMPTS:
                 await sleep(RETRY_SECONDS)
         raise HomeAssistantError("EcoFlow target not confirmed after eight attempts")
 
@@ -233,14 +276,30 @@ class PanelControls:
             raise HomeAssistantError("EcoFlow control mode not confirmed after eight attempts")
 
     async def async_set_all_sources(self, target: str) -> dict[str, Any]:
-        """Explicit all-circuit action. Stop on first failure; never roll back."""
+        """Run shp_mode's complete ordered sequence and report failures at the end."""
         if target not in ("grid", "battery"):
             raise ServiceValidationError("Invalid source")
         async with self._operation("source", target, batch=True):
             for channel in CIRCUIT_ORDER:
-                await self._set("source", channel - 1, target, batch=True)
-                self._status(completed=[*self.status["completed"], channel])
+                self._require_enabled("source", batch=True)
+                try:
+                    await self._set("source", channel - 1, target, batch=True)
+                except Exception as error:  # Same per-channel boundary as shp_mode.run_mode.
+                    self._status(failed=[*self.status["failed"], channel])
+                    self.coordinator.async_control_error(error)
+                    if isinstance(error, AuthenticationError):
+                        self.coordinator.config_entry.async_start_reauth(self.coordinator.hass)
+                else:
+                    self._status(completed=[*self.status["completed"], channel])
                 await sleep(SETTLE_SECONDS)
+            if self.status["failed"]:
+                raise BatchSwitchError(
+                    translation_domain=DOMAIN,
+                    translation_key="batch_failed",
+                    translation_placeholders={
+                        "channels": ", ".join(map(str, self.status["failed"]))
+                    },
+                )
         return dict(self.status)
 
     async def async_cancel(self, *, shutdown: bool = False) -> None:

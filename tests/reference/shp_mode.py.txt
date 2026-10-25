@@ -1,0 +1,247 @@
+# /config/ecoflow/shp_mode.py
+
+import sys
+import time
+import logging
+from datetime import datetime
+
+from ecoflow_api import put_quota
+from ecoflow_api_cached import refresh_quota_all, get_quota_all
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger("ecoflow_shp_mode")
+
+GRID_ORDER = [7, 6, 3, 1, 2, 4, 5, 8, 9, 10]
+BATTERY_ORDER = GRID_ORDER
+
+SETTLE_SECONDS = 10
+RETRY_SECONDS = 15
+MAX_ATTEMPTS = 8
+
+
+class QuotaIncompleteError(RuntimeError):
+    pass
+
+
+def log(message):
+    line = f"{datetime.now().isoformat()} {message}"
+    print(line, file=sys.stderr, flush=True)
+    logger.warning(line)
+
+
+def desired_value(target):
+    if target == "grid":
+        return 0
+    if target == "battery":
+        return 1
+    raise ValueError(f"Invalid target: {target}")
+
+
+def _short_keys(value, limit=30):
+    if isinstance(value, dict):
+        return list(value.keys())[:limit]
+    return []
+
+
+def _extract_load_cmd_infos(quota):
+    """
+    EcoFlow quotaAll liefert offenbar nicht immer dieselbe JSON-Struktur.
+    Dieses Feld kann fehlen. Das ist kein Python-Fehler und kein bewiesener
+    Schaltfehler, sondern ein unvollständiger EcoFlow-Status.
+    """
+    if not isinstance(quota, dict):
+        return None
+
+    data = quota.get("data") or {}
+    if not isinstance(data, dict):
+        return None
+
+    # Variante 1: EcoFlow/OpenAPI flattened key
+    infos = data.get("heartbeat.loadCmdChCtrlInfos")
+    if isinstance(infos, list):
+        return infos
+
+    # Variante 2: verschachteltes heartbeat Objekt
+    heartbeat = data.get("heartbeat") or {}
+    if isinstance(heartbeat, dict):
+        infos = heartbeat.get("loadCmdChCtrlInfos")
+        if isinstance(infos, list):
+            return infos
+
+    return None
+
+
+def _channel_info_from_infos(infos, channel):
+    wanted_index = channel - 1
+
+    # Normalfall: Liste ist 0-basiert sortiert, also channel 7 => index 6.
+    if 0 <= wanted_index < len(infos) and isinstance(infos[wanted_index], dict):
+        return infos[wanted_index]
+
+    # Fallback: falls EcoFlow irgendwann ein ch-Feld liefert und die Liste anders sortiert ist.
+    for item in infos:
+        if not isinstance(item, dict):
+            continue
+        raw_ch = item.get("ch")
+        if raw_ch is None:
+            continue
+        try:
+            if int(raw_ch) == wanted_index:
+                return item
+        except Exception:
+            continue
+
+    return None
+
+
+def read_channel_state(channel):
+    quota = get_quota_all()
+    data = quota.get("data") or {}
+    infos = _extract_load_cmd_infos(quota)
+
+    if infos is None:
+        log(
+            "QUOTA INCOMPLETE loadCmdChCtrlInfos missing "
+            f"data_keys={_short_keys(data)} "
+            f"cached_at={quota.get('_cached_at')}"
+        )
+        return "unknown"
+
+    item = _channel_info_from_infos(infos, channel)
+    if item is None:
+        log(
+            "QUOTA INCOMPLETE channel info missing "
+            f"channel={channel} infos_len={len(infos)}"
+        )
+        return "unknown"
+
+    # Bisher wurde ctrlSta verwendet. sta ist nur Fallback, falls EcoFlow anders liefert.
+    raw_state = item.get("ctrlSta", item.get("sta"))
+    if raw_state is None:
+        log(f"QUOTA INCOMPLETE ctrlSta missing channel={channel} item={item}")
+        return "unknown"
+
+    try:
+        state_value = int(raw_state)
+    except Exception:
+        log(f"QUOTA INVALID ctrlSta not int channel={channel} raw={raw_state} item={item}")
+        return "unknown"
+
+    if state_value == 0:
+        return "grid"
+    if state_value == 1:
+        return "battery"
+
+    log(f"QUOTA UNKNOWN ctrlSta value channel={channel} value={state_value} item={item}")
+    return "unknown"
+
+
+def refresh_and_read_channel_state(channel):
+    refresh_quota_all()
+    return read_channel_state(channel)
+
+
+def set_channel_once(channel, target):
+    value = desired_value(target)
+
+    payload = {
+        "cmdSet": 11,
+        "id": 16,
+        "ch": channel - 1,
+        "ctrlMode": value,
+        "sta": value,
+    }
+
+    log(f"SET START channel={channel} target={target} payload={payload}")
+    response = put_quota(payload)
+    log(f"SET RESPONSE channel={channel} target={target} response={response}")
+
+    if response.get("code") != "0":
+        raise RuntimeError(response)
+
+
+def set_channel_until_confirmed(channel, target):
+    last_current = "unknown"
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        current = refresh_and_read_channel_state(channel)
+        last_current = current
+        log(f"CHECK channel={channel} target={target} current={current} attempt={attempt}/{MAX_ATTEMPTS}")
+
+        if current == target:
+            log(f"OK channel={channel} already {target}")
+            return True
+
+        # Auch bei unknown senden wir den Befehl. Unknown heißt: EcoFlow-Status ist unvollständig,
+        # nicht dass der Befehl verboten wäre.
+        log(f"TRY channel={channel} target={target} attempt={attempt}/{MAX_ATTEMPTS}")
+        set_channel_once(channel, target)
+
+        time.sleep(SETTLE_SECONDS)
+
+        current = refresh_and_read_channel_state(channel)
+        last_current = current
+        log(f"VERIFY channel={channel} target={target} current={current} attempt={attempt}/{MAX_ATTEMPTS}")
+
+        if current == target:
+            log(f"OK channel={channel} confirmed {target}")
+            return True
+
+        if current == "unknown":
+            log(
+                f"RETRY channel={channel} status=unknown wanted={target} "
+                f"attempt={attempt}/{MAX_ATTEMPTS}"
+            )
+        else:
+            log(
+                f"RETRY channel={channel} still={current} wanted={target} "
+                f"attempt={attempt}/{MAX_ATTEMPTS}"
+            )
+
+        time.sleep(RETRY_SECONDS)
+
+    raise RuntimeError(
+        f"Channel {channel} not confirmed as {target} after {MAX_ATTEMPTS} attempts; "
+        f"last_current={last_current}"
+    )
+
+
+def run_mode(target):
+    if target == "grid":
+        channels = GRID_ORDER
+    elif target == "battery":
+        channels = BATTERY_ORDER
+    else:
+        raise ValueError("Usage: shp_mode.py grid|battery")
+
+    ok = []
+    failed = []
+
+    log(f"START mode={target} channels={channels}")
+
+    for channel in channels:
+        log(f"CHANNEL START channel={channel} target={target}")
+        try:
+            set_channel_until_confirmed(channel, target)
+            ok.append(channel)
+        except Exception as error:
+            failed.append(channel)
+            log(f"CHANNEL FAILED channel={channel} target={target} error={repr(error)}")
+        time.sleep(SETTLE_SECONDS)
+
+    log(f"DONE mode={target} ok={ok} failed={failed}")
+
+    if failed:
+        raise RuntimeError(f"SHP mode {target} failed for channels {failed}")
+
+
+if __name__ == "__main__":
+    try:
+        if len(sys.argv) != 2:
+            raise ValueError("Usage: shp_mode.py grid|battery")
+
+        run_mode(sys.argv[1].lower())
+
+    except Exception as error:
+        log(f"FATAL error={repr(error)} args={sys.argv}")
+        sys.exit(2)
