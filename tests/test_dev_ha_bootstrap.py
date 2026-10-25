@@ -100,10 +100,14 @@ def test_partial_bootstrap_uses_existing_dev_login_without_recreating_user():
     ]
 
 
-def test_never_allows_non_dev_base_url():
+def test_never_allows_non_dev_base_url(monkeypatch):
+    monkeypatch.delenv("ECOFLOW_DEV_BOOTSTRAP", raising=False)
     with pytest.raises(BootstrapError, match="local DEV"):
         Client("http://homeassistant.local:8123")
     assert Client(BASE_URL).base_url == BASE_URL
+    with pytest.raises(BootstrapError, match="isolated DEV Compose"):
+        Client(COMPOSE_LOOPBACK_URL)
+    monkeypatch.setenv("ECOFLOW_DEV_BOOTSTRAP", "1")
     assert Client(COMPOSE_LOOPBACK_URL).base_url == COMPOSE_LOOPBACK_URL
     with pytest.raises(BootstrapError, match="local DEV"):
         Client("http://example.invalid:8123")
