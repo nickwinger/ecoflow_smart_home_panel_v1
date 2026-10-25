@@ -5,6 +5,7 @@
 homeassistant:
   name: "EcoFlow SHP v1 DEV"
   unit_system: metric
+  country: AT
   time_zone: Europe/Vienna
 
 default_config:

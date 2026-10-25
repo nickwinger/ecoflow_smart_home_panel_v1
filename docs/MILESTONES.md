@@ -154,3 +154,23 @@ then reported **364 passed in 23.59 seconds**, **99% coverage** (909 statements,
 compileall, diff and Compose checks also pass, as does
 `bash -n scripts/dev-ha.sh scripts/recreate.sh`. Official hassfest was also rerun
 after including the brand icon: **1 integration, 0 invalid**.
+
+## DEV follow-up — Austrian country default (2026-10-25)
+
+- `.devcontainer/ha-configuration.yaml` now sets `homeassistant.country: AT`
+  alongside `Europe/Vienna`. YAML-managed general settings remain locked in HA UI.
+- Existing DEV volumes are not replaced by the seed. The owner's running
+  `ecoflow-shp-v1-live-test` instance received only the missing country setting
+  and was restarted without resetting accounts, integration entries or history.
+- Runtime `/api/config` on the dedicated DEV loopback confirmed `country=AT`,
+  `time_zone=Europe/Vienna`, `state=RUNNING`. The live Repairs API confirmed
+  the country warning is absent; persisted registry files can retain inactive
+  historical entries. Temporary verification tokens were
+  revoked; no credentials were printed or committed.
+- `.venv/bin/pytest -q tests/test_devcontainer_compose.py tests/test_dev_ha_bootstrap.py tests/test_scripts_documentation.py --tb=short --show-capture=no --timeout=30`:
+  **14 passed in 0.58 seconds**. HA's country/time-zone validators,
+  `docker compose -f .devcontainer/ha.compose.yml config -q` and `git diff --check`: **passed**.
+- M1/M2/M3 behavior unchanged: 245 quota leaves, 44 enabled (16 essential,
+  20 circuit diagnostics and 8 storage diagnostics), 201 disabled. No device
+  commands, production changes or GitHub workflow dispatch. Manual check: refresh
+  the existing DEV General settings page and verify Austria. M4 remains open.

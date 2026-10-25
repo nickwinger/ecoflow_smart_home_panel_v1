@@ -30,6 +30,8 @@ Es gibt **kein** `initializeCommand` mehr, das vor dem Devcontainer-Aufbau seine
 
 ## 2. Integration im Browser konfigurieren
 
+Die DEV-Vorlage setzt **Österreich (`country: AT`)** und **`Europe/Vienna`**. Diese Angaben stehen unter `homeassistant` in `configuration.yaml` und sind deshalb in der HA-Oberfläche gesperrt. Die Vorlage wird nur beim Anlegen eines neuen DEV-Volumes kopiert. Bei einem bestehenden Volume muss `country: AT` einmalig im vorhandenen `homeassistant`-Abschnitt ergänzt und anschließend nur HA DEV neu gestartet werden; ein Reset ist dafür nicht nötig.
+
 1. **http://localhost:8124** öffnen und mit **test / test** einloggen. VS Codes automatisch geöffneter Forwarding-Port führt zur *selben* HA-DEV-Instanz, er kann aber eine eigene Browser-Anmeldung benötigen.
 2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **EcoFlow Smart Home Panel v1** suchen. Die Übersichtsseite zeigt *nur bereits eingerichtete* Integrationen; die neue Integration steht deshalb **nicht schon als Kachel auf der Übersichtsseite**.
 3. Einmalig Access Key, Secret Key, Seriennummer und EU/global-Region des **echten SHP v1** eingeben. Die Secrets liegen ausschließlich im lokalen DEV-Volume und werden nicht in Git oder in Skripte übernommen.
