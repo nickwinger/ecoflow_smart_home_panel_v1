@@ -107,7 +107,7 @@ class Client:
                 for provider in providers
             ):
                 return set(ALL_STEPS)
-            raise BootstrapError("DEV onboarding view missing without a local auth provider")
+            raise BootstrapError("DEV onboarding view missing without a local auth provider") from None
         if not isinstance(progress, list) or not all(
             isinstance(item, dict)
             and isinstance(item.get("step"), str)
