@@ -34,6 +34,7 @@ def test_compose_has_only_disposable_ha_storage_and_separate_workspace():
     assert services["workspace"]["depends_on"]["homeassistant"]["condition"] == "service_started"
     assert services["bootstrap"]["depends_on"]["homeassistant"]["condition"] == "service_started"
     assert services["bootstrap"]["network_mode"] == "service:homeassistant"
+    assert services["bootstrap"]["environment"]["ECOFLOW_DEV_BOOTSTRAP"] == "1"
     assert "networks" not in services["bootstrap"]
     assert "--compose-loopback" in services["bootstrap"]["command"]
     for service in services.values():
