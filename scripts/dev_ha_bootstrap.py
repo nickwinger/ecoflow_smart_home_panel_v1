@@ -21,6 +21,7 @@ from typing import Any
 from urllib import error, parse, request
 
 BASE_URL = "http://127.0.0.1:8124"
+COMPOSE_SERVICE_URL = "http://homeassistant:8123"
 CLIENT_ID = "http://localhost:8124/"
 REDIRECT_URI = "http://localhost:8124/?auth_callback=1"
 DEV_USERNAME = "test"
@@ -44,7 +45,7 @@ class Client:
     """Communicate only with the hard-coded localhost DEV Home Assistant."""
 
     def __init__(self, base_url: str = BASE_URL) -> None:
-        if base_url != BASE_URL:
+        if base_url not in (BASE_URL, COMPOSE_SERVICE_URL):
             raise BootstrapError("Only the dedicated local DEV Home Assistant is permitted")
         self.base_url = base_url
 
@@ -221,11 +222,12 @@ def bootstrap(client: Client, timeout: int = 300) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Bootstrap localhost EcoFlow DEV HA only")
     parser.add_argument("--timeout", type=int, default=300, help="Maximum readiness wait seconds")
+    parser.add_argument("--compose-service", action="store_true", help="Use fixed DEV Compose hostname")
     args = parser.parse_args()
     if not 1 <= args.timeout <= 900:
         parser.error("--timeout must be between 1 and 900")
     try:
-        bootstrap(Client(), timeout=args.timeout)
+        bootstrap(Client(COMPOSE_SERVICE_URL if args.compose_service else BASE_URL), timeout=args.timeout)
     except BootstrapError as exc:
         parser.exit(1, f"DEV bootstrap error: {exc}\n")
     return 0
