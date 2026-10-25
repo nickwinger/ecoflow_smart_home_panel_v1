@@ -13,6 +13,7 @@ from scripts.dev_ha_bootstrap import (
     BASE_URL,
     DEV_PASSWORD,
     DEV_USERNAME,
+    APIStatusError,
     BootstrapError,
     Client,
     bootstrap,
@@ -120,3 +121,36 @@ def test_bash_entrypoint_is_valid_and_help_uses_no_docker():
     assert help_result.returncode == 0, help_result.stderr
     assert "reset" in help_result.stdout
     assert "test / test" in help_result.stdout
+
+
+def test_completed_installation_without_onboarding_view(monkeypatch):
+    """After HA restart the onboarding component no longer installs that view."""
+    client = Client()
+    requested = []
+
+    def fake_call(path, **_):
+        requested.append(path)
+        if path == "/api/onboarding":
+            raise APIStatusError(path, 404)
+        if path == "/auth/providers":
+            return {"providers": [{"name": "Home Assistant", "type": "homeassistant", "id": None}]}
+        raise AssertionError(path)
+
+    monkeypatch.setattr(client, "call", fake_call)
+    assert client.steps_done() == ALL_STEPS
+    assert requested == ["/api/onboarding", "/auth/providers"]
+
+
+def test_missing_onboarding_view_without_auth_provider_is_not_a_success(monkeypatch):
+    client = Client()
+
+    def fake_call(path, **_):
+        if path == "/api/onboarding":
+            raise APIStatusError(path, 404)
+        if path == "/auth/providers":
+            return {"providers": []}
+        raise AssertionError(path)
+
+    monkeypatch.setattr(client, "call", fake_call)
+    with pytest.raises(BootstrapError, match="onboarding view missing"):
+        client.steps_done()

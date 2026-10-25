@@ -32,6 +32,14 @@ class BootstrapError(RuntimeError):
     """An intentionally sanitized DEV bootstrap failure."""
 
 
+class APIStatusError(BootstrapError):
+    """A non-success HTTP status from the local DEV API."""
+
+    def __init__(self, path: str, status: int) -> None:
+        super().__init__(f"Home Assistant returned HTTP {status} for {path}")
+        self.status = status
+
+
 class Client:
     """Communicate only with the hard-coded localhost DEV Home Assistant."""
 
@@ -71,7 +79,7 @@ class Client:
             with request.urlopen(req, timeout=15) as response:
                 body = response.read(131_072)
         except error.HTTPError as exc:
-            raise BootstrapError(f"Home Assistant returned HTTP {exc.code} for {path}") from None
+            raise APIStatusError(path, exc.code) from None
         except (error.URLError, TimeoutError, OSError) as exc:
             raise BootstrapError(f"Cannot reach DEV Home Assistant at {path}") from exc
         try:
@@ -80,7 +88,26 @@ class Client:
             raise BootstrapError(f"Invalid JSON response for {path}") from None
 
     def steps_done(self) -> set[str]:
-        progress = self.call("/api/onboarding")
+        try:
+            progress = self.call("/api/onboarding")
+        except APIStatusError as exc:
+            if exc.status != 404:
+                raise
+            # HA 2026.10.3 does not register onboarding views after a fully
+            # completed setup on subsequent process starts. /auth/providers
+            # stays available, and only responds normally after user onboarding.
+            provider_status = self.call("/auth/providers")
+            providers = (
+                provider_status.get("providers")
+                if isinstance(provider_status, dict)
+                else None
+            )
+            if isinstance(providers, list) and any(
+                isinstance(provider, dict) and provider.get("type") == "homeassistant"
+                for provider in providers
+            ):
+                return set(ALL_STEPS)
+            raise BootstrapError("DEV onboarding view missing without a local auth provider")
         if not isinstance(progress, list) or not all(
             isinstance(item, dict)
             and isinstance(item.get("step"), str)
