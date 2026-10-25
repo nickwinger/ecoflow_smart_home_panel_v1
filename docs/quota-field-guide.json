@@ -1,0 +1,886 @@
+{
+  "title": "EcoFlow Smart Home Panel v1 — get_quota_all field descriptions",
+  "source": "EcoFlow Smart Home Panel ModuleType / GetAllQuotaResponse documentation",
+  "scope": "Smart Home Panel (SP10); not generic EcoFlow products",
+  "extracted_date": "2026-10-25",
+  "provenance": "Existing Home Assistant ha_diag__get_ecoflow_field_guide, derived from SHP v1 ModuleType / GetAllQuotaResponse documentation; descriptive metadata only, no production payloads.",
+  "semantic_guards": [
+    "Path pattern [] matches each indexed array member.",
+    "Most device fields correspond to response.data keys, which are often literal dotted keys; parser must handle both literal dotted keys and nested objects.",
+    "The local _cached_at and _has_loadCmdChCtrlInfos fields originate in the existing cache layer and are NOT raw EcoFlow quota data.",
+    "Inferred/unknown notes do not establish unit, scaling, enum or type correctness. Do not guess or silently normalize.",
+    "The seed covers 81 documented patterns but is not the full set of raw scalar quota leaves; unknown fields must get disabled-by-default entities with truthful fallback descriptions.",
+    "A disabled entity must not generate history or a shadow raw JSON archive."
+  ],
+  "field_count": 81,
+  "fields": [
+    {
+      "path": "_cached_at",
+      "friendly_name_de": "Cache-Zeitstempel",
+      "meaning_de": "Zeitpunkt der lokalen Cache-Aktualisierung",
+      "value_type": "integer",
+      "unit": "Unix-Sekunden",
+      "enum": null,
+      "notes": "Lokales Feld der EcoFlow-Cache-Implementierung, kein Geräte-Messwert.",
+      "confidence": "local_implementation"
+    },
+    {
+      "path": "_has_loadCmdChCtrlInfos",
+      "friendly_name_de": "Cache-Vollständigkeitsmerkmal",
+      "meaning_de": "Gibt an, ob die erwarteten Kanalsteuerinformationen im Cache enthalten sind",
+      "value_type": "boolean",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "local_implementation"
+    },
+    {
+      "path": "heartbeat.gridSta",
+      "friendly_name_de": "Netzstatus",
+      "meaning_de": "Ob Strom aus dem öffentlichen Netz verfügbar ist",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.workTime",
+      "friendly_name_de": "Gerätebetriebszeit",
+      "meaning_de": "Laut API-Dokumentation Gerätebetriebszeit in Minuten",
+      "value_type": "integer",
+      "unit": "min",
+      "enum": null,
+      "notes": "Vorhandene Beispielwerte sind ungewöhnlich hoch; vor Umrechnung Skalierung verifizieren.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupFullCap",
+      "friendly_name_de": "Vollkapazität Backup",
+      "meaning_de": "Angegebene maximale Kapazität des Backup-Systems",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Der Dokumentation ist keine sichere Einheit bzw. Skalierung zu entnehmen.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupBatPer",
+      "friendly_name_de": "Batteriestand Backup",
+      "meaning_de": "Laut Dokumentation Batterieladezustand in Prozent",
+      "value_type": "integer",
+      "unit": "%",
+      "enum": null,
+      "notes": "Beispielcache enthält Werte über 100; Skalierung oder Datengültigkeit unbekannt. Niemals unbesehen als Prozent anzeigen.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.gridDayWatth",
+      "friendly_name_de": "Netzenergie heute",
+      "meaning_de": "Täglicher Energieverbrauch aus dem Stromnetz",
+      "value_type": "number",
+      "unit": "Wh",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupDayWatth",
+      "friendly_name_de": "Backup-Energie heute",
+      "meaning_de": "Täglicher Energieverbrauch aus dem Backup-System",
+      "value_type": "number",
+      "unit": "Wh",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupChaTime",
+      "friendly_name_de": "Backup-Entladezeit",
+      "meaning_de": "Von der Dokumentation als Backup-Entladezeit beschrieben",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Zeitformat bzw. Einheit nicht hinreichend definiert.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time",
+      "friendly_name_de": "Gerätezeit",
+      "meaning_de": "RTC-Uhrzeit des Geräts mit Jahr, Monat, Tag, Stunde, Minute, Sekunde und Wochentag",
+      "value_type": "object",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.year",
+      "friendly_name_de": "Gerätezeit Jahr",
+      "meaning_de": "Jahr der internen Geräteuhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.month",
+      "friendly_name_de": "Gerätezeit Monat",
+      "meaning_de": "Monat der internen Geräteuhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.day",
+      "friendly_name_de": "Gerätezeit Tag",
+      "meaning_de": "Kalendertag der internen Geräteuhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.hour",
+      "friendly_name_de": "Gerätezeit Stunde",
+      "meaning_de": "Stunde der internen Geräteuhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.min",
+      "friendly_name_de": "Gerätezeit Minute",
+      "meaning_de": "Minute der internen Geräteuhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.sec",
+      "friendly_name_de": "Gerätezeit Sekunde",
+      "meaning_de": "Sekunde der internen Geräteuhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.time.week",
+      "friendly_name_de": "Gerätezeit Wochentag",
+      "meaning_de": "Wochentag-Zahl der internen Uhr",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Zuordnung der Wochentagszahl nicht eindeutig dokumentiert.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.loadCmdChCtrlInfos",
+      "friendly_name_de": "Kanalsteuerung 1 bis 10",
+      "meaning_de": "Array der Kanalsteuerinformationen für die Lastkanäle",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Positionen 0..9 entsprechen den Lastkanälen; powCh enthält im Beispiel identische Werte und darf nicht als Index verwendet werden.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.loadCmdChCtrlInfos[].powCh",
+      "friendly_name_de": "Kanalcode",
+      "meaning_de": "Im Protokoll als Kanalnummer bezeichnet",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Nicht aus powCh allein den tatsächlichen Kanal ableiten.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.loadCmdChCtrlInfos[].ctrlSta",
+      "friendly_name_de": "Versorgungsquelle",
+      "meaning_de": "Ausgewählte Stromversorgung des jeweiligen Kanals",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Netzstrom",
+        "1": "Batteriespeicher",
+        "2": "Aus"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.loadCmdChCtrlInfos[].ctrlMode",
+      "friendly_name_de": "Kanalsteuerungsmodus",
+      "meaning_de": "Ob der Kanal automatisch oder manuell gesteuert wird",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Automatisch",
+        "1": "Manuell"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.loadCmdChCtrlInfos[].priority",
+      "friendly_name_de": "Kanalpriorität",
+      "meaning_de": "Priorität des Lastkanals bei der Notstromverwaltung",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupCmdChCtrlInfos",
+      "friendly_name_de": "Steuerung Backup-Kanäle",
+      "meaning_de": "Array mit Steuerinformationen für die Backup-Kanäle",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Dokumentierte Backup-Kanäle 10–11; powCh im Beispiel nicht eindeutig.",
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupCmdChCtrlInfos[].ctrlSta",
+      "friendly_name_de": "Backup-Versorgungsquelle",
+      "meaning_de": "Stromquelle des Backup-Kanals",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Netzstrom",
+        "1": "Batteriespeicher",
+        "2": "Aus"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupCmdChCtrlInfos[].ctrlMode",
+      "friendly_name_de": "Backup-Steuerungsmodus",
+      "meaning_de": "Automatisch/manuell",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Automatisch",
+        "1": "Manuell"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "heartbeat.backupCmdChCtrlInfos[].priority",
+      "friendly_name_de": "Backup-Kanalpriorität",
+      "meaning_de": "Priorität des Backup-Kanals",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "splitPhaseInfo.cfgList",
+      "friendly_name_de": "Split-Phase-Schaltung",
+      "meaning_de": "Liste der Split-Phase-Kanalverknüpfungen, laut Dokumentation Länge 10",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "splitPhaseInfo.cfgList[].linkMark",
+      "friendly_name_de": "Split-Phase-Markierung",
+      "meaning_de": "Kennzeichnung, ob Split-Phase konfiguriert ist",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Nicht verknüpft",
+        "1": "Verknüpft"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "splitPhaseInfo.cfgList[].linkCh",
+      "friendly_name_de": "Verknüpfter Kanal",
+      "meaning_de": "Kanalnummer für die Split-Phase-Verknüpfung",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "loadChCurInfo.cur",
+      "friendly_name_de": "Stromkonfiguration pro Kanal",
+      "meaning_de": "Dokumentierte Stromstufen der Kanäle",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Dokumentierte Stufen 6/13/16/20/30. Aktueller Beispielcache zeigt 12 Einträge mit diesen zulässigen Werten: vermutlich 10 Last- plus 2 Backup-Kanäle. Einheit A ist naheliegend, aber in diesem Text nicht explizit bestätigt.",
+      "confidence": "documented"
+    },
+    {
+      "path": "gridInfo.gridVol",
+      "friendly_name_de": "Netz-Nennspannung",
+      "meaning_de": "Konfigurierte Netzspannung, laut Dokumentation Wertebereich 100 bis 250",
+      "value_type": "integer",
+      "unit": "V",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "gridInfo.gridFreq",
+      "friendly_name_de": "Netzfrequenz",
+      "meaning_de": "Konfigurierte Netzfrequenz, laut Dokumentation 50 oder 60",
+      "value_type": "integer",
+      "unit": "Hz",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "epsModeInfo.eps",
+      "friendly_name_de": "EPS-Modus",
+      "meaning_de": "Notstrommodus ein oder aus",
+      "value_type": "boolean",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "chUseInfo.isEnable",
+      "friendly_name_de": "Aktivierte Kanäle",
+      "meaning_de": "Array mit Freigaben der Lastkanäle; Index 0 ist Kanal 1",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Nicht mit Stromquelle oder realer Netzverfügbarkeit gleichsetzen.",
+      "confidence": "documented"
+    },
+    {
+      "path": "loadChInfo",
+      "friendly_name_de": "Lastkanal-Metadaten",
+      "meaning_de": "Container der vom Benutzer vergebenen Kanálnamen",
+      "value_type": "object",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "loadChInfo.info",
+      "friendly_name_de": "Lastkanal-Namen",
+      "meaning_de": "Array der vom Benutzer vergebenen Kanalnamen und Symbole, Index 0 ist Kanal 1",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "loadChInfo.info[].chName",
+      "friendly_name_de": "Kanalname",
+      "meaning_de": "Benutzerdefinierter Anzeigename des betreffenden Lastkanals",
+      "value_type": "string",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "loadChInfo.info[].iconNum",
+      "friendly_name_de": "Kanalicon",
+      "meaning_de": "Index des zugeordneten Symbols",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Symbolzuordnung nicht dokumentiert.",
+      "confidence": "documented"
+    },
+    {
+      "path": "emergencyStrategy.chSta",
+      "friendly_name_de": "Notstrom-Kanalregeln",
+      "meaning_de": "Liste der Kanalprioritäten und Aktivierungszustände",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "emergencyStrategy.chSta[].priority",
+      "friendly_name_de": "Notstrom-Priorität",
+      "meaning_de": "Priorität des betreffenden Kanals",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "emergencyStrategy.chSta[].isEnable",
+      "friendly_name_de": "Notstromregel aktiv",
+      "meaning_de": "Freigabe des Kanals in der Notstromregel",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "emergencyStrategy.backupMode",
+      "friendly_name_de": "Backup-Strategiemodus",
+      "meaning_de": "Konfigurationswert für Backup-Verhalten",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Numerische Bedeutung im bereitgestellten Text nicht dokumentiert.",
+      "confidence": "documented"
+    },
+    {
+      "path": "emergencyStrategy.overloadMode",
+      "friendly_name_de": "Überlaststrategie",
+      "meaning_de": "Konfigurationswert für Überlastverhalten",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Numerische Bedeutung im bereitgestellten Text nicht dokumentiert.",
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask",
+      "friendly_name_de": "Geplante Aufgaben",
+      "meaning_de": "Konfigurierte Lade-/Entladeaufgaben",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].index",
+      "friendly_name_de": "Aufgabenindex",
+      "meaning_de": "Index der geplanten Aufgabe",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.param.hightBattery",
+      "friendly_name_de": "Obere Ladegrenze",
+      "meaning_de": "Ziel für Batterieladung; Protokoll schreibt 'hightBattery'",
+      "value_type": "integer",
+      "unit": "%",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.param.lowBattery",
+      "friendly_name_de": "Untere Ladegrenze",
+      "meaning_de": "Unterer Ladezustand der Zeitplan-Regel",
+      "value_type": "integer",
+      "unit": "%",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.param.chChargeWatt",
+      "friendly_name_de": "Ladeleistung",
+      "meaning_de": "Konfigurierte Ladeleistung",
+      "value_type": "integer",
+      "unit": "W",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.param.chSta",
+      "friendly_name_de": "Zeitplan-Kanalauswahl",
+      "meaning_de": "Ausgewählte Kanäle des Zeitplans, 0/1 je Arrayposition",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.timeScale",
+      "friendly_name_de": "Zeitplan-Bitmaske",
+      "meaning_de": "Kodierte Zeitslots",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Codierung der einzelnen Bits im Dokument nicht erläutert.",
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.isCfg",
+      "friendly_name_de": "Zeitplan konfiguriert",
+      "meaning_de": "Ob die Aufgabe konfiguriert wurde",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.type",
+      "friendly_name_de": "Zeitplan-Aufgabentyp",
+      "meaning_de": "Laden oder Entladen",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "1": "Laden",
+        "2": "Entladen"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.isEnable",
+      "friendly_name_de": "Zeitplan aktiviert",
+      "meaning_de": "Aktivierungszustand der Aufgabe",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.timeRange.timeMode",
+      "friendly_name_de": "Zeitplan-Wiederholung",
+      "meaning_de": "Täglich, wöchentlich, monatlich oder ein konkretes Datum",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Täglich",
+        "1": "Wöchentlich",
+        "2": "Monatlich",
+        "3": "Konkretes Datum"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.timeRange.isEnable",
+      "friendly_name_de": "Zeitfenster aktiviert",
+      "meaning_de": "Ob das Zeitfenster aktiv ist",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.timeRange.startTime",
+      "friendly_name_de": "Zeitfenster-Beginn",
+      "meaning_de": "Startzeit im TimeInfo-Objekt",
+      "value_type": "object",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "timeTask[].cfg.comCfg.timeRange.endTime",
+      "friendly_name_de": "Zeitfenster-Ende",
+      "meaning_de": "Endzeit im TimeInfo-Objekt",
+      "value_type": "object",
+      "unit": null,
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "cfgSta.sta",
+      "friendly_name_de": "Konfigurationsstatus",
+      "meaning_de": "Ob die Gerätekonfiguration aktiviert ist",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "backupChaDiscCfg.forceChargeHigh",
+      "friendly_name_de": "Obere Backup-Ladegrenze",
+      "meaning_de": "Oberer Schwellenwert für das Laden",
+      "value_type": "integer",
+      "unit": "%",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "backupChaDiscCfg.discLower",
+      "friendly_name_de": "Untere Backup-Entladegrenze",
+      "meaning_de": "Unterer Schwellenwert für das Entladen",
+      "value_type": "integer",
+      "unit": "%",
+      "enum": null,
+      "notes": null,
+      "confidence": "documented"
+    },
+    {
+      "path": "channelPower.infoList",
+      "friendly_name_de": "Kanalleistungen",
+      "meaning_de": "Array mit aktuell gemeldeten Leistungswerten je Kanal",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Beobachtet: 12 Einträge. Erste 10 vermutlich Lastkanäle, letzte 2 Backup-Kanäle. Indexzuordnung prüfen.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "channelPower.infoList[].chWatt",
+      "friendly_name_de": "Kanalwirkleistung",
+      "meaning_de": "Aktueller Leistungswert des Kanals (Feldname chWatt)",
+      "value_type": "number",
+      "unit": "W",
+      "enum": null,
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "channelPower.infoList[].powType",
+      "friendly_name_de": "Kanal-Leistungstyp",
+      "meaning_de": "Undokumentierter Typcode zur Kanalleistung",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Nicht stillschweigend als Netz-/Batteriequelle interpretieren.",
+      "confidence": "unknown"
+    },
+    {
+      "path": "heartbeat.energyInfos",
+      "friendly_name_de": "Batterie-/Energiespeicherinformationen",
+      "meaning_de": "Array von Speicher-/Batterieeinträgen",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Nicht Bestandteil des vom Nutzer gelieferten GetAllQuotaResponse-Feldkatalogs.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].batteryPercentage",
+      "friendly_name_de": "Batteriestand Einzelgerät",
+      "meaning_de": "Gemeldeter Batteriestand des jeweiligen Speichereintrags",
+      "value_type": "integer",
+      "unit": "%",
+      "enum": null,
+      "notes": "Der aktuelle Beispielcache zeigt 49 und 30; das Panel zeigt 40. Gewichtung/Aggregation nicht dokumentiert.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].outputPower",
+      "friendly_name_de": "Leistung des Speichers",
+      "meaning_de": "Vom Einzelgerät gemeldete Ausgangsleistung",
+      "value_type": "number",
+      "unit": "W",
+      "enum": null,
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].emsBatTemp",
+      "friendly_name_de": "Batterietemperatur",
+      "meaning_de": "Gemeldete Batterie-Temperatur",
+      "value_type": "number",
+      "unit": "°C",
+      "enum": null,
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].fullCap",
+      "friendly_name_de": "Kapazitätsrohwert",
+      "meaning_de": "Batterie-Kapazitätsfeld des Gerätes",
+      "value_type": "number",
+      "unit": null,
+      "enum": null,
+      "notes": "Nicht ohne belegte Skalierung als Wh oder Ah interpretieren.",
+      "confidence": "unknown"
+    },
+    {
+      "path": "heartbeat.energyInfos[].stateBean.isConnect",
+      "friendly_name_de": "Speicher verbunden",
+      "meaning_de": "Verbindungsflag des einzelnen Speichers",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].stateBean.isEnable",
+      "friendly_name_de": "Speicher freigegeben",
+      "meaning_de": "Freigabeflag des einzelnen Speichers",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].stateBean.isGridCharge",
+      "friendly_name_de": "Speicher-Netzladung",
+      "meaning_de": "Flag für Laden aus dem Netz",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.energyInfos[].stateBean.isMpptCharge",
+      "friendly_name_de": "Speicher-MPPT-Ladung",
+      "meaning_de": "Flag für MPPT-/Solar-Ladung",
+      "value_type": "integer",
+      "unit": null,
+      "enum": {
+        "0": "Aus / Nein",
+        "1": "Ein / Ja"
+      },
+      "notes": null,
+      "confidence": "inferred"
+    },
+    {
+      "path": "mainsLoadWatt.watth",
+      "friendly_name_de": "Netzlast-Energiereihen",
+      "meaning_de": "Stündlich angeordnete Energiewerte aus dem Stromnetz (vermutlich)",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Arraystruktur beobachtet; Zeitbezug, Skalierung und Messintervall verifizieren.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "backupLoadWatt.watth",
+      "friendly_name_de": "Backup-Energiereihen",
+      "meaning_de": "Array der Backup-Energieverbräuche",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Zeitbezug und Messintervall nicht sicher.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "topupLoadWatt.watth",
+      "friendly_name_de": "Lade-Energiereihen",
+      "meaning_de": "Array der Ladeenergie",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Zeitbezug und Messintervall nicht sicher.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "selfCheck.errorCode",
+      "friendly_name_de": "Selbsttest-Fehlercode",
+      "meaning_de": "Fehlercode der internen Selbstprüfung",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Wert 0 legt keinen Fehler nahe, ist hier aber nicht durch Fehlercode-Tabelle belegt.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "selfCheck.result",
+      "friendly_name_de": "Selbsttest-Ergebniscode",
+      "meaning_de": "Gerätespezifischer Statuscode der Selbstprüfung",
+      "value_type": "integer",
+      "unit": null,
+      "enum": null,
+      "notes": "Code 1 wird NICHT ohne Enum-Tabelle als erfolgreich bewertet.",
+      "confidence": "unknown"
+    },
+    {
+      "path": "selfCheck.vIn",
+      "friendly_name_de": "Eingangsspannungen",
+      "meaning_de": "Array mit Eingangsmesswerten",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Im Beispiel Werte ca. 234; vermutlich V, ohne formale Einheitenzuordnung.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "selfCheck.vOut",
+      "friendly_name_de": "Ausgangs-Selbsttestwerte",
+      "meaning_de": "Array numerischer Selbsttestwerte",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Eindeutige Einheit und Bedeutung nicht dokumentiert.",
+      "confidence": "unknown"
+    },
+    {
+      "path": "areaInfo.area",
+      "friendly_name_de": "Konfigurierte Region",
+      "meaning_de": "Vom Gerät gespeicherte Regionsbezeichnung",
+      "value_type": "string",
+      "unit": null,
+      "enum": null,
+      "notes": "Kann Nullzeichen-Padding enthalten; das Original bleibt unverändert.",
+      "confidence": "inferred"
+    },
+    {
+      "path": "heartbeat.errorCodes",
+      "friendly_name_de": "Fehlercode-Liste",
+      "meaning_de": "Array von Gerätefehlercodes",
+      "value_type": "array",
+      "unit": null,
+      "enum": null,
+      "notes": "Nullwerte allein beweisen ohne Fehlercode-Legende nicht die Fehlerfreiheit.",
+      "confidence": "inferred"
+    }
+  ]
+}
