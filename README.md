@@ -1,5 +1,7 @@
 # ⚡ EcoFlow Smart Home Panel v1
 
+<img src="custom_components/ecoflow_smart_home_panel_v1/brand/icon.png" width="128" alt="EcoFlow Smart Home Panel v1 icon" />
+
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
