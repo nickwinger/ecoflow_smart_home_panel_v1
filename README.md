@@ -94,6 +94,7 @@ For full field descriptions and technical details, see the [entity catalog](docs
 Develop and test against a **separate, disposable Home Assistant instance** — never your production configuration.
 
 - [Local VS Code / WSL Dev Container guide](docs/LOCAL_LIVE_TEST.md)
+- [Developer scripts and complete HA DEV reinstall](scripts.md)
 - [Technical architecture](docs/ARCHITECTURE.md)
 - [Migration from existing helper scripts](docs/MIGRATION.md)
 - [API references and data provenance](docs/REFERENCE_SOURCES.md)

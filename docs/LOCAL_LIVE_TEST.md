@@ -47,12 +47,14 @@ Docker-Kommandos im **WSL-Host-Terminal** ausführen (nicht im isolierten Python
 | Status | `bash scripts/dev-ha.sh status` | Zeigt laufende DEV-Dienste |
 | Logs | `bash scripts/dev-ha.sh logs` | Live-Log (`Ctrl+C` beendet nur die Ansicht) |
 | Nur HA DEV stoppen | `bash scripts/dev-ha.sh stop` | Testdaten und Python-Arbeitscontainer bleiben |
-| **Komplett neu anfangen** | `bash scripts/dev-ha.sh reset` | Löscht **nur** das HA-DEV-Volume, startet HA mit `test/test` neu |
+| **Komplett neu anfangen (Fresh Install)** | `bash scripts/recreate.sh` (oder `bash scripts/dev-ha.sh reset`) | Löscht **nur** das HA-DEV-Volume, startet HA mit `test/test` neu |
 | DEV-Daten nur löschen | `bash scripts/dev-ha.sh clean` | Löscht die isolierte HA-Konfiguration ohne Neustart |
 
 Beim `reset` werden ausschließlich die HA-DEV-Konten, eingerichteten EcoFlow-Schlüssel, Geräte-/Entitätsregister und Recorder-Historie gelöscht. Das Git-Repository, der geöffnete Python-Devcontainer und deine produktive Home-Assistant-Installation bleiben bestehen. Die Funktionen greifen **nicht** auf produktive `/config`-Pfade oder produktive Docker-Volumes zu.
 
 Wenn du nur neue Python-Sensorlogik, den Katalog oder Übersetzungen testest, zuerst `restart` verwenden. `reset` brauchst du, um Entitäts-IDs und Registry-Migrationen gegen eine vollständig neue Installation zu testen.
+
+Eine vollständige Befehlsübersicht steht in [scripts.md](../scripts.md). Das Fresh-Install-Skript ist [scripts/recreate.sh](../scripts/recreate.sh). 
 
 ## 4. Integration fehlt in „Integration hinzufügen“?
 
