@@ -11,7 +11,7 @@ import pytest
 from scripts.dev_ha_bootstrap import (
     ALL_STEPS,
     BASE_URL,
-    COMPOSE_SERVICE_URL,
+    COMPOSE_LOOPBACK_URL,
     DEV_PASSWORD,
     DEV_USERNAME,
     APIStatusError,
@@ -104,7 +104,9 @@ def test_never_allows_non_dev_base_url():
     with pytest.raises(BootstrapError, match="local DEV"):
         Client("http://homeassistant.local:8123")
     assert Client(BASE_URL).base_url == BASE_URL
-    assert Client(COMPOSE_SERVICE_URL).base_url == COMPOSE_SERVICE_URL
+    assert Client(COMPOSE_LOOPBACK_URL).base_url == COMPOSE_LOOPBACK_URL
+    with pytest.raises(BootstrapError, match="local DEV"):
+        Client("http://example.invalid:8123")
 
 
 def test_rejects_absolute_url_paths_before_network():
@@ -159,3 +161,16 @@ def test_missing_onboarding_view_without_auth_provider_is_not_a_success(monkeypa
     monkeypatch.setattr(client, "call", fake_call)
     with pytest.raises(BootstrapError, match="onboarding view missing"):
         client.steps_done()
+
+
+def test_bootstrap_refuses_cross_host_http_redirect():
+    from urllib import request
+
+    from scripts.dev_ha_bootstrap import RejectRedirects
+
+    handler = RejectRedirects()
+    with pytest.raises(BootstrapError, match="refuses HTTP redirects"):
+        handler.redirect_request(
+            request.Request("http://127.0.0.1:8123/api/onboarding"),
+            None, 302, "Found", {}, "http://127.0.0.1:8124/api/onboarding"
+        )

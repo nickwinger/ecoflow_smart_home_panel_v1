@@ -21,7 +21,9 @@ from typing import Any
 from urllib import error, parse, request
 
 BASE_URL = "http://127.0.0.1:8124"
-COMPOSE_SERVICE_URL = "http://homeassistant:8123"
+# The bootstrap shares the DEV Home Assistant network namespace.
+# This loopback points to DEV HA, not the Docker host or production.
+COMPOSE_LOOPBACK_URL = "http://127.0.0.1:8123"
 CLIENT_ID = "http://localhost:8124/"
 REDIRECT_URI = "http://localhost:8124/?auth_callback=1"
 DEV_USERNAME = "test"
@@ -41,13 +43,22 @@ class APIStatusError(BootstrapError):
         self.status = status
 
 
+class RejectRedirects(request.HTTPRedirectHandler):
+    """Prevent leaking bootstrap credentials through a redirect."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        """Do not redirect away from the local DEV instance."""
+        raise BootstrapError("DEV bootstrap refuses HTTP redirects")
+
+
 class Client:
     """Communicate only with the hard-coded localhost DEV Home Assistant."""
 
     def __init__(self, base_url: str = BASE_URL) -> None:
-        if base_url not in (BASE_URL, COMPOSE_SERVICE_URL):
+        if base_url not in (BASE_URL, COMPOSE_LOOPBACK_URL):
             raise BootstrapError("Only the dedicated local DEV Home Assistant is permitted")
         self.base_url = base_url
+        self._opener = request.build_opener(request.ProxyHandler({}), RejectRedirects())
 
     def call(
         self,
@@ -77,7 +88,7 @@ class Client:
             method="POST" if data is not None else "GET",
         )
         try:
-            with request.urlopen(req, timeout=15) as response:
+            with self._opener.open(req, timeout=15) as response:
                 body = response.read(131_072)
         except error.HTTPError as exc:
             raise APIStatusError(path, exc.code) from None
@@ -223,14 +234,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Bootstrap localhost EcoFlow DEV HA only")
     parser.add_argument("--timeout", type=int, default=300, help="Maximum readiness wait seconds")
     parser.add_argument(
-        "--compose-service", action="store_true", help="Use fixed DEV Compose hostname"
+        "--compose-loopback", action="store_true", help="Use loopback of the DEV HA container"
     )
     args = parser.parse_args()
     if not 1 <= args.timeout <= 900:
         parser.error("--timeout must be between 1 and 900")
     try:
         bootstrap(
-            Client(COMPOSE_SERVICE_URL if args.compose_service else BASE_URL), timeout=args.timeout
+            Client(COMPOSE_LOOPBACK_URL if args.compose_loopback else BASE_URL), timeout=args.timeout
         )
     except BootstrapError as exc:
         parser.exit(1, f"DEV bootstrap error: {exc}\n")

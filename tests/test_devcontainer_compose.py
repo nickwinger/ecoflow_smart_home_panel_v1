@@ -33,8 +33,9 @@ def test_compose_has_only_disposable_ha_storage_and_separate_workspace():
     assert "../custom_components:/config/custom_components:ro" in ha["volumes"]
     assert services["workspace"]["depends_on"]["homeassistant"]["condition"] == "service_started"
     assert services["bootstrap"]["depends_on"]["homeassistant"]["condition"] == "service_started"
-    assert "COMPOSE_SERVICE" not in str(compose)
-    assert "--compose-service" in services["bootstrap"]["command"]
+    assert services["bootstrap"]["network_mode"] == "service:homeassistant"
+    assert "networks" not in services["bootstrap"]
+    assert "--compose-loopback" in services["bootstrap"]["command"]
     for service in services.values():
         assert "/var/run/docker.sock" not in str(service)
         assert "/config/ecoflow" not in str(service)
