@@ -5,12 +5,12 @@
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
-![Version 0.3.2](https://img.shields.io/badge/version-0.3.2-blue)
+![Version 0.4.0](https://img.shields.io/badge/version-0.4.0-blue)
 ![Opt-in controls](https://img.shields.io/badge/controls-opt--in-orange)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > [!IMPORTANT]
-> **Early preview (v0.3.2) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
+> **HACS installation ready (v0.4.0) · Read-only by default.** Supports the **original Smart Home Panel (v1)**. Monitoring, source switching and charging have owner/device verification. The native mode and all-circuit controls are offline verified against the established reference; their hardware acceptance remains open. [Validation status and deployment guide](docs/INSTALLATION.md).
 
 ## ✨ Features
 
@@ -20,11 +20,12 @@
 - 🕘 **Selective history** — Home Assistant Recorder stores enabled entities; most advanced diagnostics start disabled to save space.
 - 🎛️ **Optional controls** — ten grid/battery selects, ten automatic/manual selects, two charging switches and three separately enabled batch buttons.
 - 🔁 **Automation action** — switch all circuits and wait for every confirmation before continuing; failures stop the calling sequence and appear in Home Assistant logs.
+- 🔔 **Optional failure notification** — keep a failed all-circuit sequence visible in HA notifications until dismissed or a full sequence to the same target succeeds.
 - ☁️ **Cloud connection** — authenticated EcoFlow API polling, configurable update interval and error handling.
 
 ## 📦 Installation
 
-**Requirements:** Home Assistant **2026.10+**, an **EcoFlow Smart Home Panel v1**, and EcoFlow Developer **Access Key**, **Secret Key** and panel **serial number**.
+**Requirements:** Home Assistant **2026.10+**, HACS for the HACS installation route, an **EcoFlow Smart Home Panel v1**, and EcoFlow Developer **Access Key**, **Secret Key** and panel **serial number**. Allow outbound HTTPS (443) and MQTT over TLS (8883) to EcoFlow; no incoming port or local MQTT broker is needed.
 
 ### Option A: HACS (recommended)
 
@@ -33,10 +34,12 @@ This integration is available as a **custom HACS repository**. It is **not yet l
 1. Open **HACS** in Home Assistant.
 2. Open the **⋮ menu → Custom repositories**.
 3. Add `https://github.com/nickwinger/ecoflow_smart_home_panel_v1` and select **Integration**.
-4. Find **EcoFlow Smart Home Panel v1** in HACS and select **Download**.
+4. Find **EcoFlow Smart Home Panel v1** in HACS and select **Download** (`main` when a version selection appears).
 5. **Restart Home Assistant**, then follow [Configuration](#-configuration).
 
-[HACS help: Custom repositories](https://www.hacs.dev/docs/faq/custom_repositories/)
+No GitHub release is required: HACS installs the default branch when no releases exist. [Official HACS behavior](https://www.hacs.dev/docs/publish/integration/#github-releases-optional).
+
+[HACS help: Custom repositories](https://www.hacs.dev/docs/faq/custom_repositories/) · [Installation, upgrade and rollback](docs/INSTALLATION.md) · [Changelog](CHANGELOG.md)
 
 ### Option B: Manual installation
 
@@ -70,6 +73,8 @@ Enabling batch controls permits the automation action and adds **All circuits to
 **For automations, call `ecoflow_smart_home_panel_v1.set_all_sources` directly.** The next action waits until all ten circuits are confirmed and the final pause ends. A failed or cancelled sequence does not continue to the next action; leave `continue_on_error` off. Use `mode: single` to prevent overlapping runs. Unlike a button entity that HA may skip when unavailable, the direct action reports an error if it cannot run. [Automation setup and YAML example](docs/AUTOMATIONS.md).
 
 Automatic mode returns supply control to the panel. Manual mode holds the currently reported supply source. The diagnostic “Control mode” sensor remains a separate status display.
+
+The separate **Persistent notification when all-circuit switching fails** checkbox starts off. It reports unconfirmed circuit numbers after a failed batch, without changing the sequence or its automation error. Repeated failures update the same message. A successful complete batch to the same target removes it; turning the option off also clears its messages. It is a Home Assistant notification, not a phone push notification.
 
 The integration keeps a read-only connection to EcoFlow open so circuit power continues updating with the phone app closed. No extra login, MQTT broker or helper is needed. If that connection loses fresh power reports, circuit power becomes unavailable until reports resume. See [live-data diagnosis](docs/LIVE_DATA.md).
 
@@ -117,6 +122,9 @@ Develop and test against a **separate, disposable Home Assistant instance** — 
 - [Developer scripts and complete HA DEV reinstall](scripts.md)
 - [Technical architecture](docs/ARCHITECTURE.md)
 - [Migration from existing helper scripts](docs/MIGRATION.md)
+- [Development and reproducible offline/HACS tests](CONTRIBUTING.md)
+- [Release procedure and acceptance boundaries](docs/RELEASE.md)
+- [Security and redaction](SECURITY.md) · [Credits](CREDITS.md)
 - [API references and data provenance](docs/REFERENCE_SOURCES.md), including all three supplied HTML references
 - [Official EcoFlow SHP v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098)
 

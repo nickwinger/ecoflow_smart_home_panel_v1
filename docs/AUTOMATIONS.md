@@ -10,6 +10,11 @@ Unter den Integrationsoptionen müssen **Stromkreise steuern** und
 **Sammelschaltung freigeben (Automationen und Tasten)** eingeschaltet sein.
 Die Freigaben allein führen keine Schaltung aus.
 
+Optional lässt sich in denselben Optionen **Dauerhafte Benachrichtigung bei
+fehlgeschlagener Sammelschaltung** aktivieren. Die Meldung ergänzt den
+Automationsfehler und zeigt unbestätigte Stromkreise; sie verändert das Warten
+und Stoppen der Automation nicht. [Verhalten der Benachrichtigung](CONTROLS.md#optionale-dauerhafte-fehlerbenachrichtigung).
+
 ## Im Automationseditor
 
 1. Füge die EcoFlow-Aktion zum Umschalten aller Stromkreise hinzu.

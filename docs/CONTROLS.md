@@ -1,4 +1,4 @@
-# M3: Stromkreise und Laden steuern (0.3.2)
+# M3: Stromkreise und Laden steuern (0.4.0)
 
 Die Installation und jedes Upgrade bleiben standardmäßig lesend. Es gibt keine
 Schaltbefehle beim Start, Neustart, Wiederherstellen, Polling oder bei API-Fehlern.
@@ -16,6 +16,7 @@ Unter **Einstellungen → Geräte & Dienste → EcoFlow Smart Home Panel v1 → 
 | Stromkreise steuern (Quelle und Betriebsart) | Zehn Quellen-Auswahlen: Netzstrom/Batterie; zehn Betriebsart-Auswahlen: Automatisch/Manuell |
 | Laden steuern | Zwei Ladeschalter für die Backup-Einträge |
 | Sammelschaltung freigeben (Automationen und Tasten) | Zusätzlich zur Stromkreis-Freigabe: Sammelaktion für Automationen und drei Tasten „Alle auf Netzstrom“, „Alle auf Batterie“, „Schaltung abbrechen“ |
+| Dauerhafte Benachrichtigung bei fehlgeschlagener Sammelschaltung | Optionale HA-Meldung nach einer gescheiterten Sammelfolge; aktiviert keine Steuerung |
 
 Die bis zu **25 Bedienelemente** erscheinen auf der Geräteseite. Die diagnostische
 Anzeige „Control mode“ ist weiterhin ein eigener Sensor; geändert wird die
@@ -217,6 +218,26 @@ die normale HA-Protokollierung und deren Aufbewahrung, keinen eigenen Recorder
 oder zusätzlichen Rohdaten-Speicher. Fehlertexte werden anhand ihres Typs in
 feste Beschreibungen übersetzt; beliebige Antworttexte, URLs und Exception-Inhalte
 werden nicht in diese Meldungen übernommen.
+
+## Optionale dauerhafte Fehlerbenachrichtigung
+
+Die Checkbox **Dauerhafte Benachrichtigung bei fehlgeschlagener Sammelschaltung**
+ist standardmäßig aus. Bei Aktivierung erscheint nach einer gescheiterten
+Sammelfolge eine deutsch/englische HA-Benachrichtigung mit Ziel und unbestätigten
+Stromkreisnummern. Der Dienst meldet weiterhin einen Fehler an seine Automation;
+die Meldung ersetzt weder Prüfung noch Abbruchverhalten.
+
+Es gibt höchstens eine Meldung je Panel und Ziel (Netzstrom/Batterie). Weitere
+Fehler aktualisieren diese. Erst eine vollständig erfolgreiche Sammelfolge zum
+gleichen Ziel entfernt sie automatisch. Erfolg in Gegenrichtung, Einzelbefehle,
+Polling oder Reload bestätigen den fehlgeschlagenen Auftrag nicht nachträglich
+und entfernen die Meldung daher nicht. Ein bewusster Abbruch erzeugt keine
+zusätzliche Fehlermeldung. Protokollierung bleibt immer aktiv.
+
+Die Meldung lässt sich in HA manuell schließen. Deaktivieren der Checkbox oder
+Entfernen des Integrationseintrags räumt nur dessen Meldungen auf. Es handelt
+sich um HA-Frontend-Benachrichtigungen, nicht um Smartphone-Push oder einen
+eigenen Datenspeicher; die Integration speichert sie nicht separat über HA-Neustarts.
 
 ## Oberfläche und Daten prüfen
 

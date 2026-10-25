@@ -61,7 +61,7 @@ to false on both new and upgraded entries; no migration turns them on. Controls
 are never restored as commands. An explicit option opt-in adds ten source selects
 and/or two charging-mode switches. Batch switching needs a separate option.
 
-Follow [the M3 read-only acceptance checklist](CONTROLS.md#manuelle-abnahme-ohne-schalten).
+Follow [the M3 read-only acceptance checklist](CONTROLS.md#oberfläche-und-daten-prüfen).
 Removing an option cancels commands during reload and removes its live control
 entities, while HA retains registry entries/history (possibly unavailable
 placeholders). Re-enabling preserves explicit user entity disables. Do not connect
@@ -89,3 +89,32 @@ channel failure no longer stops remaining channels. Both directions preserve all
 reference delays and retries, with failed circuits listed only after all ten
 have been processed. No option, identity or history migration is needed. Explicit
 cancellation/unload still stops the operation; see [CONTROLS.md](CONTROLS.md).
+
+## Upgrade to 0.4.0 and replacing legacy calls
+
+Install/update through HACS and restart HA without deleting the integration
+entry. Schema 1.2, credentials, unique IDs, custom names, history and saved
+options are unchanged. `notify_batch_failures` defaults to false; its checkbox
+does not grant control permissions. Disabling it removes only this entry's
+batch notifications. [Installation and rollback](INSTALLATION.md).
+
+Only the owner's `ecoflow/` scripts are authoritative. The separate
+`pyscript/shp_mode.py` is obsolete. Replace calls at the time you choose to migrate;
+the integration never edits the existing repository or HA automations.
+
+| Existing function/call | Native replacement |
+| --- | --- |
+| `channel_watt`, `channel_state` | Circuit power and supply-source sensors |
+| `grid_available`, `shp_battery` | Grid-availability binary sensor and panel battery sensor |
+| `delta_battery`, `delta_output_power` | Storage battery/output-power sensors, using the same array index |
+| `ecoflow_set.py channel N grid/battery` | `select.select_option` on Circuit N's source select (`grid`/`battery`) |
+| `ecoflow_set.py charge N on/off` | `switch.turn_on` / `switch.turn_off` on Backup entry N's charging switch |
+| `ecoflow/shp_mode.py grid/battery` | `ecoflow_smart_home_panel_v1.set_all_sources` with selected entry, source and confirmation |
+| Helper synchronization job | Shared coordinator updates native entities; no helper writer |
+
+Use the entity IDs shown by your own HA instance; generated IDs are not assumed.
+Grid binary states are `on` (available) / `off` (no grid); HA `unavailable`
+means missing/unconfirmed data and is not evidence of a power outage. Unknown
+source/charge states are not converted to battery/off. Old helper values may
+have persisted during incomplete responses, so update automation conditions too.
+Keep old helper history and backups; do not merge/delete Recorder rows automatically.

@@ -311,3 +311,23 @@ and assert both useful user-visible failure context and redaction.
 
 GET/PUT payloads, source decoder, order, retries, pauses and shared command lock
 are unchanged; the complete reference trace comparisons remain part of CI.
+
+## Optional notifications and distribution verification (0.4.0)
+
+`notifications.py` uses HA's `persistent_notification` component, declared as a
+dependency. `notify_batch_failures` is an independent boolean option, default
+false, with no schema/identity migration or control permission changes. Only a
+failed batch creates a message; cancellation does not. The stable ID contains
+HA entry ID and target, never serial or credentials. Repeated failures replace
+one message per entry/target. Full success for that target dismisses it;
+disabling the option or removing the entry clears only that entry's messages.
+Reload and polling do not clear unresolved errors. HA owns the messages;
+the integration adds no disk store or history. DE/EN text uses bounded circuit
+numbers, fixed instructions and an opaque entry prefix, not exception contents.
+
+The distribution harness executes pinned official HACS validators and installer
+code with local archive responses, then imports the installed package in separate
+HA test processes. It checks fresh setup and 0.3.2 upgrade, byte-complete runtime
+assets, preserved user storage, registry choices, options and lifecycle. No
+working-tree import can substitute for missing package files. The GitHub login
+and frontend are outside this offline verification. See [release scope](RELEASE.md).

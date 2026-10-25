@@ -46,17 +46,27 @@ Implementation commit: [`888fd96`](https://github.com/nickwinger/ecoflow_smart_h
 - [x] Separately gated batch buttons plus confirmed automation action; original script sequence, continuation after channel failures, final aggregate result, progress, cancellation and serialized transactions.
 - [x] Offline transport, command/state/error, concurrency, HA services, options, lifecycle and Recorder tests; documented manual hardware QA.
 
-Acceptance: the current full suite has 511 offline tests, 99% overall coverage and 100% command-controller/telemetry coverage. The batch controller is also compared directly with the original script in both directions. Official local hassfest passes. The owner confirmed source switching and charging work, and the original batch script's reliability. The native mode and batch controls still need hardware acceptance; the development agent sent no actuator commands and changed no production installation. [Control contract and acceptance checklist](CONTROLS.md).
+Acceptance: the current full suite has 548 offline tests, 99% overall coverage and 100% command-controller/telemetry/notification coverage. The batch controller is also compared directly with the original script in both directions. Official local hassfest passes. The owner confirmed source switching and charging work, and the original batch script's reliability. The native mode and batch controls still need hardware acceptance; the development agent sent no actuator commands and changed no production installation. [Control contract and acceptance checklist](CONTROLS.md).
 
-## M4 — HACS and release readiness [TODO]
+## M4 — HACS distribution [IMPLEMENTED / INSTALL AND UPGRADE OFFLINE VERIFIED]
 
-- [ ] Integration UI and HA diagnostics reviewed; full quality checks, hassfest, HACS validation.
-- [ ] HACS custom-repository install, upgrade and migration tested.
-- [ ] Translations/developer docs/security reviewed.
-- [ ] Optional HACS default listing, repository topics and Home Assistant brands contribution.
-- [ ] First release only after user confirms real-hardware acceptance.
+- [x] Options, DE/EN notification text, diagnostics, quality checks and official hassfest reviewed.
+- [x] Nine official HACS checks, including local brands; only optional repository topics excluded.
+- [x] Actual HACS archive installation and 0.3.2 upgrade tested in disposable directories, followed by loading the installed files in separate HA processes.
+- [x] Config-entry/registry preservation, lifecycle and selective Recorder regression tests.
+- [x] HACS installation, upgrade, rollback, helper migration, changelog, security, credits and reproducible developer checks documented.
+- [x] CI remains manual-only; no recurring failure emails or automatic deployment.
 
-Acceptance: repeatable install with no unrelated HA changes or data loss.
+Distribution is ready for the **HACS custom-repository route from main (0.4.0)**.
+Default-catalog submission/topics are optional and outside this delivery; local
+brand assets are shipped and validated. The GitHub release gate remains separate:
+owner hardware acceptance of native mode/batch controls and confirmation of the
+personal HACS UI install/upgrade are still open. No release is required to install
+main. See [installation](INSTALLATION.md) and [release acceptance](RELEASE.md).
+
+Acceptance evidence: repeatable temporary installation/upgrade without changing
+unrelated HA storage; no device or production HA calls. Exact results follow in
+the 0.4.0 verification record below.
 
 Each completed milestone must include commit link, test commands/outcomes and remaining risks. Never mark an untested milestone complete.
 
@@ -408,3 +418,84 @@ revised integration options and the `set_all_sources` action in the automation
 editor. Choose the panel entry, check the target/confirmation fields and place
 the next action after it, with “continue on error” disabled. Save/inspect the
 automation without executing it. No hardware action is required for this check.
+
+## M3 notification option and M4 HACS distribution (0.4.0)
+
+Implementation commits:
+[`fb3544c`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/fb3544c008fcc5105ae29bf14bc96b69acca1c61),
+`feat: add optional persistent batch failure notifications`;
+[`7de1959`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/7de1959c24d514e590200d7add590ec7dc7d65c7),
+`test: verify HACS installation upgrade and installed package lifecycle`.
+
+- The owner clarified that `homeassistant_config/ecoflow/` is authoritative;
+  `pyscript/shp_mode.py` is obsolete. Source documentation, credits and migration
+  now say so explicitly. No reference-repository files were modified.
+- Added the default-off `notify_batch_failures` checkbox, independent of control
+  permissions. A failed batch creates a bounded DE/EN HA persistent notification
+  with the unconfirmed circuits, once per entry and target. Repeated failures
+  replace it. Full success to the same target clears it; manual dismissal,
+  disabling the option and entry removal are also supported. Reload and success
+  on a different target preserve unresolved messages; cancellation does not
+  create one. No custom disk persistence, device commands or raw error contents.
+- Runtime changes: new `notifications.py`, options/constants/translations,
+  controller completion hooks, setup/removal cleanup, diagnostics and manifest
+  dependency. Version 0.4.0; entry schema remains 1.2. Command payloads, decoder,
+  order, waits, retries and automation error propagation are unchanged.
+- `tests/test_notifications.py` exercises actual HA notifications, both targets
+  and languages, default-off behavior, failure deduplication, final-pause timing,
+  recovery, cancellation, multi-panel cleanup, reload, removal, manual dismissal
+  and redaction. No real device operation occurs in tests.
+- M4 tests pin official HACS source
+  `a15e87ec0d1c82e58f1ddbaf17669d3eaa261eb8` and substitute only remote metadata
+  and downloads. `ValidationManager` passes **9 active checks**, including brands;
+  the only excluded check is `topics`. Optional missing categories produces a
+  warning because the available hassfest image rejects that key.
+- Actual HACS installation/extraction and upgrade backup/cleanup install the
+  current package fresh and over 0.3.2 commit
+  `88ee6e4c094b4d10387a14e0d9fde15f221ceeb7`. Every installed byte is compared,
+  obsolete files disappear and unrelated `.storage` data survives. Each installed
+  distribution is loaded in a separate Python process to exercise native HA
+  onboarding, options, saved control choices/polling, stable registry IDs/custom
+  names/disables, reload and removal. All writes remain mocked.
+- README and new installation/release guides describe HACS main-branch install,
+  requirements, safe migration and rollback. Added changelog, contributing guide,
+  security notes and credits. HACS workflows validate local brand files; the
+  complete offline workflow now includes pinned upstream distribution checks.
+  Both workflows remain manual-only and neither was dispatched during this run.
+- Focused notification/configuration/automation/reference checks:
+  `.venv/bin/pytest -q tests/test_notifications.py tests/test_config_flow.py tests/test_automation_wait.py tests/test_batch_reference.py --tb=short --show-capture=no --timeout=30`:
+  **105 passed in 18.10 seconds**.
+- HACS distribution check:
+  `ECOFLOW_HACS_SOURCE=/tmp/ecoflow-m4-hacs .venv/bin/pytest -q tests/test_hacs_install.py --tb=short --show-capture=no --timeout=60`:
+  **3 passed in 5.77 seconds**. Initial harness errors (missing tree index and
+  incorrect temporary HA config path) were fixed before this successful run.
+- Complete final suite:
+  `ECOFLOW_HACS_SOURCE=/tmp/ecoflow-m4-hacs .venv/bin/pytest -q --disable-socket --allow-unix-socket --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`:
+  **548 passed in 57.72 seconds**, **99% coverage** (1,298 statements, 8 uncovered).
+  Notifications, controller, telemetry and lifecycle are **100% line covered**.
+  Two deprecation warnings come from pinned HACS's use of
+  `asyncio.iscoroutinefunction` (removal announced for Python 3.16); no test failed.
+  Python 3.14.4 / HA 2026.10.3. Internet sockets blocked; local Unix sockets allowed.
+- `.venv/bin/ruff check custom_components tests scripts`,
+  `.venv/bin/ruff format --check custom_components tests scripts` (**47 files**),
+  `.venv/bin/python scripts/sync_catalog.py --check`,
+  `.venv/bin/python -m compileall -q custom_components`, `git diff --check`,
+  `docker compose -f .devcontainer/ha.compose.yml config -q` and
+  `bash -n scripts/dev-ha.sh scripts/recreate.sh`: **passed**.
+- `docker run --rm --network none -v /home/nick/dev/ecoflow_smart_home_panel_v1:/github/workspace:ro ghcr.io/home-assistant/hassfest:latest`:
+  **1 integration, 0 invalid**. Image digest:
+  `sha256:e5828f7e305518506d8b4e8346411357d68358531b761bd118fe6a1631feff44`.
+- Quota discovery remains **245/245 synthetic leaves, 44 enabled / 201 disabled**.
+  Defaults: grid status, panel battery level, ten circuit sources, nominal grid
+  voltage/frequency, two daily counters, ten circuit powers, ten control modes,
+  and battery/input/output/temperature for both storage entries. Up to 25 opt-in
+  controls; selective Recorder behavior unchanged.
+- Remaining acceptance: owner's real native batch/mode test and HACS frontend
+  installation on their instance. Known cloud freshness/unit/counter limitations
+  remain documented. No production installation, DEV restart, real switching,
+  source-repository modification or GitHub release was performed.
+
+Manual verification without switching: install via the documented HACS custom
+repository, restart HA, inspect the version and new notification checkbox, keep
+controls off initially and observe grid/power/battery entities with the phone app
+closed. Existing entry options, names and disabled choices should remain intact.

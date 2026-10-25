@@ -151,3 +151,22 @@ default error/cancellation propagation and unavailable-button behavior are also
 exercised by real HA Script tests with synthetic device responses. Standard
 warning/error visibility is tested through HA's `system_log` component, not just
 a mocked logger. No real action was sent to a panel during these checks.
+
+## M4 distribution and notification evidence (0.4.0)
+
+The owner confirmed that **only `homeassistant_config/ecoflow/` is the reference**;
+the separate `pyscript/shp_mode.py` is obsolete. Its timing/error behavior must not
+replace the current native controller. The new optional HA notification is an
+explicitly requested feature, not adoption of the obsolete switching code.
+
+- [HACS integration packaging](https://www.hacs.dev/docs/publish/integration/): one integration directory, required manifest and default-branch installation without releases.
+- [HACS action](https://www.hacs.dev/docs/publish/action/): uses the HACS repository validation code.
+- [HA persistent notifications](https://www.home-assistant.io/integrations/persistent_notification/): create/update by ID and dismiss. Installed HA 2026.10.3 callback implementation was inspected; no integration-owned persistence is added.
+- Official HACS source pinned at [`a15e87ec0d1c82e58f1ddbaf17669d3eaa261eb8`](https://github.com/hacs/integration/tree/a15e87ec0d1c82e58f1ddbaf17669d3eaa261eb8), current main when inspected. The published stable HACS tag was 2.0.5; the validator/installer test pin is stated separately rather than claiming it is that release.
+
+The actual `ValidationManager`, `HacsIntegrationRepository` structure checks,
+`async_install_repository`, archive extraction and upgrade backup/cleanup execute
+offline. GitHub payloads are substituted with local package files and the public
+repository metadata fetched on 2026-10-25. Only the `topics` check is excluded;
+local brand assets are checked. A separate process loads the resulting installed
+integration to verify that no development-tree resource is required.
