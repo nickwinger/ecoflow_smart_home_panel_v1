@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.config_entries import SOURCE_REAUTH, SOURCE_RECONFIGURE, SOURCE_USER
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
 
 from custom_components.ecoflow_smart_home_panel_v1.api import (
     AuthenticationError,
@@ -97,3 +97,24 @@ async def test_options(hass, entry):
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options == {"poll_interval": 120}
+
+
+@pytest.mark.parametrize("interval", [0, 29, 901, True, 60.5, "60", None])
+async def test_options_reject_invalid_intervals(hass, entry, interval):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    with pytest.raises(InvalidData):
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], {"poll_interval": interval}
+        )
+    assert entry.options == {}
+
+
+@pytest.mark.parametrize(
+    "change", [{"access_key": "a\nb"}, {"serial": "not/a/serial"}, {"region": "unknown"}]
+)
+async def test_invalid_credentials_do_not_call_cloud(hass, mock_quota, change):
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}, data={**DATA, **change}
+    )
+    assert result["errors"] == {"base": "invalid_input"}
+    mock_quota.assert_not_called()

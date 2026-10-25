@@ -1,0 +1,439 @@
+{
+  "code": "0",
+  "data": {
+    "heartbeat.gridSta": 1,
+    "heartbeat.backupBatPer": 62,
+    "heartbeat.workTime": 4321,
+    "heartbeat.backupFullCap": 7777,
+    "heartbeat.gridDayWatth": 123,
+    "heartbeat.backupDayWatth": 456,
+    "heartbeat.backupChaTime": 91,
+    "heartbeat.time": {
+      "year": 2025,
+      "month": 2,
+      "day": 3,
+      "hour": 4,
+      "min": 5,
+      "sec": 6,
+      "week": 2
+    },
+    "heartbeat.loadCmdChCtrlInfos": [
+      {
+        "powCh": 0,
+        "ctrlSta": 0,
+        "ctrlMode": 1,
+        "priority": 0
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 1,
+        "ctrlMode": 1,
+        "priority": 1
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 2,
+        "ctrlMode": 1,
+        "priority": 2
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 0,
+        "ctrlMode": 1,
+        "priority": 3
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 1,
+        "ctrlMode": 1,
+        "priority": 4
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 2,
+        "ctrlMode": 1,
+        "priority": 5
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 0,
+        "ctrlMode": 1,
+        "priority": 6
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 1,
+        "ctrlMode": 1,
+        "priority": 7
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 2,
+        "ctrlMode": 1,
+        "priority": 8
+      },
+      {
+        "powCh": 0,
+        "ctrlSta": 0,
+        "ctrlMode": 1,
+        "priority": 9
+      }
+    ],
+    "heartbeat.backupCmdChCtrlInfos": [
+      {
+        "pwoCh": 10,
+        "ctrlSta": 0,
+        "ctrlMode": 0,
+        "priority": 0
+      },
+      {
+        "pwoCh": 11,
+        "ctrlSta": 2,
+        "ctrlMode": 1,
+        "priority": 1
+      }
+    ],
+    "heartbeat.energyInfos": [
+      {
+        "batteryPercentage": 55,
+        "outputPower": 220,
+        "emsBatTemp": 23,
+        "fullCap": 1000,
+        "stateBean": {
+          "isConnect": 1,
+          "isEnable": 1,
+          "isGridCharge": 0,
+          "isMpptCharge": 0
+        }
+      },
+      {
+        "batteryPercentage": 56,
+        "outputPower": 221,
+        "emsBatTemp": 24,
+        "fullCap": 1001,
+        "stateBean": {
+          "isConnect": 1,
+          "isEnable": 1,
+          "isGridCharge": 1,
+          "isMpptCharge": 0
+        }
+      }
+    ],
+    "heartbeat.errorCodes": [
+      0,
+      7,
+      0
+    ],
+    "channelPower.infoList": [
+      {
+        "chWatt": 10,
+        "powType": 9
+      },
+      {
+        "chWatt": 13,
+        "powType": 9
+      },
+      {
+        "chWatt": 16,
+        "powType": 9
+      },
+      {
+        "chWatt": 19,
+        "powType": 9
+      },
+      {
+        "chWatt": 22,
+        "powType": 9
+      },
+      {
+        "chWatt": 25,
+        "powType": 9
+      },
+      {
+        "chWatt": 28,
+        "powType": 9
+      },
+      {
+        "chWatt": 31,
+        "powType": 9
+      },
+      {
+        "chWatt": 34,
+        "powType": 9
+      },
+      {
+        "chWatt": 37,
+        "powType": 9
+      },
+      {
+        "chWatt": 40,
+        "powType": 9
+      },
+      {
+        "chWatt": 43,
+        "powType": 9
+      }
+    ],
+    "gridInfo.gridVol": 230,
+    "gridInfo.gridFreq": 50,
+    "loadChInfo": {
+      "info": [
+        {
+          "chName": "Test circuit 1",
+          "iconNum": 0
+        },
+        {
+          "chName": "Test circuit 2",
+          "iconNum": 1
+        },
+        {
+          "chName": "Test circuit 3",
+          "iconNum": 2
+        },
+        {
+          "chName": "Test circuit 4",
+          "iconNum": 3
+        },
+        {
+          "chName": "Test circuit 5",
+          "iconNum": 4
+        },
+        {
+          "chName": "Test circuit 6",
+          "iconNum": 5
+        },
+        {
+          "chName": "Test circuit 7",
+          "iconNum": 6
+        },
+        {
+          "chName": "Test circuit 8",
+          "iconNum": 7
+        },
+        {
+          "chName": "Test circuit 9",
+          "iconNum": 8
+        },
+        {
+          "chName": "Test circuit 10",
+          "iconNum": 9
+        }
+      ]
+    },
+    "splitPhaseInfo.cfgList": [
+      {
+        "linkMark": 0,
+        "linkCh": 0
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 1
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 2
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 3
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 4
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 5
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 6
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 7
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 8
+      },
+      {
+        "linkMark": 0,
+        "linkCh": 9
+      }
+    ],
+    "loadChCurInfo.cur": [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "epsModeInfo.eps": true,
+    "chUseInfo.isEnable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "emergencyStrategy.chSta": [
+      {
+        "priority": 0,
+        "isEnable": 1
+      },
+      {
+        "priority": 1,
+        "isEnable": 1
+      },
+      {
+        "priority": 2,
+        "isEnable": 1
+      },
+      {
+        "priority": 3,
+        "isEnable": 1
+      },
+      {
+        "priority": 4,
+        "isEnable": 1
+      },
+      {
+        "priority": 5,
+        "isEnable": 1
+      },
+      {
+        "priority": 6,
+        "isEnable": 1
+      },
+      {
+        "priority": 7,
+        "isEnable": 1
+      },
+      {
+        "priority": 8,
+        "isEnable": 1
+      },
+      {
+        "priority": 9,
+        "isEnable": 1
+      }
+    ],
+    "emergencyStrategy.backupMode": 1,
+    "emergencyStrategy.overloadMode": 0,
+    "backupChaDiscCfg.forceChargeHigh": 90,
+    "backupChaDiscCfg.discLower": 15,
+    "cfgSta.sta": 1,
+    "timeTask": [
+      {
+        "index": 3,
+        "cfg": {
+          "param": {
+            "hightBattery": 95,
+            "lowBattery": 20,
+            "chChargeWatt": 500,
+            "chSta": [
+              1,
+              0
+            ]
+          },
+          "comCfg": {
+            "timeScale": [
+              5,
+              7
+            ],
+            "isCfg": 1,
+            "type": 1,
+            "isEnable": 0,
+            "timeRange": {
+              "timeMode": 0,
+              "isEnable": 1,
+              "startTime": {
+                "hour": 2,
+                "min": 10
+              },
+              "endTime": {
+                "hour": 4,
+                "min": 15
+              }
+            }
+          }
+        }
+      }
+    ],
+    "mainsLoadWatt.watth": [
+      [
+        100,
+        200
+      ],
+      [
+        300,
+        400
+      ]
+    ],
+    "backupLoadWatt.watth": [
+      [
+        10,
+        20
+      ],
+      [
+        30,
+        40
+      ]
+    ],
+    "topupLoadWatt.watth": [
+      [
+        11,
+        22
+      ],
+      [
+        33,
+        44
+      ]
+    ],
+    "selfCheck.errorCode": 7,
+    "selfCheck.result": 13,
+    "selfCheck.vIn": [
+      231,
+      232
+    ],
+    "selfCheck.vOut": [
+      8,
+      9
+    ],
+    "areaInfo.area": "Test region\u0000",
+    "future": {
+      "flag": true,
+      "text": "synthetic",
+      "value": 12.25,
+      "null": null,
+      "mixed": [
+        1,
+        "two",
+        false,
+        {
+          "new": 3
+        }
+      ],
+      "empty": []
+    },
+    "collision.value": 8,
+    "collision": {
+      "value": 9
+    },
+    "heartbeat.cmdSet": 11,
+    "heartbeat.id": 0
+  }
+}

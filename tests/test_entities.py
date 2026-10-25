@@ -1,0 +1,224 @@
+"""Native entity lifecycle, registry defaults, translations and fresh state."""
+
+import json
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+from homeassistant.helpers import entity_registry as er
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.ecoflow_smart_home_panel_v1.const import DOMAIN
+from custom_components.ecoflow_smart_home_panel_v1.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
+from custom_components.ecoflow_smart_home_panel_v1.quota import identity
+
+from .test_quota import independent_leaves
+
+
+@pytest.fixture
+def quota():
+    return json.loads(Path("tests/fixtures/quota.json").read_text())["data"]
+
+
+def registry_entries(hass, entry):
+    return er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+
+
+def entity_for(hass, entry, path):
+    return next(
+        e
+        for e in registry_entries(hass, entry)
+        if e.unique_id == entry.runtime_data.unique_id(path)
+    )
+
+
+async def setup(hass, entry):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_complete_registry_and_defaults(hass, entry, mock_quota, quota):
+    await setup(hass, entry)
+    entities = registry_entries(hass, entry)
+    assert len(entities) == len(independent_leaves(quota))
+    represented = {e.unique_id.removeprefix(entry.runtime_data.unique_prefix) for e in entities}
+    assert represented == {identity(p) for p in independent_leaves(quota)}
+    enabled = [e for e in entities if e.disabled_by is None]
+    assert len(enabled) == 16
+    assert all(e.entity_category is None for e in enabled)
+    assert len([e for e in entities if hass.states.get(e.entity_id)]) == 16
+    for e in entities:
+        if e.disabled_by:
+            assert e.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+            assert e.entity_category.value == "diagnostic"
+            assert hass.states.get(e.entity_id) is None
+        else:
+            state = hass.states.get(e.entity_id)
+            assert state.attributes["description"]
+            assert state.attributes["quota_access_path"]
+            assert "SHP-TEST" not in state.attributes["friendly_name"]
+    assert mock_quota.await_count == 1
+    assert len(entry.runtime_data._listeners) == 18  # two discovery + 16 enabled
+
+
+async def test_partial_unknowns_recovery_and_new_fields(hass, entry, mock_quota, quota):
+    await setup(hass, entry)
+    source = entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta"))
+    grid = entity_for(hass, entry, ("heartbeat.gridSta",))
+    battery = entity_for(hass, entry, ("heartbeat.backupBatPer",))
+    mock_quota.return_value = {
+        "heartbeat.loadCmdChCtrlInfos": [{"ctrlSta": 97}],
+        "heartbeat.backupBatPer": 610,
+        "brandNew": {"raw": 42},
+    }
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(source.entity_id).state == "unknown"
+    assert hass.states.get(source.entity_id).attributes["raw_value"] == 97
+    assert hass.states.get(grid.entity_id).state == "unavailable"
+    assert hass.states.get(battery.entity_id).state == "unknown"
+    assert hass.states.get(battery.entity_id).attributes["raw_value"] == 610
+    new = entity_for(hass, entry, ("brandNew", "raw"))
+    assert new.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+    mock_quota.return_value = quota
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(grid.entity_id).state == "on"
+    assert hass.states.get(battery.entity_id).state == "62"
+
+
+async def test_enable_reload_missing_and_disable(hass, entry, mock_quota):
+    await setup(hass, entry)
+    diagnostic = entity_for(hass, entry, ("selfCheck.result",))
+    registry = er.async_get(hass)
+    registry.async_update_entity(diagnostic.entity_id, disabled_by=None)
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(diagnostic.entity_id).state == "13"
+    mock_quota.return_value = {}
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(diagnostic.entity_id).state == "unavailable"
+    registry.async_update_entity(diagnostic.entity_id, disabled_by=er.RegistryEntryDisabler.USER)
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(diagnostic.entity_id) is None
+    # Registration survives even an empty initial snapshot; no cached state is restored.
+    assert (
+        entity_for(hass, entry, ("selfCheck.result",)).disabled_by is er.RegistryEntryDisabler.USER
+    )
+
+
+@pytest.mark.parametrize("language,expected", [("en", "Circuit 1"), ("de", "Stromkreis 1")])
+async def test_translated_names_and_safe_rename(hass, entry, mock_quota, quota, language, expected):
+    hass.config.language = language
+    await setup(hass, entry)
+    entity = entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta"))
+    before = hass.states.get(entity.entity_id)
+    assert expected in before.name
+    assert "Test circuit 1" in before.name
+    quota["loadChInfo"]["info"][0]["chName"] = "New\x00 name\u202e"
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    after = hass.states.get(entity.entity_id)
+    assert "New name" in after.name
+    assert "\u202e" not in after.name
+    assert (
+        entity_for(hass, entry, ("heartbeat.loadCmdChCtrlInfos", 0, "ctrlSta")).unique_id
+        == entity.unique_id
+    )
+    assert len(registry_entries(hass, entry)) == len(independent_leaves(quota))
+
+
+async def test_collision_type_changes_and_two_panels(hass, entry, mock_quota, quota):
+    await setup(hass, entry)
+    first = entity_for(hass, entry, ("collision.value",))
+    second = entity_for(hass, entry, ("collision", "value"))
+    assert first.unique_id != second.unique_id
+    assert first.entity_id != second.entity_id
+    other = MockConfigEntry(
+        domain=DOMAIN, unique_id="SHP-TEST-0002", data={**entry.data, "serial": "SHP-TEST-0002"}
+    )
+    other.add_to_hass(hass)
+    await setup(hass, other)
+    assert {e.unique_id for e in registry_entries(hass, entry)}.isdisjoint(
+        e.unique_id for e in registry_entries(hass, other)
+    )
+    quota["future"]["flag"] = "changed type"
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert len(registry_entries(hass, entry)) == len(independent_leaves(quota))
+
+
+async def test_registry_budget_survives_reload(hass, entry, mock_quota):
+    mock_quota.return_value = {"one": 1, "two": 2}
+    with patch("custom_components.ecoflow_smart_home_panel_v1.coordinator.MAX_ENTITIES", 3):
+        await setup(hass, entry)
+        mock_quota.return_value = {"three": 3, "four": 4}
+        await entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+        assert len(registry_entries(hass, entry)) == 3
+        assert entry.runtime_data.registry_limit_reached
+        mock_quota.return_value = {"five": 5}
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+        assert len(registry_entries(hass, entry)) == 3
+        assert entry.runtime_data.registry_limit_reached
+
+
+async def test_diagnostics_privacy_and_no_legacy_mutation(hass, entry, mock_quota, quota):
+    hass.states.async_set("input_number.legacy_test", 42)
+    quota.update(
+        {"accessKey": "test-access", "heartbeat.mm100Sn": [83, 78], "extra": "test-secret"}
+    )
+    await setup(hass, entry)
+    diagnostics = await async_get_config_entry_diagnostics(hass, entry)
+    text = json.dumps(diagnostics)
+    for private in (
+        "test-secret",
+        "test-access",
+        "SHP-TEST",
+        "Test circuit",
+        "heartbeat",
+        "quota_path",
+    ):
+        assert private not in text
+    assert diagnostics["excluded_subtrees_or_values"] == 3
+    assert diagnostics["controls_implemented"] is False
+    assert hass.states.get("input_number.legacy_test").state == "42"
+    assert not hass.services.has_service(DOMAIN, "set_source")
+    assert not hass.services.has_service(DOMAIN, "set_charge")
+
+
+async def test_failed_poll_makes_enabled_entities_unavailable(hass, entry, mock_quota):
+    from custom_components.ecoflow_smart_home_panel_v1.api import EcoFlowError
+
+    await setup(hass, entry)
+    mock_quota.side_effect = EcoFlowError("Cloud unavailable")
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    for e in registry_entries(hass, entry):
+        state = hass.states.get(e.entity_id)
+        if not e.disabled_by:
+            assert state.state == "unavailable"
+        else:
+            assert state is None
+
+
+async def test_enable_every_leaf_and_unknown_null(hass, entry, mock_quota, quota):
+    await setup(hass, entry)
+    registry = er.async_get(hass)
+    for entity in registry_entries(hass, entry):
+        if entity.disabled_by:
+            registry.async_update_entity(entity.entity_id, disabled_by=None)
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    for entity in registry_entries(hass, entry):
+        state = hass.states.get(entity.entity_id)
+        assert state is not None
+        assert state.attributes["description"]
+    null = entity_for(hass, entry, ("future", "null"))
+    assert hass.states.get(null.entity_id).state == "unknown"
+    assert mock_quota.await_count == 2

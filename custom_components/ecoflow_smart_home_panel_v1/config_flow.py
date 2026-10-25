@@ -1,5 +1,6 @@
 """Native UI setup, options, credential replacement and reauthentication."""
 
+import re
 from typing import Any
 
 import voluptuous as vol
@@ -65,7 +66,14 @@ class EcoFlowConfigFlow(ConfigFlow, domain=DOMAIN):
             if not isinstance(data.get(key), str) or not data[key].strip() or len(data[key]) > 256:
                 return {"base": "invalid_input"}
             data[key] = data[key].strip()
+            if any(ord(char) < 32 for char in data[key]):
+                return {"base": "invalid_input"}
         data[CONF_SERIAL] = data[CONF_SERIAL].upper()
+        if (
+            not re.fullmatch(r"[A-Z0-9_-]{1,64}", data[CONF_SERIAL])
+            or data.get(CONF_REGION) not in HOSTS
+        ):
+            return {"base": "invalid_input"}
         if not data.get(CONF_CONFIRM_V1):
             return {"base": "confirm_v1"}
         client = EcoFlowClient(
@@ -142,10 +150,18 @@ class EcoFlowOptionsFlow(OptionsFlow):
     """One bounded polling interval for the whole panel."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            interval = user_input.get(CONF_POLL_INTERVAL)
+            if (
+                type(interval) is int
+                and MIN_POLL_INTERVAL_SECONDS <= interval <= MAX_POLL_INTERVAL_SECONDS
+            ):
+                return self.async_create_entry(title="", data={CONF_POLL_INTERVAL: interval})
+            errors["base"] = "invalid_poll_interval"
         return self.async_show_form(
             step_id="init",
+            errors=errors,
             data_schema=vol.Schema(
                 {
                     vol.Required(
@@ -154,7 +170,7 @@ class EcoFlowOptionsFlow(OptionsFlow):
                             CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL_SECONDS
                         ),
                     ): vol.All(
-                        vol.Coerce(int),
+                        int,
                         vol.Range(min=MIN_POLL_INTERVAL_SECONDS, max=MAX_POLL_INTERVAL_SECONDS),
                     ),
                 }

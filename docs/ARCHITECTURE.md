@@ -79,3 +79,50 @@ Batch source switching reference order: `[7,6,3,1,2,4,5,8,9,10]`, with verificat
 ## Safety/provenance
 
 No invented unit conversion or enum labels. The field guide distinguishes `documented`, `inferred`, `unknown`, `local_implementation`. Some example values conflict with nominal scales; reflect this uncertainty in names/descriptions, not guessed computed values.
+
+## Implemented M1/M2 decisions
+
+Runtime modules: `api.py` (GET only, pure signing helper), `config_flow.py`,
+`coordinator.py`, `quota.py`, `catalog.py`, `entity.py`, `sensor.py`,
+`binary_sensor.py`, `diagnostics.py`. The catalog is installed with the component;
+it never reads repository docs at runtime. Resource loading uses HA's executor.
+The HA-managed HTTP session is shared; the client serializes requests and does
+not follow redirects. HTTP 429 applies a 30–3600 second cooldown; other failures
+back off up to 900 seconds. A success resets the normal interval.
+
+Each source path is a tuple of literal string keys and integer array indices.
+Unique IDs are `<configured-serial>:quota:<compact JSON token list>`.
+`["heartbeat.gridSta"]` and `["heartbeat","gridSta"]` remain distinct.
+Changing payload key order, device title or channel label preserves identity;
+changing actual source structure intentionally creates another identity.
+HA entity-registry identities are the only persistent discovery inventory. This
+retains absent entities across reloads without storing prior quota values.
+
+Two platform discovery listeners keep one shared poll running even if all
+entities are disabled. Disabled entities are registered but never added to the
+HA state machine or subscribed as entity listeners. Missing leaves are unavailable;
+invalid scalar values are unknown. Whole-request failures invalidate availability
+of all enabled entities, even though the coordinator may still hold its previous
+in-memory snapshot internally.
+
+Limits: 1 MiB decoded HTTP body; depth 16; array length 128; 20,000 visited nodes;
+4,096 object members/scalar leaves and lifetime registry identities; key length
+128; serialized path length 512; scalar text length 255. Structural limit breaches
+reject the snapshot. Invalid/nonfinite/oversized scalar values retain their path
+with an unknown value. Empty containers have no scalar leaf. Credential/serial
+subtrees, local cache markers, unsafe key syntax and known configured secrets in
+keys/values are excluded. Registry churn beyond 4,096 identities is refused and
+reported by aggregate diagnostics, including across reloads. No pruning silently
+recycles identities. These limits intentionally bound exotic future layouts.
+
+Manufacturer evidence does not establish every seed unit. Only supported,
+validated percentage fields and nominal voltage/frequency get units; configured
+values have no measurement statistics. Daily energy fields are raw counters,
+without an assumed reset boundary or TOTAL_INCREASING. Inferred storage and power
+fields remain raw, disabled diagnostics. The seed unit/enum is visible separately
+as evidence metadata, never silently promoted to a verified measurement.
+
+M3 correction from the working source: channel grid writes require BOTH
+`ctrlMode=0` and `sta=0`; battery requires BOTH to be 1. No such writes are
+implemented in M1/M2. Backup `ctrlSta=2` has conflicting documented/runtime
+meaning, so no binary charge state is inferred from it.

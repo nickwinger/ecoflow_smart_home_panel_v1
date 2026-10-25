@@ -49,6 +49,530 @@
           "poll_interval": "Abfrageintervall (30–900 Sekunden)"
         }
       }
+    },
+    "error": {
+      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 30 und 900 eingeben."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cached_at": {
+        "name": "{context}Cache-Zeitstempel{detail}"
+      },
+      "has_loadcmdchctrlinfos": {
+        "name": "{context}Cache-Vollständigkeitsmerkmal{detail}"
+      },
+      "heartbeat_gridsta": {
+        "name": "{context}Netzstatus{detail}"
+      },
+      "heartbeat_worktime": {
+        "name": "{context}Gerätebetriebszeit{detail}"
+      },
+      "heartbeat_backupfullcap": {
+        "name": "{context}Vollkapazität Backup{detail}"
+      },
+      "heartbeat_backupbatper": {
+        "name": "{context}Batteriestand Backup{detail}"
+      },
+      "heartbeat_griddaywatth": {
+        "name": "{context}Netzenergie heute{detail}"
+      },
+      "heartbeat_backupdaywatth": {
+        "name": "{context}Backup-Energie heute{detail}"
+      },
+      "heartbeat_backupchatime": {
+        "name": "{context}Backup-Entladezeit{detail}"
+      },
+      "heartbeat_time": {
+        "name": "{context}Gerätezeit{detail}"
+      },
+      "heartbeat_time_year": {
+        "name": "{context}Gerätezeit Jahr{detail}"
+      },
+      "heartbeat_time_month": {
+        "name": "{context}Gerätezeit Monat{detail}"
+      },
+      "heartbeat_time_day": {
+        "name": "{context}Gerätezeit Tag{detail}"
+      },
+      "heartbeat_time_hour": {
+        "name": "{context}Gerätezeit Stunde{detail}"
+      },
+      "heartbeat_time_min": {
+        "name": "{context}Gerätezeit Minute{detail}"
+      },
+      "heartbeat_time_sec": {
+        "name": "{context}Gerätezeit Sekunde{detail}"
+      },
+      "heartbeat_time_week": {
+        "name": "{context}Gerätezeit Wochentag{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos": {
+        "name": "{context}Kanalsteuerung 1 bis 10{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos_powch": {
+        "name": "{context}Kanalcode{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos_ctrlsta": {
+        "name": "{context}Versorgungsquelle{detail}",
+        "state": {
+          "grid": "Netzstrom",
+          "battery": "Batteriespeicher",
+          "off": "Aus"
+        }
+      },
+      "heartbeat_loadcmdchctrlinfos_ctrlmode": {
+        "name": "{context}Kanalsteuerungsmodus{detail}",
+        "state": {
+          "automatic": "Automatisch",
+          "manual": "Manuell"
+        }
+      },
+      "heartbeat_loadcmdchctrlinfos_priority": {
+        "name": "{context}Kanalpriorität{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos": {
+        "name": "{context}Steuerung Backup-Kanäle{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos_ctrlsta": {
+        "name": "{context}Backup-Versorgungsquelle{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos_ctrlmode": {
+        "name": "{context}Backup-Steuerungsmodus{detail}",
+        "state": {
+          "automatic": "Automatisch",
+          "manual": "Manuell"
+        }
+      },
+      "heartbeat_backupcmdchctrlinfos_priority": {
+        "name": "{context}Backup-Kanalpriorität{detail}"
+      },
+      "splitphaseinfo_cfglist": {
+        "name": "{context}Split-Phase-Schaltung{detail}"
+      },
+      "splitphaseinfo_cfglist_linkmark": {
+        "name": "{context}Split-Phase-Markierung{detail}"
+      },
+      "splitphaseinfo_cfglist_linkch": {
+        "name": "{context}Verknüpfter Kanal{detail}"
+      },
+      "loadchcurinfo_cur": {
+        "name": "{context}Stromkonfiguration pro Kanal{detail}"
+      },
+      "gridinfo_gridvol": {
+        "name": "{context}Netz-Nennspannung{detail}"
+      },
+      "gridinfo_gridfreq": {
+        "name": "{context}Netzfrequenz{detail}"
+      },
+      "epsmodeinfo_eps": {
+        "name": "{context}EPS-Modus{detail}"
+      },
+      "chuseinfo_isenable": {
+        "name": "{context}Aktivierte Kanäle{detail}"
+      },
+      "loadchinfo": {
+        "name": "{context}Lastkanal-Metadaten{detail}"
+      },
+      "loadchinfo_info": {
+        "name": "{context}Lastkanal-Namen{detail}"
+      },
+      "loadchinfo_info_chname": {
+        "name": "{context}Kanalname{detail}"
+      },
+      "loadchinfo_info_iconnum": {
+        "name": "{context}Kanalicon{detail}"
+      },
+      "emergencystrategy_chsta": {
+        "name": "{context}Notstrom-Kanalregeln{detail}"
+      },
+      "emergencystrategy_chsta_priority": {
+        "name": "{context}Notstrom-Priorität{detail}"
+      },
+      "emergencystrategy_chsta_isenable": {
+        "name": "{context}Notstromregel aktiv{detail}"
+      },
+      "emergencystrategy_backupmode": {
+        "name": "{context}Backup-Strategiemodus{detail}"
+      },
+      "emergencystrategy_overloadmode": {
+        "name": "{context}Überlaststrategie{detail}"
+      },
+      "timetask": {
+        "name": "{context}Geplante Aufgaben{detail}"
+      },
+      "timetask_index": {
+        "name": "{context}Aufgabenindex{detail}"
+      },
+      "timetask_cfg_param_hightbattery": {
+        "name": "{context}Obere Ladegrenze{detail}"
+      },
+      "timetask_cfg_param_lowbattery": {
+        "name": "{context}Untere Ladegrenze{detail}"
+      },
+      "timetask_cfg_param_chchargewatt": {
+        "name": "{context}Ladeleistung{detail}"
+      },
+      "timetask_cfg_param_chsta": {
+        "name": "{context}Zeitplan-Kanalauswahl{detail}"
+      },
+      "timetask_cfg_comcfg_timescale": {
+        "name": "{context}Zeitplan-Bitmaske{detail}"
+      },
+      "timetask_cfg_comcfg_iscfg": {
+        "name": "{context}Zeitplan konfiguriert{detail}"
+      },
+      "timetask_cfg_comcfg_type": {
+        "name": "{context}Zeitplan-Aufgabentyp{detail}",
+        "state": {
+          "charge": "Laden",
+          "discharge": "Entladen"
+        }
+      },
+      "timetask_cfg_comcfg_isenable": {
+        "name": "{context}Zeitplan aktiviert{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_timemode": {
+        "name": "{context}Zeitplan-Wiederholung{detail}",
+        "state": {
+          "daily": "Täglich",
+          "weekly": "Wöchentlich",
+          "monthly": "Monatlich",
+          "date": "Konkretes Datum"
+        }
+      },
+      "timetask_cfg_comcfg_timerange_isenable": {
+        "name": "{context}Zeitfenster aktiviert{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_starttime": {
+        "name": "{context}Zeitfenster-Beginn{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_endtime": {
+        "name": "{context}Zeitfenster-Ende{detail}"
+      },
+      "cfgsta_sta": {
+        "name": "{context}Konfigurationsstatus{detail}"
+      },
+      "backupchadisccfg_forcechargehigh": {
+        "name": "{context}Obere Backup-Ladegrenze{detail}"
+      },
+      "backupchadisccfg_disclower": {
+        "name": "{context}Untere Backup-Entladegrenze{detail}"
+      },
+      "channelpower_infolist": {
+        "name": "{context}Kanalleistungen{detail}"
+      },
+      "channelpower_infolist_chwatt": {
+        "name": "{context}Kanalwirkleistung{detail}"
+      },
+      "channelpower_infolist_powtype": {
+        "name": "{context}Kanal-Leistungstyp{detail}"
+      },
+      "heartbeat_energyinfos": {
+        "name": "{context}Batterie-/Energiespeicherinformationen{detail}"
+      },
+      "heartbeat_energyinfos_batterypercentage": {
+        "name": "{context}Batteriestand Einzelgerät{detail}"
+      },
+      "heartbeat_energyinfos_outputpower": {
+        "name": "{context}Leistung des Speichers{detail}"
+      },
+      "heartbeat_energyinfos_emsbattemp": {
+        "name": "{context}Batterietemperatur{detail}"
+      },
+      "heartbeat_energyinfos_fullcap": {
+        "name": "{context}Kapazitätsrohwert{detail}"
+      },
+      "heartbeat_energyinfos_statebean_isconnect": {
+        "name": "{context}Speicher verbunden{detail}"
+      },
+      "heartbeat_energyinfos_statebean_isenable": {
+        "name": "{context}Speicher freigegeben{detail}"
+      },
+      "heartbeat_energyinfos_statebean_isgridcharge": {
+        "name": "{context}Speicher-Netzladung{detail}"
+      },
+      "heartbeat_energyinfos_statebean_ismpptcharge": {
+        "name": "{context}Speicher-MPPT-Ladung{detail}"
+      },
+      "mainsloadwatt_watth": {
+        "name": "{context}Netzlast-Energiereihen{detail}"
+      },
+      "backuploadwatt_watth": {
+        "name": "{context}Backup-Energiereihen{detail}"
+      },
+      "topuploadwatt_watth": {
+        "name": "{context}Lade-Energiereihen{detail}"
+      },
+      "selfcheck_errorcode": {
+        "name": "{context}Selbsttest-Fehlercode{detail}"
+      },
+      "selfcheck_result": {
+        "name": "{context}Selbsttest-Ergebniscode{detail}"
+      },
+      "selfcheck_vin": {
+        "name": "{context}Eingangsspannungen{detail}"
+      },
+      "selfcheck_vout": {
+        "name": "{context}Ausgangs-Selbsttestwerte{detail}"
+      },
+      "areainfo_area": {
+        "name": "{context}Konfigurierte Region{detail}"
+      },
+      "heartbeat_errorcodes": {
+        "name": "{context}Fehlercode-Liste{detail}"
+      },
+      "unknown_quota": {
+        "name": "Unbekanntes Quota-Feld {path}"
+      }
+    },
+    "binary_sensor": {
+      "cached_at": {
+        "name": "{context}Cache-Zeitstempel{detail}"
+      },
+      "has_loadcmdchctrlinfos": {
+        "name": "{context}Cache-Vollständigkeitsmerkmal{detail}"
+      },
+      "heartbeat_gridsta": {
+        "name": "{context}Netzstatus{detail}"
+      },
+      "heartbeat_worktime": {
+        "name": "{context}Gerätebetriebszeit{detail}"
+      },
+      "heartbeat_backupfullcap": {
+        "name": "{context}Vollkapazität Backup{detail}"
+      },
+      "heartbeat_backupbatper": {
+        "name": "{context}Batteriestand Backup{detail}"
+      },
+      "heartbeat_griddaywatth": {
+        "name": "{context}Netzenergie heute{detail}"
+      },
+      "heartbeat_backupdaywatth": {
+        "name": "{context}Backup-Energie heute{detail}"
+      },
+      "heartbeat_backupchatime": {
+        "name": "{context}Backup-Entladezeit{detail}"
+      },
+      "heartbeat_time": {
+        "name": "{context}Gerätezeit{detail}"
+      },
+      "heartbeat_time_year": {
+        "name": "{context}Gerätezeit Jahr{detail}"
+      },
+      "heartbeat_time_month": {
+        "name": "{context}Gerätezeit Monat{detail}"
+      },
+      "heartbeat_time_day": {
+        "name": "{context}Gerätezeit Tag{detail}"
+      },
+      "heartbeat_time_hour": {
+        "name": "{context}Gerätezeit Stunde{detail}"
+      },
+      "heartbeat_time_min": {
+        "name": "{context}Gerätezeit Minute{detail}"
+      },
+      "heartbeat_time_sec": {
+        "name": "{context}Gerätezeit Sekunde{detail}"
+      },
+      "heartbeat_time_week": {
+        "name": "{context}Gerätezeit Wochentag{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos": {
+        "name": "{context}Kanalsteuerung 1 bis 10{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos_powch": {
+        "name": "{context}Kanalcode{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos_ctrlsta": {
+        "name": "{context}Versorgungsquelle{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos_ctrlmode": {
+        "name": "{context}Kanalsteuerungsmodus{detail}"
+      },
+      "heartbeat_loadcmdchctrlinfos_priority": {
+        "name": "{context}Kanalpriorität{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos": {
+        "name": "{context}Steuerung Backup-Kanäle{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos_ctrlsta": {
+        "name": "{context}Backup-Versorgungsquelle{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos_ctrlmode": {
+        "name": "{context}Backup-Steuerungsmodus{detail}"
+      },
+      "heartbeat_backupcmdchctrlinfos_priority": {
+        "name": "{context}Backup-Kanalpriorität{detail}"
+      },
+      "splitphaseinfo_cfglist": {
+        "name": "{context}Split-Phase-Schaltung{detail}"
+      },
+      "splitphaseinfo_cfglist_linkmark": {
+        "name": "{context}Split-Phase-Markierung{detail}"
+      },
+      "splitphaseinfo_cfglist_linkch": {
+        "name": "{context}Verknüpfter Kanal{detail}"
+      },
+      "loadchcurinfo_cur": {
+        "name": "{context}Stromkonfiguration pro Kanal{detail}"
+      },
+      "gridinfo_gridvol": {
+        "name": "{context}Netz-Nennspannung{detail}"
+      },
+      "gridinfo_gridfreq": {
+        "name": "{context}Netzfrequenz{detail}"
+      },
+      "epsmodeinfo_eps": {
+        "name": "{context}EPS-Modus{detail}"
+      },
+      "chuseinfo_isenable": {
+        "name": "{context}Aktivierte Kanäle{detail}"
+      },
+      "loadchinfo": {
+        "name": "{context}Lastkanal-Metadaten{detail}"
+      },
+      "loadchinfo_info": {
+        "name": "{context}Lastkanal-Namen{detail}"
+      },
+      "loadchinfo_info_chname": {
+        "name": "{context}Kanalname{detail}"
+      },
+      "loadchinfo_info_iconnum": {
+        "name": "{context}Kanalicon{detail}"
+      },
+      "emergencystrategy_chsta": {
+        "name": "{context}Notstrom-Kanalregeln{detail}"
+      },
+      "emergencystrategy_chsta_priority": {
+        "name": "{context}Notstrom-Priorität{detail}"
+      },
+      "emergencystrategy_chsta_isenable": {
+        "name": "{context}Notstromregel aktiv{detail}"
+      },
+      "emergencystrategy_backupmode": {
+        "name": "{context}Backup-Strategiemodus{detail}"
+      },
+      "emergencystrategy_overloadmode": {
+        "name": "{context}Überlaststrategie{detail}"
+      },
+      "timetask": {
+        "name": "{context}Geplante Aufgaben{detail}"
+      },
+      "timetask_index": {
+        "name": "{context}Aufgabenindex{detail}"
+      },
+      "timetask_cfg_param_hightbattery": {
+        "name": "{context}Obere Ladegrenze{detail}"
+      },
+      "timetask_cfg_param_lowbattery": {
+        "name": "{context}Untere Ladegrenze{detail}"
+      },
+      "timetask_cfg_param_chchargewatt": {
+        "name": "{context}Ladeleistung{detail}"
+      },
+      "timetask_cfg_param_chsta": {
+        "name": "{context}Zeitplan-Kanalauswahl{detail}"
+      },
+      "timetask_cfg_comcfg_timescale": {
+        "name": "{context}Zeitplan-Bitmaske{detail}"
+      },
+      "timetask_cfg_comcfg_iscfg": {
+        "name": "{context}Zeitplan konfiguriert{detail}"
+      },
+      "timetask_cfg_comcfg_type": {
+        "name": "{context}Zeitplan-Aufgabentyp{detail}"
+      },
+      "timetask_cfg_comcfg_isenable": {
+        "name": "{context}Zeitplan aktiviert{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_timemode": {
+        "name": "{context}Zeitplan-Wiederholung{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_isenable": {
+        "name": "{context}Zeitfenster aktiviert{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_starttime": {
+        "name": "{context}Zeitfenster-Beginn{detail}"
+      },
+      "timetask_cfg_comcfg_timerange_endtime": {
+        "name": "{context}Zeitfenster-Ende{detail}"
+      },
+      "cfgsta_sta": {
+        "name": "{context}Konfigurationsstatus{detail}"
+      },
+      "backupchadisccfg_forcechargehigh": {
+        "name": "{context}Obere Backup-Ladegrenze{detail}"
+      },
+      "backupchadisccfg_disclower": {
+        "name": "{context}Untere Backup-Entladegrenze{detail}"
+      },
+      "channelpower_infolist": {
+        "name": "{context}Kanalleistungen{detail}"
+      },
+      "channelpower_infolist_chwatt": {
+        "name": "{context}Kanalwirkleistung{detail}"
+      },
+      "channelpower_infolist_powtype": {
+        "name": "{context}Kanal-Leistungstyp{detail}"
+      },
+      "heartbeat_energyinfos": {
+        "name": "{context}Batterie-/Energiespeicherinformationen{detail}"
+      },
+      "heartbeat_energyinfos_batterypercentage": {
+        "name": "{context}Batteriestand Einzelgerät{detail}"
+      },
+      "heartbeat_energyinfos_outputpower": {
+        "name": "{context}Leistung des Speichers{detail}"
+      },
+      "heartbeat_energyinfos_emsbattemp": {
+        "name": "{context}Batterietemperatur{detail}"
+      },
+      "heartbeat_energyinfos_fullcap": {
+        "name": "{context}Kapazitätsrohwert{detail}"
+      },
+      "heartbeat_energyinfos_statebean_isconnect": {
+        "name": "{context}Speicher verbunden{detail}"
+      },
+      "heartbeat_energyinfos_statebean_isenable": {
+        "name": "{context}Speicher freigegeben{detail}"
+      },
+      "heartbeat_energyinfos_statebean_isgridcharge": {
+        "name": "{context}Speicher-Netzladung{detail}"
+      },
+      "heartbeat_energyinfos_statebean_ismpptcharge": {
+        "name": "{context}Speicher-MPPT-Ladung{detail}"
+      },
+      "mainsloadwatt_watth": {
+        "name": "{context}Netzlast-Energiereihen{detail}"
+      },
+      "backuploadwatt_watth": {
+        "name": "{context}Backup-Energiereihen{detail}"
+      },
+      "topuploadwatt_watth": {
+        "name": "{context}Lade-Energiereihen{detail}"
+      },
+      "selfcheck_errorcode": {
+        "name": "{context}Selbsttest-Fehlercode{detail}"
+      },
+      "selfcheck_result": {
+        "name": "{context}Selbsttest-Ergebniscode{detail}"
+      },
+      "selfcheck_vin": {
+        "name": "{context}Eingangsspannungen{detail}"
+      },
+      "selfcheck_vout": {
+        "name": "{context}Ausgangs-Selbsttestwerte{detail}"
+      },
+      "areainfo_area": {
+        "name": "{context}Konfigurierte Region{detail}"
+      },
+      "heartbeat_errorcodes": {
+        "name": "{context}Fehlercode-Liste{detail}"
+      },
+      "unknown_quota": {
+        "name": "Unbekanntes Quota-Feld {path}"
+      }
     }
   }
 }

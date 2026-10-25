@@ -54,7 +54,7 @@ async def test_backoff_and_recovery(hass, entry, mock_quota, quota):
     mock_quota.return_value = {"heartbeat.gridSta": 0}
     await coordinator.async_refresh()
     assert coordinator.last_update_success
-    assert coordinator.data == {"heartbeat.gridSta": 0}
+    assert coordinator.data.leaves == {("heartbeat.gridSta",): 0}
     assert coordinator.update_interval == timedelta(seconds=60)
     await hass.config_entries.async_unload(entry.entry_id)
 
@@ -71,3 +71,25 @@ async def test_scheduled_poll_and_unload(hass, entry, mock_quota):
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=140))
     await hass.async_block_till_done()
     assert mock_quota.await_count == 2
+
+
+async def test_options_reload_preserves_identity(hass, entry, mock_quota):
+    await hass.config_entries.async_setup(entry.entry_id)
+    previous = entry.runtime_data
+    hass.config_entries.async_update_entry(entry, options={"poll_interval": 90})
+    await hass.async_block_till_done()
+    assert entry.runtime_data is not previous
+    assert entry.runtime_data.poll_interval == 90
+    assert entry.unique_id == DATA["serial"]
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_runtime_auth_triggers_reauth(hass, entry, mock_quota):
+    await hass.config_entries.async_setup(entry.entry_id)
+    mock_quota.side_effect = AuthenticationError("Cloud authentication rejected")
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    flows = hass.config_entries.flow.async_progress()
+    assert any(flow["context"].get("source") == "reauth" for flow in flows)
+    assert not entry.runtime_data.last_update_success
+    await hass.config_entries.async_unload(entry.entry_id)

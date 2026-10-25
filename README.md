@@ -1,44 +1,71 @@
-# EcoFlow Smart Home Panel v1 — Home Assistant integration
+# EcoFlow Smart Home Panel v1 — Home Assistant
 
-> **Status: M1 read-only core implemented and tested offline; M2 entity work follows.** Not hardware-validated or release-ready. No device controls are exposed.
+**M1 + M2 implemented and verified offline.** Native, read-only integration for the first-generation EcoFlow Smart Home Panel. Hardware acceptance, safe controls (M3) and release readiness (M4) remain open. No GitHub release has been published. SHP2/3 and other EcoFlow devices are unsupported.
 
-A developing HACS-installable, native Home Assistant integration for **EcoFlow Smart Home Panel, first generation (v1)**. This repository deliberately **does not target Smart Home Panel 2 or newer generations**.
+## What works
 
-## Goals
+- UI configuration of per-panel access key, secret key, serial and EU/global API endpoint; duplicate-serial prevention, reauthentication and credential replacement.
+- One asynchronous, signed EcoFlow client and one DataUpdateCoordinator per panel. Default polling is 60 seconds, configurable from 30–900 seconds, with failure backoff and rate-limit handling.
+- Every safe scalar quota leaf is discoverable, including dotted keys, nested objects, arrays, nulls and new fields. Raw access identity is preserved even when two display paths collide.
+- German/English friendly names and explanations for all 81 seed patterns, including indexed container fallbacks. Device channel labels are included safely without changing entity identity.
+- Native sensor/binary_sensor entities, stable device identity, dynamic discovery, clean unload/reload and safe aggregate diagnostics.
+- History exclusively through HA Recorder for enabled entities. No quota archive, extra database, snapshots or per-entity API requests.
 
-- Reuse the *existing, already working* EcoFlow Open API and control logic from [nickwinger/homeassistant_config/ecoflow](https://github.com/nickwinger/homeassistant_config/tree/main/ecoflow), without touching that deployment.
-- Configure access key, secret key and device serial through Home Assistant's UI; do not require external Python jobs or input helpers.
-- Expose useful readings and explicit controls as native Home Assistant entities.
-- Expose **every scalar leaf** of successful quota responses as a discoverable entity, including fields in arrays; additional/unknown diagnostic entities start **disabled by default**.
-- Give entities **friendly, translatable names and meaningful explanations**, backed by an evidence-graded quota field catalog. Keep the original quota property path discoverable.
-- **History exclusively through Home Assistant Recorder for enabled entities.** No separate full-JSON archive, SQLite/CSV recorder, or shadow historical store. Disabled entities must not generate new history.
-- Implement safe, verified, opt-in channel/source switching and battery charge control without changing startup power routing.
-- Support HACS custom repository installation first; pursue broader HACS listing after quality, tests and branding checks.
+The independent synthetic fixture contains **243 scalar leaves → 243 registry entities**. **16 start enabled; 227 start disabled.** Real totals depend on the fields the cloud returns. The registry limit is 4,096 identities per entry, including previously discovered fields across reloads.
 
-## Development
+| Enabled by default | Count in fixture | Interpretation |
+| --- | ---: | --- |
+| Grid availability | 1 | Documented binary 0/1 |
+| Backup battery percentage | 1 | Only 0–100; valid readings support measurement statistics |
+| Circuit supply source | 10 | 0 grid, 1 battery, 2 off; other codes unknown |
+| Nominal grid voltage/frequency | 2 | Configuration values, not live measurements |
+| Daily grid/backup energy fields | 2 | Raw daily counters without a unit or statistics pending verification |
 
-Read [CODEX_TASK.md](CODEX_TASK.md), [AGENTS.md](AGENTS.md), [docs/MILESTONES.md](docs/MILESTONES.md), and [docs/ENTITY_CATALOG.md](docs/ENTITY_CATALOG.md) before coding. The reference source repository is not this integration: it is read-only input.
+Channel power, per-storage percentages/power/temperature and other inferred fields remain individually enableable **raw diagnostics**, without guessed units or scaling. Backup `ctrlSta=2` conflicts between the manufacturer table and the existing charging helper, so it remains a raw code. The [entity catalog](docs/ENTITY_CATALOG.md) explains these decisions.
 
-The core supports UI setup, duplicate-serial prevention, credential replacement/reauthentication, a shared async client, polling every 60 seconds (30–900 configurable), bounded failure backoff, rate-limit delays and clean unload. The initial device check requires explicit SHP v1 confirmation and the v1 control-array topology; it is not authoritative model identification. HTTP 401/403 triggers reauth; undocumented application errors remain generic failures. Development uses Home Assistant 2026.10.3 and Python 3.14 in an isolated test environment.
+## Installation in an isolated test instance
 
-## Quota name examples
+Requires **Home Assistant 2026.10 or newer / Python 3.14**; offline tests use HA 2026.10.3. Earlier versions have not been tested.
 
-| Quota path | German-friendly name | Interpretation |
-| --- | --- | --- |
-| `heartbeat.gridSta` | Netzstatus | Grid availability, documented 0/1 |
-| `heartbeat.backupBatPer` | Batteriestand Backup | Percent, validate bounds; never silently guess scaling |
-| `channelPower.infoList[6].chWatt` | Stromkreis 7 – Leistung | Raw numeric power with documented/inferred confidence |
-| `heartbeat.loadCmdChCtrlInfos[6].ctrlSta` | Stromkreis 7 – Versorgungsquelle | 0 grid, 1 battery, other values unknown |
-| `selfCheck.result` | Selbsttest – Ergebniscode | Raw code, unknown enum meaning; diagnostic and disabled by default |
+1. In HACS, add `https://github.com/nickwinger/ecoflow_smart_home_panel_v1` as a custom repository of type **Integration**. Download the default branch, then restart the test instance. Alternatively copy only `custom_components/ecoflow_smart_home_panel_v1` into its `custom_components` directory.
+2. Under **Settings → Devices & services → Add integration**, choose **EcoFlow Smart Home Panel v1**.
+3. Enter credentials and panel serial, select the API region, and confirm that the hardware is first-generation SHP. No YAML, shell job or external helper is required.
+4. Setup requires a quota response with ten load-control and two backup-control entries. A partial first response may need a retry. The published device-list API has no model identifier: confirmation plus topology is a conservative compatibility check, not authoritative hardware detection.
+5. Open the device's entities, include disabled entities in the list, and enable only the diagnostics you want. Explanations are available in the entity's state attributes and the catalog; HA does not necessarily display them directly under the entity name.
+6. Configure the polling interval through **Options**. Use **Reconfigure** to replace keys; HTTP 401/403 starts reauth automatically. Unknown application error codes produce a generic cloud error, because an authoritative code table was not supplied.
 
-Detailed names, descriptions, enum mappings, confidence and raw paths: [docs/quota-field-guide.json](docs/quota-field-guide.json). Some values are documented only by inference: no fabricated units or enums.
+No device is controlled by this version. Existing Python jobs, helpers, dashboards and their history remain untouched. See [migration and manual validation](docs/MIGRATION.md). Installation has not been performed on a running user system.
 
-## Privacy and safety
+## Recorder history and statistics
 
-Never commit API keys, tokens, device serials, production cache files, logs or identifying example payloads. Energy routing and charging are safety-relevant: commands should be user initiated, explicitly enabled, serialized and verified against fresh responses, never optimistic.
+An enabled entity publishes states, which Recorder stores unless excluded by the user's Recorder configuration. A disabled entity has no live state or fresh history. Discovery still uses the shared panel poll so new fields can appear in the registry; disabled fields never cause separate requests or archival writes.
 
-## License
+Detailed states and five-minute statistics are normally kept for **10 days**, configurable via Recorder. Eligible hourly long-term statistics are not automatically purged. Text, raw numbers without a verified state class, and binary sensors do not gain indefinite numeric statistics. Disabling/removing an entity does not automatically delete previous history. Static descriptions, source paths and evidence metadata are marked unrecorded. [Home Assistant statistics documentation](https://www.home-assistant.io/docs/configuration/long-term-statistics/).
 
-MIT, see [LICENSE](LICENSE). This project is independently maintained and is not affiliated with EcoFlow or Home Assistant.
+Only the documented panel battery percentage currently receives `MEASUREMENT`. Daily counter scale, reset timing and timezone semantics remain unverified; no `TOTAL`/`TOTAL_INCREASING` is assigned, and these counters are not advertised as Energy Dashboard inputs. Missing fields become `unavailable`; null, invalid percentages and unknown enums become `unknown`. A small `raw_value` attribute preserves invalid/unknown codes where useful. Failed polls make enabled entities unavailable.
 
-Official EcoFlow reference: [Smart Home Panel v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098). Local manufacturer copies are listed in [reference sources](docs/REFERENCE_SOURCES.md).
+## Development and verification
+
+```sh
+python3.14 -m venv .venv
+.venv/bin/python -m pip install -r requirements-test.txt
+.venv/bin/ruff check custom_components tests scripts
+.venv/bin/ruff format --check custom_components tests scripts
+.venv/bin/python scripts/sync_catalog.py --check
+.venv/bin/python -m compileall -q custom_components
+.venv/bin/pytest -q --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing
+```
+
+Latest local result: **186 tests passed, 98% line coverage**. Tests use invented data, mocked HTTP and an in-memory HA Recorder database. `pytest-socket` blocks Internet access. The current sandbox blocks asyncio's internal self-pipe, so local tests run outside that sandbox with the same network-blocking pytest configuration. CI runs Ruff, catalog consistency, compilation, pytest, official hassfest and HACS custom-repository checks. HACS **brands** validation is explicitly deferred to M4; the other HACS checks remain enabled.
+
+`scripts/sync_catalog.py` packages the field guide and generates entity translations inside the HACS install directory. All runtime files are self-contained there. Changes to catalog text must regenerate those resources. See [milestones and validation results](docs/MILESTONES.md).
+
+## Sources and privacy
+
+- [Official EcoFlow Smart Home Panel v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098).
+- [Read-only working Python reference](https://github.com/nickwinger/homeassistant_config/tree/main/ecoflow), particularly signing, indexed channel interpretation and fresh-status behavior.
+- [Source/evidence details](docs/REFERENCE_SOURCES.md), including sanitized text extracted from the owner's supplied manufacturer documentation. Original browser exports remain local and unchanged.
+
+Credentials are stored in HA-managed config entries; serials also participate in HA-managed registry identities, never display names. The integration logs neither request URLs nor payloads. Sensitive quota subtrees are excluded, diagnostics contain only counts/status, and malformed/dynamic inputs are bounded. Treat HA backups/config entry storage as private.
+
+Project code is MIT-licensed; supplied manufacturer documentation retains its original ownership. This project is independent of EcoFlow and Home Assistant.

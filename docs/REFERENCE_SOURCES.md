@@ -30,6 +30,22 @@ Do not paste any actual user key, secret, serial, Home Assistant token, propriet
 
 ## Supplied manufacturer copies (2026-10-25)
 
-- [Official SHP v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098), supplied locally as `docs/ecoflow_smart_home_panel_v1.txt`.
-- General signing/API reference supplied as `docs/ecoflow_general.txt`.
+- [Official SHP v1 API](https://developer-eu.ecoflow.com/us/document/PP4?id=2058837749501956098), supplied locally as `docs/reference/ecoflow_smart_home_panel_v1.txt`.
+- General signing/API reference supplied as `docs/reference/ecoflow_general.txt`.
 - The copies define topology, basic status enums and configuration fields, but do not establish all units in the seed. Backup `ctrlSta=2` conflicts with the working charging helper. The device list has no authoritative model field; no HTTP application error-code table is supplied.
+
+
+The original `.htm` browser exports remain local and unchanged. Versioned text
+under `docs/reference/` removes scripts/styles, replaces full manufacturer demo
+identifiers with synthetic values and recalculates the modified signing example.
+These are vendor reference documents, not production telemetry or MIT-licensed
+project code. Synthetic fixtures were authored independently, not copied from the
+reference cache. The reference repository was read only and was never checked out
+or changed locally.
+
+Reference source blobs inspected: API `81c75b35a0c8c8b00502cd70989acd813f623745`,
+cache `bf2b9ff9dbf90842b5fe4bf1ccd5808137ced001`, channel/charge writes
+`877c653b71250136536f22044f2a2c1dcb4a31ce`, batch behavior
+`5b409c05f51ae15c3fe5f8c32826bf877894eadb`, values
+`b037d9c459e0ffe4c0eccc053a523f21d9b9227f`. No blocking reference HTTP or disk-cache
+implementation was copied into HA.

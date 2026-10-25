@@ -31,3 +31,7 @@ build/
 .DS_Store
 .idea/
 .vscode/
+
+# Original browser exports supplied for reference; sanitized text is versioned.
+docs/ecoflow_general.htm
+docs/ecoflow_smart_home_panel_v1.htm
