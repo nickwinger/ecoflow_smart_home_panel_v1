@@ -22,6 +22,7 @@ from .api import (
 from .const import (
     CONF_ACCESS_KEY,
     CONF_BATCH_CONTROLS,
+    CONF_BATCH_NOTIFICATIONS,
     CONF_CHARGE_CONTROLS,
     CONF_POLL_INTERVAL,
     CONF_REGION,
@@ -164,7 +165,12 @@ class EcoFlowOptionsFlow(OptionsFlow):
                 and MIN_POLL_INTERVAL_SECONDS <= interval <= MAX_POLL_INTERVAL_SECONDS
             ):
                 options = {CONF_POLL_INTERVAL: interval}
-                for key in (CONF_SOURCE_CONTROLS, CONF_CHARGE_CONTROLS, CONF_BATCH_CONTROLS):
+                for key in (
+                    CONF_SOURCE_CONTROLS,
+                    CONF_CHARGE_CONTROLS,
+                    CONF_BATCH_CONTROLS,
+                    CONF_BATCH_NOTIFICATIONS,
+                ):
                     value = user_input.get(key, self.config_entry.options.get(key, False))
                     if type(value) is not bool:
                         errors["base"] = "invalid_controls"
@@ -193,7 +199,12 @@ class EcoFlowOptionsFlow(OptionsFlow):
                     ),
                     **{
                         vol.Optional(key, default=self.config_entry.options.get(key, False)): bool
-                        for key in (CONF_SOURCE_CONTROLS, CONF_CHARGE_CONTROLS, CONF_BATCH_CONTROLS)
+                        for key in (
+                            CONF_SOURCE_CONTROLS,
+                            CONF_CHARGE_CONTROLS,
+                            CONF_BATCH_CONTROLS,
+                            CONF_BATCH_NOTIFICATIONS,
+                        )
                     },
                 }
             ),

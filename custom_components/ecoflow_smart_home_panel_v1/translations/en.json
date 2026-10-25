@@ -47,7 +47,8 @@
           "poll_interval": "Polling interval (1–600 seconds)",
           "enable_source_controls": "Control circuits (source and control mode)",
           "enable_charge_controls": "Control charging",
-          "enable_batch_controls": "Enable all-circuit switching (automations and buttons)"
+          "enable_batch_controls": "Enable all-circuit switching (automations and buttons)",
+          "notify_batch_failures": "Persistent notification when all-circuit switching fails"
         },
         "description": "After enabling controls, they appear on the device page. Enabling alone sends no commands. The “All circuits to grid”, “All circuits to battery” and “Cancel switching” buttons also require circuit controls. Default polling interval: 5 seconds."
       }

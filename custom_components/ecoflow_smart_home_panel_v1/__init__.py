@@ -12,8 +12,17 @@ from homeassistant.helpers.device_registry import async_get as async_get_device_
 
 from .api import EcoFlowClient
 from .catalog import load_catalog
-from .const import CONF_ACCESS_KEY, CONF_REGION, CONF_SECRET_KEY, CONF_SERIAL, DOMAIN, NAME
+from .const import (
+    CONF_ACCESS_KEY,
+    CONF_BATCH_NOTIFICATIONS,
+    CONF_REGION,
+    CONF_SECRET_KEY,
+    CONF_SERIAL,
+    DOMAIN,
+    NAME,
+)
 from .coordinator import EcoFlowCoordinator
+from .notifications import async_clear_notifications
 from .services import async_register_services
 
 PLATFORMS = [
@@ -67,6 +76,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) ->
 
 async def async_setup_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> bool:
     """Set up a shared client without any device writes."""
+    if entry.options.get(CONF_BATCH_NOTIFICATIONS) is not True:
+        async_clear_notifications(hass, entry)
     client = EcoFlowClient(
         async_get_clientsession(hass),
         entry.data[CONF_ACCESS_KEY],
@@ -100,4 +111,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> 
 
 async def async_reload_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> None:
     """Apply changed polling/control options without restoring previous targets."""
+    if entry.options.get(CONF_BATCH_NOTIFICATIONS) is not True:
+        async_clear_notifications(hass, entry)
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: EcoFlowConfigEntry) -> None:
+    """Remove only this entry's notifications; never operate the panel."""
+    async_clear_notifications(hass, entry)

@@ -3,6 +3,7 @@
 from homeassistant.core import HomeAssistant
 
 from . import EcoFlowConfigEntry
+from .const import CONF_BATCH_NOTIFICATIONS
 
 
 async def async_get_config_entry_diagnostics(
@@ -30,6 +31,7 @@ async def async_get_config_entry_diagnostics(
         "source_controls_enabled": coordinator.controls.enabled("source"),
         "charge_controls_enabled": coordinator.controls.enabled("charge"),
         "batch_controls_enabled": coordinator.controls.batch_enabled(),
+        "batch_failure_notifications_enabled": entry.options.get(CONF_BATCH_NOTIFICATIONS) is True,
         "power_telemetry_connected": coordinator.telemetry.connected,
         "power_telemetry_reports": coordinator.telemetry.reports,
         "power_telemetry_age_seconds": coordinator.telemetry.power_age(),

@@ -5,6 +5,9 @@
     "@nickwinger"
   ],
   "config_flow": true,
+  "dependencies": [
+    "persistent_notification"
+  ],
   "documentation": "https://github.com/nickwinger/ecoflow_smart_home_panel_v1",
   "integration_type": "device",
   "iot_class": "cloud_polling",
@@ -12,5 +15,5 @@
   "requirements": [
     "paho-mqtt>=2.1.0"
   ],
-  "version": "0.3.2"
+  "version": "0.4.0"
 }

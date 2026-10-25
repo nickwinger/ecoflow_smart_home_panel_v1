@@ -18,6 +18,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from .api import AuthenticationError, quota_member
 from .const import CONF_BATCH_CONTROLS, CONF_CHARGE_CONTROLS, CONF_SOURCE_CONTROLS, DOMAIN
 from .logging_utils import failure_reason
+from .notifications import async_batch_failed, async_batch_succeeded
 from .quota import Snapshot
 
 if TYPE_CHECKING:
@@ -237,6 +238,13 @@ class PanelControls:
                 except Exception as error:
                     self._status(state="failed")
                     self.coordinator.async_control_error(error)
+                    if batch:
+                        async_batch_failed(
+                            self.coordinator.hass,
+                            self.coordinator.config_entry,
+                            target,
+                            self.status["completed"],
+                        )
                     if isinstance(error, AuthenticationError):
                         self.coordinator.config_entry.async_start_reauth(self.coordinator.hass)
                     if isinstance(error, BatchSwitchError):
@@ -254,6 +262,10 @@ class PanelControls:
                     ) from None
                 else:
                     self._status(state="succeeded", stage="complete")
+                    if batch:
+                        async_batch_succeeded(
+                            self.coordinator.hass, self.coordinator.config_entry, target
+                        )
                     _LOGGER.info(
                         "EcoFlow entry %s: %s%s -> %s completed and confirmed; channel=%s, confirmed circuits=%s",
                         self.coordinator.config_entry.entry_id[:8],

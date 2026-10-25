@@ -114,6 +114,7 @@ async def test_options(hass, entry, interval):
         "enable_source_controls": False,
         "enable_charge_controls": False,
         "enable_batch_controls": False,
+        "notify_batch_failures": False,
     }
 
 
@@ -146,6 +147,7 @@ async def test_options_default_and_existing_selection(hass, entry, configured):
         "enable_source_controls": False,
         "enable_charge_controls": False,
         "enable_batch_controls": False,
+        "notify_batch_failures": False,
     }
 
 

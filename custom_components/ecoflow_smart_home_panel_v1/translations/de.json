@@ -47,7 +47,8 @@
           "poll_interval": "Abfrageintervall (1–600 Sekunden)",
           "enable_source_controls": "Stromkreise steuern (Quelle und Betriebsart)",
           "enable_charge_controls": "Laden steuern",
-          "enable_batch_controls": "Sammelschaltung freigeben (Automationen und Tasten)"
+          "enable_batch_controls": "Sammelschaltung freigeben (Automationen und Tasten)",
+          "notify_batch_failures": "Dauerhafte Benachrichtigung bei fehlgeschlagener Sammelschaltung"
         },
         "description": "Nach der Freigabe erscheinen die Bedienelemente auf der Geräteseite. Die Freigabe allein schaltet nichts. Für die Tasten „Alle auf Netzstrom“, „Alle auf Batterie“ und „Schaltung abbrechen“ zusätzlich die Stromkreissteuerung aktivieren. Standard-Abfrageintervall: 5 Sekunden."
       }

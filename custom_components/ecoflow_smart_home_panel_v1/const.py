@@ -13,6 +13,7 @@ CONF_POLL_INTERVAL = "poll_interval"
 CONF_SOURCE_CONTROLS = "enable_source_controls"
 CONF_CHARGE_CONTROLS = "enable_charge_controls"
 CONF_BATCH_CONTROLS = "enable_batch_controls"
+CONF_BATCH_NOTIFICATIONS = "notify_batch_failures"
 HOSTS = {"eu": "https://api-e.ecoflow.com", "global": "https://api.ecoflow.com"}
 
 
