@@ -91,3 +91,13 @@ Validated code commit: [`9dcf39d`](https://github.com/nickwinger/ecoflow_smart_h
 - No hardware commands or production installation. Update/restart the isolated instance and verify names plus the selected Diagnostics; explicit user disables remain manual choices.
 
 - Merged the parallel DEV-environment updates before the final test run. `docker compose -f .devcontainer/ha.compose.yml config -q` and `bash -n scripts/dev-ha.sh`: **passed**. GitHub workflows remain manual-only; no workflow was dispatched for this update.
+
+## M1 follow-up — five-second default polling (0.1.2)
+
+- Default and minimum interval are now 5 seconds; maximum remains 900 seconds. English/German options labels and validation match the new range.
+- Entries without a saved override automatically use the new default after restart; explicitly configured intervals are preserved. No config-entry schema migration is needed.
+- Error backoff and HTTP 429 cooldown remain active; a successful refresh restores the selected interval.
+- Tests cover the actual five-second scheduled poll, unload cancellation, options defaults and bounds, retained custom selections, error backoff and recovery.
+- `pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`: **260 passed**, **99% coverage** (637 statements, 7 uncovered), 16.07 seconds.
+- `ruff check custom_components tests scripts`, `ruff format --check custom_components tests scripts`, `python scripts/sync_catalog.py --check`, `python -m compileall -q custom_components`, and `git diff --check`: **passed**.
+- Entity coverage/defaults remain 245/245 leaves, 44 enabled and 201 disabled. No live device commands or deployment; GitHub Actions remain manual-only.

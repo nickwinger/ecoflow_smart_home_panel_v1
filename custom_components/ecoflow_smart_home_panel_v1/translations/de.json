@@ -46,12 +46,12 @@
     "step": {
       "init": {
         "data": {
-          "poll_interval": "Abfrageintervall (30–900 Sekunden)"
+          "poll_interval": "Abfrageintervall (5–900 Sekunden)"
         }
       }
     },
     "error": {
-      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 30 und 900 eingeben."
+      "invalid_poll_interval": "Bitte eine ganze Zahl zwischen 5 und 900 eingeben."
     }
   },
   "entity": {

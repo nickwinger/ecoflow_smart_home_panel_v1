@@ -3,12 +3,12 @@
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
-![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-blue)
+![Version 0.1.2](https://img.shields.io/badge/version-0.1.2-blue)
 ![Read only](https://img.shields.io/badge/mode-read--only-orange)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > [!IMPORTANT]
-> **Early preview (v0.1.0) · Read-only.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. This version **cannot switch circuits, charge batteries or change device settings**. Test it before using it in your main Home Assistant installation.
+> **Early preview (v0.1.2) · Read-only.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. This version **cannot switch circuits, charge batteries or change device settings**. Test it before using it in your main Home Assistant installation.
 
 ## ✨ Features
 
@@ -53,7 +53,7 @@ Your resulting path should be:
 3. Enter your **Access Key**, **Secret Key** and **panel serial number**.
 4. Select the correct API region (**EU** or **Global**) and confirm you have an **SHP v1**.
 
-That's it! Your panel and available entities will appear under **Devices & services**. You can adjust polling in the integration **Options** (default: 60 seconds).
+That's it! Your panel and available entities will appear under **Devices & services**. You can adjust polling in the integration **Options** (default: **5 seconds**, configurable from **5–900 seconds**). Entries without a saved interval adopt this default after restart; explicitly saved custom intervals are preserved.
 
 > The integration uses the EcoFlow Developer API over the internet; it does not connect directly to the panel on your local network.
 

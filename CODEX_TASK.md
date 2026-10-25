@@ -20,7 +20,7 @@ We already have working HTTP read, cache, channel grid/battery switching and bat
 **M1 – functioning read-only core**:
 - Set up HA UI config flow with access key, secret key, panel SN; no YAML or shell scripts.
 - Proper asynchronous EcoFlow API wrapper; GET/PUT signing equivalent to the reference; meaningful error classification and redacted logs.
-- Shared DataUpdateCoordinator, configurable/limited polling (initial suggestion: 60 seconds), refresh semantics and device registry.
+- Shared DataUpdateCoordinator, configurable/limited polling (owner-required default: 5 seconds; configurable 5–900 seconds), refresh semantics and device registry.
 - Compatibility only with SHP v1. Verify device identification or fail clearly; no false SHP2 claim.
 - Offline mocked API tests.
 

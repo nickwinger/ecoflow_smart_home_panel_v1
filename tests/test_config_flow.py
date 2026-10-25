@@ -90,16 +90,17 @@ async def test_credentials_replaced(hass, entry, mock_quota, source):
         reload.assert_awaited_once()
 
 
-async def test_options(hass, entry):
+@pytest.mark.parametrize("interval", [5, 120, 900])
+async def test_options(hass, entry, interval):
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"poll_interval": 120}
+        result["flow_id"], {"poll_interval": interval}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options == {"poll_interval": 120}
+    assert entry.options == {"poll_interval": interval}
 
 
-@pytest.mark.parametrize("interval", [0, 29, 901, True, 60.5, "60", None])
+@pytest.mark.parametrize("interval", [0, 4, 901, True, 5.5, "5", None])
 async def test_options_reject_invalid_intervals(hass, entry, interval):
     result = await hass.config_entries.options.async_init(entry.entry_id)
     with pytest.raises(InvalidData):
@@ -107,6 +108,14 @@ async def test_options_reject_invalid_intervals(hass, entry, interval):
             result["flow_id"], {"poll_interval": interval}
         )
     assert entry.options == {}
+
+
+@pytest.mark.parametrize("configured", [None, 60])
+async def test_options_default_and_existing_selection(hass, entry, configured):
+    if configured is not None:
+        hass.config_entries.async_update_entry(entry, options={"poll_interval": configured})
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["data_schema"]({}) == {"poll_interval": 5 if configured is None else configured}
 
 
 @pytest.mark.parametrize(

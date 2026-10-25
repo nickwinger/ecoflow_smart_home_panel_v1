@@ -34,7 +34,7 @@ EcoFlow Cloud GET quota/all ──► async EcoFlow client (per config entry)
 
 The integration does not need an external job, helper updates or a second storage engine. A single quota/all poll can populate every enabled entity. Don't produce one HTTP request per sensor. Cache is in-memory for coordination/confirmation; avoid saving full JSON snapshots to disk. No full quota history archive.
 
-Recommended initial coordinator interval: 60 seconds, optionally configurable with safe bounds (prevent API hammering). API errors should mark affected entities unavailable and use sensible retry/backoff. All I/O must be async or executor-wrapped: never block the HA event loop.
+Default coordinator interval: 5 seconds, configurable from 5 to 900 seconds. Explicitly saved intervals are preserved; entries without an override use the default. API errors should mark affected entities unavailable and use sensible retry/backoff. All I/O must be async or executor-wrapped: never block the HA event loop.
 
 ## Representation and ID rules
 
