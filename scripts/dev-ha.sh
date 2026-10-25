@@ -19,8 +19,9 @@ EcoFlow SHP v1 — isolated Home Assistant DEV workflow
   bash scripts/dev-ha.sh status                 Show DEV container status
   bash scripts/dev-ha.sh logs                   Follow DEV HA logs
   bash scripts/dev-ha.sh stop                   Stop DEV HA, KEEP users/entities/history
-  bash scripts/dev-ha.sh reset                  DELETE ONLY DEV HA volume and start fresh
-  bash scripts/dev-ha.sh clean                  DELETE ONLY DEV HA volume; do not restart
+  bash scripts/dev-ha.sh reset                  Erase only HA DEV data, preserve VS Code workspace
+  bash scripts/dev-ha.sh clean                  Erase only HA DEV data; do not restart
+  bash scripts/dev-ha.sh doctor                 Check mounted integration and logs
   bash scripts/dev-ha.sh test                   Run isolated offline pytest suite
   bash scripts/dev-ha.sh help                   Show this help
 
@@ -64,7 +65,8 @@ open_browser() {
 start() {
     preflight
     echo "Starting isolated EcoFlow DEV Home Assistant (not production)..."
-    compose up -d --remove-orphans
+    # Do not trigger a Python workspace build when only starting Home Assistant.
+    compose up -d homeassistant
     python3 "$BOOTSTRAP"
     echo
     echo "DEV Home Assistant is ready at http://localhost:8124"
@@ -80,7 +82,12 @@ delete_dev_volume() {
     echo "Removing ONLY the '$PROJECT' Docker Compose project and its own DEV volume."
     echo "This erases the DEV account, EcoFlow DEV credentials, entity registry and Recorder history."
     echo "Your production Home Assistant and Git working tree are not mounted."
-    compose down --volumes --remove-orphans
+    # Keep the attached Python workspace alive. Do not use 'compose down -v'.
+    compose stop bootstrap homeassistant 2>/dev/null || true
+    compose rm -sf bootstrap homeassistant seed
+    if docker volume inspect "${PROJECT}_ha_config" >/dev/null 2>&1; then
+        docker volume rm "${PROJECT}_ha_config" >/dev/null || die "DEV volume is still in use"
+    fi
 }
 
 OPEN_BROWSER="yes"
@@ -122,6 +129,19 @@ case "$COMMAND" in
         preflight
         compose ps
         ;;
+    doctor)
+        [ "$#" -eq 0 ] || die "Unexpected arguments."
+        preflight
+        compose ps homeassistant
+        echo "Checking DEV custom integration mount..."
+        compose exec -T homeassistant sh -c \
+            'test -r /config/custom_components/ecoflow_smart_home_panel_v1/manifest.json' \
+            || die "EcoFlow manifest is NOT visible in Home Assistant DEV"
+        echo "OK: EcoFlow manifest is visible."
+        echo "Relevant Home Assistant DEV log messages:"
+        compose logs --tail=150 homeassistant | grep -Ei 'ecoflow|custom_components|setup failed|error' || true
+        echo "To configure: Settings > Devices & services > Add integration > EcoFlow Smart Home Panel v1"
+        ;;
     logs)
         [ "$#" -eq 0 ] || die "Unexpected arguments."
         preflight
@@ -130,8 +150,8 @@ case "$COMMAND" in
     stop)
         [ "$#" -eq 0 ] || die "Unexpected arguments."
         preflight
-        compose down --remove-orphans
-        echo "DEV stopped, test volume retained."
+        compose stop bootstrap homeassistant
+        echo "DEV Home Assistant stopped; Python workspace and DEV data retained."
         ;;
     clean)
         [ "$#" -eq 0 ] || die "Unexpected arguments."
