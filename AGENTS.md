@@ -1,5 +1,36 @@
 # Agent instructions (all paths)
 
+## URGENT ELECTRICAL SAFETY HOLD — 2026-10-25
+
+**A real FI/RCD breaker reportedly tripped following use of the all-source-switching button.**
+The precise mechanism is not established. Treat the new bulk controls as unsafe
+until the user and a qualified electrician have reviewed the electrical incident.
+
+- NEVER remove, bypass, or turn off `BATCH_SOURCE_SWITCHING_SUSPENDED = True`
+  without **new, explicit user authorization after a documented safety review**.
+  Neither `button.press` nor the `set_all_sources` service may issue bulk
+  device commands. Keep the defensive refusal in the control method itself.
+- The isolated DEV Home Assistant is **always hardware read-only**, even when
+  config-entry options request write access. Its Compose service sets
+  `ECOFLOW_SHP_DEV_READ_ONLY=1`; the API client must reject all HTTP PUTs
+  before any network send, including the generic request method. Future MQTT
+  code may subscribe to telemetry but may not publish actuator commands in DEV.
+- Never use the actual Smart Home Panel for automated acceptance tests or as
+  a fallback validation method. Use synthetic fixtures and mocked transport.
+  **No test may switch a live circuit or reset a real FI/RCD breaker.**
+- Simply using `await sleep(10)`, getting HTTP 200, or observing a changed
+  `quota/all` value does **not** prove that the panel applied physical
+  commands one at a time. EcoFlow cloud replies can lag or be cached.
+- Restore batch controls only after investigating actual per-command send
+  timestamps, device-side applied state and adequate settling intervals,
+  possible queued cloud commands, interaction with any *independent legacy
+  Pyscript* writer, and the cause of the FI/RCD trip. Require fail-closed
+  hardware-proven acknowledgments and explicit human acceptance.
+- Updating this repository does not change already-installed Home Assistant
+  instances. Explain that old control options/automations must be disabled
+  and the new integration reloaded; the DEV container must be recreated for
+  newly-added environment protection.
+
 ## Mission and mandatory reading
 
 Build a native, HACS-installable Home Assistant integration for **EcoFlow Smart Home Panel v1 only**.
