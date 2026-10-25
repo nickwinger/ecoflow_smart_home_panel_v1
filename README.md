@@ -2,9 +2,13 @@
 
 **M1 + M2 implemented and verified offline.** Native, read-only integration for the first-generation EcoFlow Smart Home Panel. Hardware acceptance, safe controls (M3) and release readiness (M4) remain open. No GitHub release has been published. SHP2/3 and other EcoFlow devices are unsupported.
 
-## Isolated local live-device test
+## Isolated local live-device test (one command)
 
-For a **separate Docker Home Assistant 2026.10.3** on `http://localhost:8124`, a Python 3.14 VS Code Dev Container, disposable local Recorder/registry state and live **read-only** EcoFlow Cloud polling, see [docs/LOCAL_LIVE_TEST.md](docs/LOCAL_LIVE_TEST.md). Do **not** test against production Home Assistant. HACS is not needed for this local runtime test.
+**From WSL host:** `bash scripts/dev-ha.sh start` starts Home Assistant DEV on `http://localhost:8124`, automatically creates a local **test / test** user and completes initial onboarding, then opens our EcoFlow integration dialog in the browser. **VS Code → Dev Containers: Reopen in Container** also runs that startup automatically. The browser login and initial entry of your EcoFlow API credentials remain the only manual steps.
+
+`bash scripts/dev-ha.sh restart` reloads integration code; `bash scripts/dev-ha.sh stop` preserves history; `bash scripts/dev-ha.sh reset` wipes **only** the DEV volume and starts from a clean entity registry. See [the full step-by-step instructions](docs/LOCAL_LIVE_TEST.md).
+
+**Never expose the weak DEV user remotely.** No production HA volume/token/config or devices are touched. Live EcoFlow calls are GET-only at this M1/M2 stage. HACS is not needed for the local runtime test.
 
 ## What works
 

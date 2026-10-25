@@ -6,6 +6,11 @@
   },
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
+  "initializeCommand": [
+    "bash",
+    "${localWorkspaceFolder}/scripts/dev-ha.sh",
+    "start"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
