@@ -1,7 +1,6 @@
-# Start from a WSL HOST terminal, outside the VS Code Python devcontainer:
-#   docker compose -f .devcontainer/ha.compose.yml up -d
-# Creates an entirely separate HA UI, entity registry, Recorder and config store.
-# Never mount a production Home Assistant /config or storage volume here.
+# Shared disposable stack for WSL CLI and VS Code Dev Containers.
+# VS Code attaches to 'workspace'; Home Assistant runs as a sibling service.
+# NEVER mount production Home Assistant files or Docker's privileged socket here.
 name: ecoflow-shp-v1-live-test
 
 services:
@@ -16,6 +15,7 @@ services:
     volumes:
       - ha_config:/config
       - ./ha-configuration.yaml:/seed/configuration.yaml:ro
+    networks: [dev_cloud]
     restart: "no"
 
   homeassistant:
@@ -30,10 +30,40 @@ services:
     volumes:
       - ha_config:/config
       - ../custom_components:/config/custom_components:ro
-    networks:
-      - dev_cloud
+    networks: [dev_cloud]
     restart: "no"
     stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+  # One-shot DEV account bootstrap; no passwords or tokens are exported.
+  bootstrap:
+    image: python:3.12-slim-bookworm
+    command: ["python", "/bootstrap/dev_ha_bootstrap.py", "--compose-service"]
+    depends_on:
+      homeassistant:
+        condition: service_started
+    volumes:
+      - ../scripts/dev_ha_bootstrap.py:/bootstrap/dev_ha_bootstrap.py:ro
+    networks: [dev_cloud]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+
+  # Development container has neither a production HA mount nor docker.sock.
+  workspace:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: ["sleep", "infinity"]
+    init: true
+    working_dir: /workspaces/ecoflow_smart_home_panel_v1
+    depends_on:
+      homeassistant:
+        condition: service_started
+    volumes:
+      - ../:/workspaces/ecoflow_smart_home_panel_v1:cached
+    networks: [dev_cloud]
     security_opt:
       - no-new-privileges:true
 
