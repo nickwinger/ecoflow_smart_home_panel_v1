@@ -1,0 +1,30 @@
+name: Validate scaffold
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate metadata files
+        run: |
+          python -m json.tool hacs.json > /dev/null
+          python -m json.tool custom_components/ecoflow_smart_home_panel_v1/manifest.json > /dev/null
+          python -m json.tool docs/quota-field-guide.json > /dev/null
+      - name: Compile Python source
+        run: python -m compileall -q custom_components
+      - name: Run tests when available
+        run: |
+          if [ -d tests ]; then
+            python -m pip install pytest
+            python -m pytest -q
+          else
+            echo "No tests yet (M0 scaffold only)."
+          fi

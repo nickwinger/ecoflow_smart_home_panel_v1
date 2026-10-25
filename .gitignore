@@ -1,0 +1,33 @@
+# Local secrets and device identifiers
+.env
+.env.*
+!.env.example
+secrets.yaml
+config_secrets.py
+*token*
+*.key
+*.pem
+cache.json
+cache.json.*
+*.last_good
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+coverage.xml
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/

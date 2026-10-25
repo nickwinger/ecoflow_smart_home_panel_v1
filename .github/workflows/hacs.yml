@@ -1,0 +1,16 @@
+# Manual pre-release HACS validation. It may fail while M1-M4 are unfinished
+# (including brands requirements); do not release until green.
+name: HACS validation (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
