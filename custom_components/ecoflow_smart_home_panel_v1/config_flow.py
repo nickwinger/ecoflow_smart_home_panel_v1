@@ -22,7 +22,6 @@ from .const import (
     CONF_ACCESS_KEY,
     CONF_BATCH_CONTROLS,
     CONF_CHARGE_CONTROLS,
-    CONF_CONFIRM_V1,
     CONF_POLL_INTERVAL,
     CONF_REGION,
     CONF_SECRET_KEY,
@@ -50,12 +49,11 @@ def credential_schema(*, initial: bool) -> vol.Schema:
     if initial:
         fields[vol.Required(CONF_SERIAL)] = str
         fields[vol.Required(CONF_REGION, default="eu")] = vol.In(HOSTS)
-        fields[vol.Required(CONF_CONFIRM_V1, default=False)] = bool
     return vol.Schema(fields)
 
 
 class EcoFlowConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Only explicitly confirmed SHP v1 panels may be configured."""
+    """Configure SHP v1 panels after checking their quota topology."""
 
     VERSION = 1
     MINOR_VERSION = 2
@@ -78,8 +76,6 @@ class EcoFlowConfigFlow(ConfigFlow, domain=DOMAIN):
             or data.get(CONF_REGION) not in HOSTS
         ):
             return {"base": "invalid_input"}
-        if not data.get(CONF_CONFIRM_V1):
-            return {"base": "confirm_v1"}
         client = EcoFlowClient(
             async_get_clientsession(self.hass),
             data[CONF_ACCESS_KEY],

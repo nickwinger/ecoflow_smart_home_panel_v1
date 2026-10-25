@@ -23,11 +23,18 @@ async def test_create_and_duplicate(hass, mock_quota):
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
         assert result["type"] is FlowResultType.FORM
+        assert {str(key) for key in result["data_schema"].schema} == {
+            "access_key",
+            "secret_key",
+            "serial",
+            "region",
+        }
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**DATA, "serial": " shp-test-0001 "}
         )
         assert result["type"] is FlowResultType.CREATE_ENTRY
         assert result["data"]["serial"] == DATA["serial"]
+        assert "confirm_v1" not in result["data"]
         assert "SHP-TEST" not in result["title"]
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": SOURCE_USER}, data=DATA
@@ -63,7 +70,7 @@ async def test_partial_onboarding(hass, mock_quota):
 
 @pytest.mark.parametrize(
     "change,expected",
-    [({"access_key": " "}, "invalid_input"), ({"confirm_v1": False}, "confirm_v1")],
+    [({"access_key": " "}, "invalid_input")],
 )
 async def test_input_validation(hass, mock_quota, change, expected):
     result = await hass.config_entries.flow.async_init(
@@ -74,7 +81,12 @@ async def test_input_validation(hass, mock_quota, change, expected):
 
 
 @pytest.mark.parametrize("source", [SOURCE_REAUTH, SOURCE_RECONFIGURE])
-async def test_credentials_replaced(hass, entry, mock_quota, source):
+@pytest.mark.parametrize("legacy_confirmation", [None, False, True])
+async def test_credentials_replaced(hass, entry, mock_quota, source, legacy_confirmation):
+    if legacy_confirmation is not None:
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, "confirm_v1": legacy_confirmation}
+        )
     with patch.object(hass.config_entries, "async_reload", return_value=True) as reload:
         result = await hass.config_entries.flow.async_init(
             DOMAIN,

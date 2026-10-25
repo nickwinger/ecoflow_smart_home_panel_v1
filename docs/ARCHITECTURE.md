@@ -176,3 +176,48 @@ sensor metadata. It describes charge mode, not measured charging power.
 Progress is bounded in memory and exposed as unrecorded control attributes plus
 aggregate diagnostics. See [CONTROLS.md](CONTROLS.md) for exact commands, limitations
 and manual acceptance; no real commands were sent during development.
+
+## Polling and value-change timestamps
+
+The integration asks for quota every configured interval (default 5 seconds),
+subject to request duration, scheduling and error/rate-limit backoff. Every
+successful response is reported to enabled entities, including identical values.
+This does not force EcoFlow to publish a newer physical measurement. No documented
+per-field cloud publication cadence or supported forced refresh is established.
+
+HA separates `last_reported` (a state was reported), `last_updated` (value or
+attributes changed), and `last_changed` (the value changed). A flat power curve and
+an increasing “seconds ago” label can therefore coexist with successful
+five-second polling. A power reading is never altered just to move that label,
+and `force_update` is not used to create duplicate Recorder history. This follows
+[Home Assistant's state reporting semantics](https://contributors.home-assistant.io/blog/2024/03/20/state_reported_timestamp/).
+
+The integration diagnostics download contains `poll_interval_seconds`,
+`effective_poll_interval_seconds` (including backoff), `polling_disabled`,
+`consecutive_poll_failures`, `successful_quota_refreshes`,
+`last_successful_quota_refresh` (UTC) and `last_update_success`. Counts reset on
+entry reload; only the last successful timestamp and count are held in memory.
+An unsuccessful fetch does not advance either value. Partial successful responses
+still count as a fetch; missing individual readings remain unavailable.
+These diagnostics are not new entities or attributes on each power reading,
+and do not add Recorder rows or any raw archive.
+
+For a particular enabled sensor, inspect `last_reported` directly in HA's
+Developer Tools → Template, replacing the example entity ID:
+
+```jinja
+{{ states['sensor.your_channel_power'].last_reported }}
+```
+
+This reads HA's live state object. The normal frontend/serialized state display
+need not redraw for identical reports. A recent quota refresh or state report
+proves retrieval/reporting, not the physical measurement's age inside EcoFlow.
+
+## Configuration without a v1 confirmation checkbox (0.2.1)
+
+The integration is explicitly for SHP v1, so setup now asks only for credentials,
+serial and API region. It still validates the supported ten-load/two-backup quota
+layout and rejects incomplete/unsupported topology. The cloud API does not supply
+an authoritative model identifier. Existing entries' legacy `confirm_v1` field
+is ignored, including during reauth/reconfigure; no ID or control-option migration
+is required. No controls are enabled by removing the checkbox.

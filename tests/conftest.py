@@ -12,7 +12,6 @@ DATA = {
     "secret_key": "test-secret",
     "serial": "SHP-TEST-0001",
     "region": "eu",
-    "confirm_v1": True,
 }
 
 

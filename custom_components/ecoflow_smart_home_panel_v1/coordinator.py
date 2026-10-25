@@ -2,13 +2,14 @@
 
 import json
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import AuthenticationError, EcoFlowClient, EcoFlowError, RateLimitError
 from .catalog import Catalog
@@ -70,12 +71,15 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
             else DEFAULT_POLL_INTERVAL_SECONDS
         )
         self.failures = 0
+        self.successful_quota_refreshes = 0
+        self.last_successful_quota_refresh: datetime | None = None
         super().__init__(
             hass,
             _LOGGER,
             config_entry=entry,
             name=DOMAIN,
             update_interval=timedelta(seconds=self.poll_interval),
+            always_update=True,  # Report unchanged quota too; HA retains last_changed.
         )
         self.controls = PanelControls(self)
 
@@ -117,6 +121,8 @@ class EcoFlowCoordinator(DataUpdateCoordinator[Snapshot]):
             self.update_interval = timedelta(seconds=seconds)
             raise UpdateFailed(str(error)) from None
         self.failures = 0
+        self.successful_quota_refreshes += 1
+        self.last_successful_quota_refresh = dt_util.utcnow()
         self.update_interval = timedelta(seconds=self.poll_interval)
         # A registry-backed lifetime cap also applies across restarts/key churn.
         for path in sorted(snapshot.leaves, key=identity):

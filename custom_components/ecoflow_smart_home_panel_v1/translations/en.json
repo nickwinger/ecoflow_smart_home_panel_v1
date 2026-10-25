@@ -8,8 +8,7 @@
           "access_key": "Access Key",
           "secret_key": "Secret Key",
           "serial": "Panel serial number",
-          "region": "API region",
-          "confirm_v1": "My panel is a Smart Home Panel v1 (first generation)"
+          "region": "API region"
         }
       },
       "reauth_confirm": {
@@ -30,7 +29,6 @@
     "error": {
       "invalid_auth": "Access denied. Check credentials and API permissions.",
       "invalid_input": "Enter valid credentials and a serial number.",
-      "confirm_v1": "Please confirm the first-generation panel.",
       "unsupported_device": "SHP v1 layout not confirmed (10 load and 2 backup channels). Retry a partial response; SHP2/3 are unsupported.",
       "rate_limited": "EcoFlow rate limit. Please try again later.",
       "invalid_response": "Invalid or rejected quota response.",

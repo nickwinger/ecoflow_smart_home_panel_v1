@@ -102,3 +102,79 @@ async def test_runtime_auth_triggers_reauth(hass, entry, mock_quota):
     assert any(flow["context"].get("source") == "reauth" for flow in flows)
     assert not entry.runtime_data.last_update_success
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_identical_channel_power_reports_each_poll_without_fake_change(
+    hass, entry, mock_quota, quota, freezer
+):
+    from homeassistant.helpers import entity_registry as er
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    mock_quota.return_value = {
+        **quota,
+        "channelPower.infoList": [{"chWatt": 123} for _ in range(10)],
+    }
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, coordinator.unique_id(("channelPower.infoList", 6, "chWatt"))
+    )
+    initial = hass.states.get(entity_id)
+    changed = initial.last_changed
+    updated = initial.last_updated
+    reported = initial.last_reported
+    start = dt_util.utcnow()
+    for cycle in range(1, 4):
+        now = start + timedelta(seconds=6 * cycle)
+        freezer.move_to(now)
+        async_fire_time_changed(hass, now)
+        await hass.async_block_till_done()
+        state = hass.states.get(entity_id)
+        assert mock_quota.await_count == cycle + 1
+        assert coordinator.successful_quota_refreshes == cycle + 1
+        assert state.last_reported > reported
+        assert state.last_changed == changed
+        assert state.last_updated == updated
+        assert state.state == "123"
+        reported = state.last_reported
+    mock_quota.return_value["channelPower.infoList"][6]["chWatt"] = 321
+    now = start + timedelta(seconds=24)
+    freezer.move_to(now)
+    async_fire_time_changed(hass, now)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state.state == "321"
+    assert state.last_changed > changed
+    assert coordinator.successful_quota_refreshes == 5
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_poll_diagnostics_distinguish_success_and_backoff(hass, entry, mock_quota):
+    from custom_components.ecoflow_smart_home_panel_v1.diagnostics import (
+        async_get_config_entry_diagnostics,
+    )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    before = await async_get_config_entry_diagnostics(hass, entry)
+    assert before["successful_quota_refreshes"] == 1
+    assert before["last_successful_quota_refresh"] is not None
+    assert before["effective_poll_interval_seconds"] == 5
+    assert before["polling_disabled"] is False
+    mock_quota.side_effect = RateLimitError(180)
+    await entry.runtime_data.async_refresh()
+    failed = await async_get_config_entry_diagnostics(hass, entry)
+    assert failed["successful_quota_refreshes"] == 1
+    assert failed["last_successful_quota_refresh"] == before["last_successful_quota_refresh"]
+    assert failed["last_update_success"] is False
+    assert failed["consecutive_poll_failures"] == 1
+    assert failed["effective_poll_interval_seconds"] == 180
+    mock_quota.side_effect = None
+    await entry.runtime_data.async_refresh()
+    recovered = await async_get_config_entry_diagnostics(hass, entry)
+    assert recovered["successful_quota_refreshes"] == 2
+    assert recovered["last_update_success"] is True
+    assert recovered["consecutive_poll_failures"] == 0
+    assert recovered["effective_poll_interval_seconds"] == 5
+    await hass.config_entries.async_unload(entry.entry_id)

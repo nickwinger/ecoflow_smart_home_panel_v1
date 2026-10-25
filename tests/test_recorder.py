@@ -114,3 +114,24 @@ async def test_opt_in_controls_record_states_without_progress_payloads(
     disabled = [e.entity_id for e in registry_entries(hass, entry) if e.disabled_by]
     assert not any(row[0] in disabled for row in rows)
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_identical_power_polls_do_not_create_duplicate_history(
+    recorder_mock, hass, entry, mock_quota
+):
+    await hass.async_start()
+    await setup(hass, entry)
+    power = entity_for(hass, entry, ("channelPower.infoList", 6, "chWatt"))
+    reported = hass.states.get(power.entity_id).last_reported
+    await async_wait_recording_done(hass)
+    before = await hass.async_add_executor_job(recorded_rows, hass)
+    for _ in range(3):
+        await entry.runtime_data.async_refresh()
+    await async_wait_recording_done(hass)
+    after = await hass.async_add_executor_job(recorded_rows, hass)
+    assert entry.runtime_data.successful_quota_refreshes >= 4
+    assert hass.states.get(power.entity_id).last_reported > reported
+    assert [r for r in before if r[0] == power.entity_id] == [
+        r for r in after if r[0] == power.entity_id
+    ]
+    await hass.config_entries.async_unload(entry.entry_id)

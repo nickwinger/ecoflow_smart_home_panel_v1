@@ -68,3 +68,13 @@ entities, while HA retains registry entries/history (possibly unavailable
 placeholders). Re-enabling preserves explicit user entity disables. Do not connect
 existing write automations to these entities or run competing writers until the
 owner has approved a separate supervised hardware validation and cutover.
+
+## Upgrade to 0.2.1: simpler setup and polling diagnostics
+
+The v1 confirmation checkbox is removed. Existing entries continue working;
+legacy confirmation data is ignored, and the quota-topology check remains.
+Polling defaults, saved options, entity IDs and enablement choices are unchanged.
+New aggregate diagnostics distinguish the last successful retrieval from a
+changed power value. See [update timestamps](ARCHITECTURE.md#polling-and-value-change-timestamps).
+In HA DEV, restart the existing service and reopen the configuration dialog;
+no volume reset or recreation of the integration is necessary.

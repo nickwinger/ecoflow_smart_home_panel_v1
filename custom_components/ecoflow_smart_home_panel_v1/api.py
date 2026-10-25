@@ -97,7 +97,7 @@ def quota_member(data: dict[str, Any], path: str) -> Any:
 
 
 def validate_shp_v1(data: dict[str, Any]) -> None:
-    """Require v1 topology, alongside explicit v1 confirmation in the UI.
+    """Require the supported v1 topology without a redundant confirmation checkbox.
 
     The published device list has no model identifier. This conservative layout
     check is not authoritative hardware identification. Retry partial onboarding

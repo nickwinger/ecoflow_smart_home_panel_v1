@@ -174,3 +174,43 @@ after including the brand icon: **1 integration, 0 invalid**.
   20 circuit diagnostics and 8 storage diagnostics), 201 disabled. No device
   commands, production changes or GitHub workflow dispatch. Manual check: refresh
   the existing DEV General settings page and verify Austria. M4 remains open.
+
+## M1/M2 follow-up — remove checkbox and distinguish polling from changes (0.2.1)
+
+- Removed the redundant v1-confirmation checkbox, its validation and de/en labels.
+  Setup now asks for keys, panel serial and API region only. The supported v1
+  quota-topology check remains. Old `confirm_v1` data is ignored during reauth
+  and reconfigure; no entry recreation or control-option migration.
+- Five-second polling was already operating. Read-only DEV observation confirmed
+  repeated reports around the configured interval while the channel value stayed
+  unchanged. No raw values, labels, credentials or response snapshots were saved.
+- Explicit `always_update=True` preserves the coordinator's existing behavior.
+  Diagnostics now expose successful refresh count, last success UTC timestamp,
+  effective interval/backoff, failures and HA's polling-disabled setting.
+  This distinguishes retrieval/reporting from value changes and cloud measurement
+  age without forced state changes, duplicate Recorder rows or a new archive.
+- `.venv/bin/pytest -q tests/test_config_flow.py tests/test_setup.py tests/test_recorder.py --tb=short --show-capture=no --timeout=30`: **44 passed**.
+- `.venv/bin/pytest -q --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`:
+  **370 passed in 27.27 seconds**, **99% coverage** (910 statements, 8 uncovered).
+  Tests cover setup without confirmation, old entry flags during credential
+  replacement, recurring identical power reports, changed power, diagnostic
+  counters/backoff and no duplicate Recorder history for identical polls.
+- `.venv/bin/ruff check custom_components tests scripts`,
+  `.venv/bin/ruff format --check custom_components tests scripts` (34 files),
+  `.venv/bin/python scripts/sync_catalog.py --check`,
+  `.venv/bin/python -m compileall -q custom_components`, `git diff --check`: **passed**.
+- Official local hassfest, with network disabled and repository read-only:
+  **1 integration, 0 invalid**, using the image/command recorded under M3 above.
+- Quota defaults unchanged: **245/245 fixture leaves**, **44 enabled** (16 essential,
+  10 circuit powers, 10 control modes, 8 storage measurements), **201 disabled**.
+- Physical data freshness still depends on EcoFlow. A recent fetch does not prove
+  a new physical measurement; no guaranteed per-field cloud update rate is known.
+  M4 remains open; no real device commands, production changes or workflow runs.
+
+Read-only DEV acceptance after restart: the live setup form contains exactly
+access key, secret key, serial and region, with no confirmation checkbox. The
+subsequent observation confirmed seven successful quota retrievals during a
+36-second window and one actual channel-power value change. The new diagnostic
+counter/timestamp and five-second effective interval were present. The temporary
+empty setup flow was closed and verification tokens revoked. No device write,
+raw measurement log or payload archive was created.
