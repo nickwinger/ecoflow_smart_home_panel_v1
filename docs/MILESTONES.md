@@ -39,6 +39,8 @@ M2 commit: [`544287c`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1
 
 ## M3 — verified, explicit source/charge control [IMPLEMENTED / OFFLINE VERIFIED]
 
+Implementation commit: [`888fd96`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/888fd96da2e44756839abee0292615b79a14b862), `feat: implement M3 verified opt-in source and charging controls` (0.2.0), published to main.
+
 - [x] Ten native source selects and two charging-mode switches with independent opt-ins; no startup switching.
 - [x] Exact signed PUT payloads, source/charge settle timings, bounded retries, fresh pre/post reads and unknown-safe confirmation.
 - [x] Separately gated/confirmed ordered batch action, stop on first failure, progress, cancellation and serialized transactions.
