@@ -43,10 +43,10 @@ Implementation commit: [`888fd96`](https://github.com/nickwinger/ecoflow_smart_h
 
 - [x] Ten source selects, ten mode selects and two charging switches; opt-in and no startup switching.
 - [x] Exact signed PUT payloads, source/charge settle timings, bounded retries, fresh pre/post reads and unknown-safe confirmation.
-- [x] Separately gated batch buttons plus confirmed automation action, stop on first failure, progress, cancellation and serialized transactions.
+- [x] Separately gated batch buttons plus confirmed automation action; original script sequence, continuation after channel failures, final aggregate result, progress, cancellation and serialized transactions.
 - [x] Offline transport, command/state/error, concurrency, HA services, options, lifecycle and Recorder tests; documented manual hardware QA.
 
-Acceptance: the current full suite has 456 offline tests, 99% overall coverage and 100% command-controller/telemetry coverage. Official local hassfest passes. The owner confirmed source switching and charging work. New mode and batch controls still need hardware acceptance; the development agent sent no actuator commands and changed no production installation. [Control contract and acceptance checklist](CONTROLS.md).
+Acceptance: the current full suite has 511 offline tests, 99% overall coverage and 100% command-controller/telemetry coverage. The batch controller is also compared directly with the original script in both directions. Official local hassfest passes. The owner confirmed source switching and charging work, and the original batch script's reliability. The native mode and batch controls still need hardware acceptance; the development agent sent no actuator commands and changed no production installation. [Control contract and acceptance checklist](CONTROLS.md).
 
 ## M4 — HACS and release readiness [TODO]
 
@@ -281,3 +281,66 @@ Implementation commit: [`3dfee82`](https://github.com/nickwinger/ecoflow_smart_h
 Manual next step: refresh the DEV device page, inspect the new controls and fixed
 names, and observe live power with the phone app closed. No control action is
 needed for this verification.
+
+## M3 correction — preserve the original complete batch sequence (0.3.1)
+
+Implementation commit: [`e0e9beb`](https://github.com/nickwinger/ecoflow_smart_home_panel_v1/commit/e0e9bebcfe5ac2a6608795376d940557679b52b7),
+`fix: restore original all-circuit switching sequence`.
+
+- The owner explicitly rejected the additional stop-on-first-error policy and
+  required the established `shp_mode.py` behavior. The 0.2.0/0.3.0 descriptions
+  above are historical; this correction supersedes their batch behavior.
+- `controls.py` now processes all ten channels in the original order for both
+  directions. An individual failure is collected and followed by the original
+  10-second pause and next channel. All original PUTs, pre/post reads, eight
+  attempts, 10-second settles and 15-second retry pauses (including after the
+  last failed attempt) are retained. Final success requires all ten confirmations;
+  otherwise a localized error lists all failed channels after the sequence ends.
+- Batch-only status decoding matches the original positional lookup, `ch`
+  fallback, dotted-list preference, `ctrlSta`/`sta` priority and `int()` conversion.
+  A missing unrelated channel no longer prevents current-channel confirmation.
+  Individual source/mode/charge controls and raw quota interpretation are unchanged.
+- The shared native async client, no-cache verification, command lock, opt-ins,
+  cancellation/unload and transport response limits/cooldown remain. No automatic
+  rollback or extra device command was added. Progress records only bounded
+  completed/failed circuit numbers, excluded from Recorder attributes.
+- Added an unchanged test-only copy of the owner's script from reference commit
+  `3fa58b227ea5bd9e1a605ebb7177ab002a2a6e10`, verified against Git blob
+  `5b409c05f51ae15c3fe5f8c32826bf877894eadb`. Only selected AST functions/constants
+  execute with synthetic memory-only GET/PUT/cache/log/sleep substitutes; imports
+  and CLI startup never execute. No source repository changes or live payloads.
+- `tests/test_batch_reference.py`: **36 complete trace comparisons** (18 scenarios
+  × grid/battery), **14 parser comparisons**, three cancellation stages, reauth and
+  lock serialization after a channel failure. The native GET/PUT/delay trace,
+  simulated outcome and completed/failed lists must match the reference exactly.
+  Existing tests now assert continuing through the remaining channels.
+- Initial focused run:
+  `.venv/bin/pytest -q tests/test_batch_reference.py tests/test_controls.py tests/test_control_entities.py tests/test_control_mode.py --tb=short --show-capture=no --timeout=30`:
+  **173 passed in 20.32 seconds**. One additional serialization regression was
+  subsequently included in the complete run below. Test configuration blocks
+  internet sockets and permits only local Unix sockets for HA internals.
+- Final full run:
+  `.venv/bin/pytest -q --disable-socket --allow-unix-socket --tb=short --show-capture=no --timeout=30 --cov=custom_components.ecoflow_smart_home_panel_v1 --cov-report=term-missing`:
+  **511 passed in 45.91 seconds**, **99% coverage** (1,187 statements, 8 uncovered);
+  **100% command-controller coverage**. All actuator calls mocked.
+- `.venv/bin/ruff check custom_components tests scripts`,
+  `.venv/bin/ruff format --check custom_components tests scripts` (**40 files**),
+  `.venv/bin/python scripts/sync_catalog.py --check`,
+  `.venv/bin/python -m compileall -q custom_components`, `git diff --check`: **passed**.
+- Local official validation:
+  `docker run --rm --network none -v /home/nick/dev/ecoflow_smart_home_panel_v1:/github/workspace:ro ghcr.io/home-assistant/hassfest:latest`:
+  **1 integration, 0 invalid**, using the previously recorded cached image.
+  GitHub workflows remain manual-only; no HACS run or release was triggered.
+- README, task contract, architecture, controls, migration and source references
+  updated. Version is 0.3.1; entity defaults, polling and MQTT behavior unchanged:
+  **245/245 leaves**, **44 enabled / 201 disabled**. Enabled: grid availability,
+  panel battery percentage, ten supply states, two nominal grid settings, two
+  daily counters, ten circuit powers, ten control modes and eight storage readings.
+- Remaining: native batch/mode hardware acceptance and M4/HACS installation and
+  release acceptance. A cloud/device failure may still leave a target unconfirmed,
+  just as in the reference. No live switching, production installation, DEV
+  restart or reference-repository change was performed in this correction.
+
+Manual check without switching: after the normal update/reload, inspect the
+revised batch-action description and the three device-page buttons. An actual
+batch run remains an owner action; no button press is needed for the UI check.

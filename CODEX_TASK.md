@@ -37,7 +37,7 @@ We already have working HTTP read, cache, channel grid/battery switching and bat
 
 **M3 – safe control**:
 - Opt-in, state-backed selects for grid-vs-battery source per load channel and switches for backup charging, adopting exactly the existing GET/PUT command format.
-- Use the existing behavior for retries/refresh/settle, preserve sequential circuit ordering `[7,6,3,1,2,4,5,8,9,10]` for intentional batch operations. Batch operations must be gated, explicitly user-initiated, observable and safe. Never trigger on setup/restart, API failure or polling.
+- Use the existing behavior for retries/refresh/settle, preserve sequential circuit ordering `[7,6,3,1,2,4,5,8,9,10]` for intentional batch operations. Batch operations must be gated, explicitly user-initiated and observable. Preserve shp_mode.py exactly: continue after individual channel exceptions, wait after every channel, retain the final retry pause, and report failed channels together after all ten. Use its per-channel status lookup/conversion for batch verification; do not require unrelated channels to be complete. Never trigger on setup/restart, API failure or polling.
 - On write, refresh a *fresh quota* and verify the target state before reporting success. Incomplete `loadCmdChCtrlInfos` is unknown, not success; do not incorrectly claim 'grid' from stale or last-good cache.
 - No broad switching on first deployment. All controls have appropriate safety notes and optional enablement.
 - Mocked tests for signatures/payloads, failures, retries, incomplete status, concurrency and no startup side effects.

@@ -122,3 +122,18 @@ needed. This installation-specific evidence underlies the connection added in
 See [probe results and limitations](LIVE_DATA.md). Installed Paho 2.1 and HA
 2026.10.3 code informed thread lifecycle, TLS and entity lifecycle handling;
 offline mocks verify no publish, writes on startup or retained-frame freshness.
+
+## Batch parity correction (0.3.1)
+
+At the owner's explicit request, batch switching now preserves the full behavior
+of `shp_mode.py` at the pinned reference revision above, blob
+`5b409c05f51ae15c3fe5f8c32826bf877894eadb`. This includes per-channel lookup and
+integer conversion, continuation after channel exceptions, all settle/retry
+pauses, and a final aggregated failure after all ten channels.
+
+[Test-only source copy](../tests/reference/shp_mode.py.txt) and
+[execution boundary](../tests/reference/README.md): its unchanged functions run
+with synthetic in-memory GET/PUT/cache/sleep substitutes in differential tests.
+No imports, CLI entry point, reference repository files or real device commands
+are executed/changed. The integration keeps native async scheduling, shared
+transport limits, permission gates, cancellation and unrecorded progress.

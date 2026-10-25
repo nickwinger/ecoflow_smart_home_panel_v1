@@ -83,3 +83,9 @@ batch opt-in exposes three buttons; none runs automatically. Allow outbound TLS
 8883 to EcoFlow for continuous power updates with the app closed. Credentials are
 obtained from the existing shared API client; no local MQTT broker or new login.
 Polling defaults to 5 seconds with 1–600 allowed; old larger intervals become 600.
+
+Version 0.3.1 restores the original script's full batch behavior: an individual
+channel failure no longer stops remaining channels. Both directions preserve all
+reference delays and retries, with failed circuits listed only after all ten
+have been processed. No option, identity or history migration is needed. Explicit
+cancellation/unload still stops the operation; see [CONTROLS.md](CONTROLS.md).

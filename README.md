@@ -5,12 +5,12 @@
 **Bring your first-generation EcoFlow Smart Home Panel into Home Assistant.** Monitor grid power, backup batteries, circuit status and detailed device diagnostics — with native entities and Home Assistant history.
 
 ![Home Assistant 2026.10+](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5)
-![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-blue)
+![Version 0.3.1](https://img.shields.io/badge/version-0.3.1-blue)
 ![Opt-in controls](https://img.shields.io/badge/controls-opt--in-orange)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > [!IMPORTANT]
-> **Early preview (v0.3.0) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
+> **Early preview (v0.3.1) · Read-only by default.** Supports the **original Smart Home Panel (v1)**, not SHP2 or newer models. Source switching and charging controls require separate opt-in. Source switching and charging have been confirmed by the owner; the new mode/batch controls still need hardware acceptance. Test in an isolated Home Assistant instance before production use.
 
 ## ✨ Features
 
@@ -64,7 +64,7 @@ That's it! Your panel and available entities will appear under **Devices & servi
 
 In **Options**, independently enable circuit controls (source and automatic/manual mode) or charging controls. The controls appear on the panel’s device page. No Home Assistant helpers are required. Enabling them sends no commands; only an explicit action changes the panel. Each write is followed by fresh status verification, with bounded retries and serialization. Startup and polling never switch anything.
 
-Enabling batch controls adds **All circuits to grid**, **All circuits to battery** and **Cancel switching** buttons to the device page. A button press starts the chosen sequence; enabling the option alone does nothing. Batches stop on the first failure. The existing confirmed action remains available for automations. See [control behavior and checks](docs/CONTROLS.md).
+Enabling batch controls adds **All circuits to grid**, **All circuits to battery** and **Cancel switching** buttons to the device page. A button press starts the chosen sequence; enabling the option alone does nothing. Batches follow the proven script’s order, retries and pauses, continue after individual failures, and report all unconfirmed circuits at the end. The existing confirmed action remains available for automations. See [control behavior and checks](docs/CONTROLS.md).
 
 Automatic mode returns supply control to the panel. Manual mode holds the currently reported supply source. The diagnostic “Control mode” sensor remains a separate status display.
 

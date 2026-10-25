@@ -1,4 +1,4 @@
-# M3: Stromkreise und Laden steuern (0.3.0)
+# M3: Stromkreise und Laden steuern (0.3.1)
 
 Die Installation und jedes Upgrade bleiben standardmäßig lesend. Es gibt keine
 Schaltbefehle beim Start, Neustart, Wiederherstellen, Polling oder bei API-Fehlern.
@@ -64,10 +64,13 @@ von `shp_mode.py`: **10 Sekunden** nach PUT, **15 Sekunden** vor Wiederholungen,
 höchstens **acht Versuche**. Ladebefehle übernehmen die **2 Sekunden** aus
 `ecoflow_config.SETTLE_AFTER_SET_SECONDS` / `ecoflow_set.py`; die gleiche begrenzte
 Wiederholungs- und Bestätigungslogik ergänzt dessen bloße Aktualisierung.
-Nach dem letzten fehlgeschlagenen Versuch entfällt eine nutzlose weitere Pause.
+Bei der Sammelschaltung bleibt auch die 15-Sekunden-Pause nach dem achten
+erfolglosen Versuch erhalten, genau wie im Referenzscript. Einzelsteuerungen
+behalten ihre bisherige begrenzte Wiederholungslogik.
 
 Eine erfolgreiche PUT-Antwort bestätigt nur die Annahme. Erfolg verlangt den
-passenden Zustand in einer frischen, vollständigen Kontrollliste. Dotted Keys
+passenden Zustand in einer frischen Antwort. Für Einzelsteuerungen wird eine
+vollständige Kontrollliste verlangt. Dotted Keys
 und verschachteltes JSON funktionieren; doppelte Strukturen, fehlende Einträge,
 abweichende Arraygrößen, widersprüchliche `ch`-Indizes und ungültige Codes bleiben
 unbekannt. Betriebsart-Aufträge benötigen zur Bestätigung den passenden frischen
@@ -76,11 +79,21 @@ wie Quellenwechsel. `ctrlSta` hat Vorrang; `sta` ist nur bei fehlendem `ctrlSta`
 Fallback. Boolesche Werte, Fließkommazahlen und numerische Strings werden nicht
 in gültige Codes umgedeutet. Die Quota-Rohwertsensoren bleiben davon unabhängig.
 
+Die **Sammelschaltung** verwendet dagegen ausdrücklich die kanalweise Auswertung
+aus `shp_mode.py`: Eine vorhandene Liste unter dem dotted Key hat Vorrang; sonst
+wird die verschachtelte Liste verwendet. Zuerst zählt der Dictionary-Eintrag an
+der Kanalposition, andernfalls die Suche nach `ch`. `ctrlSta` hat Vorrang vor
+`sta`; die ursprüngliche `int()`-Umwandlung bleibt erhalten. Ein fehlender anderer
+Kanal blockiert die Bestätigung des aktuellen Kanals nicht. Fehlende oder nicht
+auswertbare Zustände sind weiterhin unbekannt, ohne Ersatz durch alte Werte.
+
 Wie in der Referenz darf ein ausdrücklich angeforderter Quellen-/Ladebefehl auch
 bei unvollständigem Status gesendet werden. Für Manuell muss dagegen eine gültige
 aktuelle Quelle vorliegen, damit keine geraten wird. Unvollständiger Status kann niemals den
-Erfolg bestätigen. HTTP-/API-Fehler brechen sofort ab; sie lösen keine blinden
-Wiederholungen von PUT aus. Authentifizierungsfehler starten Reauth; GET und PUT
+Erfolg bestätigen. HTTP-/API-Fehler beenden den aktuellen Kanalversuch; die
+Sammelschaltung fährt nach der Pause mit dem nächsten Kanal fort. Sie lösen keine
+zusätzlichen PUT-Wiederholungen außerhalb des Referenzablaufs aus.
+Authentifizierungsfehler starten Reauth; GET und PUT
 teilen dieselbe HTTP-429-Sperrfrist. Fehlgeschlagene oder abgebrochene Aufträge
 machen die Entitäten nicht verfügbar, bis eine neue gültige Abfrage vorliegt.
 Es gibt keine optimistische Anzeige und keinen Rückgriff auf alte Quota.
@@ -105,21 +118,34 @@ Für Automationen bleibt die bisherige Aktion verfügbar:
 `config_entry_id`, `source: grid` oder `source: battery`, **`confirm: true`** und
 beide Quellen-/Sammelfreigaben. Kein automatisches Ziel „alle Panels“.
 
-Reihenfolge: **7, 6, 3, 1, 2, 4, 5, 8, 9, 10**, jeweils erst nach Bestätigung weiter,
-mit 10 Sekunden Abstand nach jedem bearbeiteten Stromkreis. Die Sammelaktion
-stoppt beim ersten Fehler. Das ist eine bewusste Verschärfung der Referenz,
-die nach einem Fehler weitere Stromkreise bearbeitet. Bereits bestätigte
+Reihenfolge für Netz und Batterie: **7, 6, 3, 1, 2, 4, 5, 8, 9, 10**. Jeder Kanal
+wird bis zur Bestätigung, bis zu acht erfolglosen Versuchen oder bis zu einer
+Exception bearbeitet. Danach folgen **immer 10 Sekunden Pause**, auch nach
+Fehlern, bereits passendem Zustand und dem letzten Kanal.
+
+Ein einzelner Fehler beendet die Folge nicht: Die übrigen Stromkreise werden
+weiter bearbeitet. **Erst nach allen zehn** wird das Gesamtergebnis gemeldet;
+unbestätigte Stromkreise werden dabei aufgelistet. So entspricht der Ablauf dem
+bewährten Referenzscript. Bereits bestätigte
 Schaltungen bleiben bestehen; es gibt keine automatische Rückschaltung oder
 zusätzliche Lade-/Entladebefehle. Es werden keine elektrischen Verriegelungen
 erfunden, die in der Referenz nicht belegt sind.
+
+Wenn alle zehn Stromkreise beim ersten Versuch bestätigt werden, ergeben die
+Pausen insgesamt **3 Minuten 20 Sekunden**, zuzüglich API-Antwortzeiten. Sind alle
+bereits im gewünschten Zustand, bleiben **1 Minute 40 Sekunden** Kanalpausen.
 
 Alle Quellen-, Betriebsart-, Lade- und Sammelaufträge eines Panels teilen eine Sperre über den
 gesamten Ablauf. Andere Panel-Einträge arbeiten unabhängig. Regelmäßiges
 lesendes Polling bleibt möglich. Fortschritt steht im Attribut
 `control_operation` der Steuerentitäten und im Diagnose-Download: Zustand,
 Auftragsart, Ziel, aktueller Stromkreis/Backup-Eintrag, Versuch und bei Sammelaktionen
-bereits bestätigte Stromkreise. Keine Seriennummern oder Kanalnamen im Fortschritt.
-Die Aktion kann optional ihre abschließende Ergebnisstruktur zurückgeben.
+bereits bestätigte (`completed`) und fehlgeschlagene (`failed`) Stromkreise.
+Keine Seriennummern oder Kanalnamen im Fortschritt. Bei vollständigem Erfolg kann
+die Aktion ihre Ergebnisstruktur zurückgeben; bei Teilerfolg meldet sie am Ende
+einen Fehler mit den betreffenden Stromkreisnummern. Die Listen bleiben in den
+Attributen und Diagnosen einsehbar. „Erfolgreich“ bedeutet weiterhin, dass alle
+zehn Ziele bestätigt wurden, nicht nur dass alle Befehle angenommen wurden.
 
 Ein Sammelauftrag kann mehrere Minuten dauern; ein Timeout der aufrufenden
 Oberfläche ist kein bestätigter Abbruch. **Nicht automatisch erneut aufrufen.**
@@ -129,6 +155,13 @@ betroffenen `config_entry_id` aufrufen. Diese Aktion beendet laufende und
 wartende Aufträge, ebenso wie Entladen/Neustart der Integration. Ein bereits
 übertragener PUT kann trotzdem noch am Gerät wirken. Nachfolgende Statusabfragen
 prüfen; ein Abbruch sendet keine kompensierenden Befehle.
+
+Der Ablauf wurde offline direkt gegen die unveränderten Funktionen aus
+[`shp_mode.py`](https://github.com/nickwinger/homeassistant_config/blob/3fa58b227ea5bd9e1a605ebb7177ab002a2a6e10/ecoflow/shp_mode.py)
+verglichen: Befehle, Abfragen, alle Pausen und Kanalresultate müssen identisch
+sein. Die native HA-Ausführung nutzt asynchrone Wartezeiten und den gemeinsamen
+Client ohne Dateicache. Dessen HTTP-Validierung, Zeitlimits und Rate-Limit-Sperren
+bleiben bestehen; Abbrechen/Entladen beendet laufende Aufträge weiterhin.
 
 Fortschritt und statische Beschreibungen werden als unrecorded attributes nicht
 in Recorder kopiert. Nur aktivierte Entitäten erzeugen normale Zustandshistorie.

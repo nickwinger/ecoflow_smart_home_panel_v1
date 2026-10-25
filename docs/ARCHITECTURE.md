@@ -142,7 +142,7 @@ M3 correction from the working source: channel grid writes require BOTH
 implemented in M1/M2. Backup `ctrlSta=2` has conflicting documented/runtime
 meaning, so no binary charge state is inferred from it.
 
-## Implemented M3 decisions (0.2.0)
+## Implemented M3 decisions (0.2.0, batch corrected in 0.3.1)
 
 Three options, all false by default, independently gate source, charge and batch
 controls. Entry schema remains 1.2; no migration enables controls. Fixed control
@@ -154,7 +154,7 @@ The current Snapshot also contains bounded derived control states (ten sources,
 two charging modes) from the same GET. They are calculated before the lifetime
 entity-registry cap and never stored separately. Complete actual arrays and
 unambiguous dotted/nested structures are required; fabricated bracketed keys or
-partial lists do not confirm a command. No older states are merged.
+partial lists do not confirm individual source/mode/charge commands. Batch confirmation uses the separate reference-compatible decoder described below. No older states are merged.
 
 A per-panel command lock spans preflight GET, PUT, settle, fresh GET verification,
 retries and intentional batch operations. HTTP requests share the existing client
@@ -164,9 +164,9 @@ Unloading cancels active and queued tasks, with no restoring or rollback writes.
 
 Source control uses the verified shp_mode loop (10 s settle, 15 s retry, eight
 attempts); charging retains the single-command reference's 2 s settle and adds
-bounded verification. HTTP/API failures abort rather than retry blindly. All
+bounded verification. HTTP/API failures end the current channel’s attempt. A batch catches that failure and continues with the next channel after its normal pause. All
 circuits run through separately gated explicit buttons or a confirmed action, preserving order
-7,6,3,1,2,4,5,8,9,10. Unlike the script, the action stops at the first failure.
+7,6,3,1,2,4,5,8,9,10. As in the script, a channel failure is collected, followed by a 10-second pause and the next channel. Failure is reported only after processing all ten.
 
 Backup charging controls use the reference code’s 2=on / 0,1=off
 interpretation; other codes remain unknown. This separate opt-in
@@ -253,3 +253,36 @@ Only the fresh `ctrlMode` confirms success. Three batch buttons use the existing
 sequence/controller, with cancellation available even when telemetry fails.
 There are no setup/reload/restore actuator writes. Normal interval is 1–600 s,
 default 5; failure backoff and EcoFlow rate limits may extend the effective delay.
+
+
+## Reference-compatible batch execution (0.3.1)
+
+The owner explicitly requested the complete working `shp_mode.py` behavior,
+replacing the earlier stop-on-first-error policy. Both grid and battery process
+7,6,3,1,2,4,5,8,9,10. Every channel gets a fresh preflight read; if necessary the
+exact reference PUT is followed by 10 s settle and fresh verification. A mismatch
+or unknown channel gets 15 s retry delay, including after attempt eight. Every
+processed channel then gets its 10 s pause, whether successful, already at target,
+or failed. No extra retries, parallel channel writes or rollback are added.
+
+`read_batch_sources` supplies ten bounded derived states to the current Snapshot.
+It matches the reference: dotted list preferred over nested, positional dict
+preferred over a `ch` fallback, `ctrlSta` preferred over `sta`, and Python `int()`
+conversion (including the original coercion of strings, floats and booleans).
+Only resulting 0/1 confirm grid/battery; missing/invalid values stay unknown.
+An incomplete unrelated channel does not invalidate a known channel. This is
+scoped to batch verification; stricter individual controls and raw quota sensor
+semantics are unchanged. No previous response can confirm a command.
+
+Per-channel exceptions are recorded as circuit numbers in `control_operation.failed`;
+confirmed circuits remain in `completed`. The same transaction lock stays held
+through every failure and pause. The final localized error lists failed circuits.
+No error text, payload or credentials enter progress or history. Cancellation,
+unload or removing control permission still stops future commands. Shared HTTP
+validation, request timeouts, response-size bounds and rate-limit cooldown remain
+transport constraints; a rejected/unavailable cloud cannot guarantee a switch.
+
+Offline differential tests run the actual pinned reference functions with fake
+GET/PUT/sleep against the same synthetic scenarios as the async controller.
+Complete call traces and per-channel results must match. The test-only reference
+copy has a verified Git blob hash; none of its imports or real I/O is executed.
