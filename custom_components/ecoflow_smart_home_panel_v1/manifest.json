@@ -1,9 +1,6 @@
 {
   "domain": "ecoflow_smart_home_panel_v1",
   "name": "EcoFlow Smart Home Panel v1",
-  "categories": [
-    "energy.backup_power"
-  ],
   "codeowners": [
     "@nickwinger"
   ],
